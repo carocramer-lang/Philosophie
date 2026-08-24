@@ -1,0 +1,12 @@
+{
+  "name": "lehrmaterial-tools",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Interaktive Browser-Lehrmaterialien als Single-File-HTML fuer Philosophie und Praktische Philosophie.",
+  "scripts": {
+    "test": "node tools/run-tests.js"
+  },
+  "devDependencies": {
+    "jsdom": "^24.1.0"
+  }
+}
