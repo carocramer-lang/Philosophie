@@ -5,11 +5,11 @@ kein Build-Schritt. Startbildschirm nach Design-Vorlage aus Claude Design,
 Unit 1 komplett mit Vokabeln aus `Vokabelübersicht_GL4.pdf`.
 
 ## Aufbau
-- `index.html` ist das komplette Tool in vier Ansichten (ein `showView()`-Router
+- `index.html` ist das komplette Tool in sechs Ansichten (ein `showView()`-Router
   blendet die passende `.view` ein, kein Reload):
   - **Startbildschirm**: Fortschrittsanzeige, Tagesserie (Streak), vier Kacheln
-    (Kapitel, Übungen, Merkliste, Duell), Menü, Optionen, Erfolge, Hilfe,
-    geräte-lokale Lehrkraft-Ansicht.
+    (Kapitel, Übungen, Merkliste, Duell), Menü (inkl. „Spiele“), Optionen,
+    Erfolge, Hilfe, geräte-lokale Lehrkraft-Ansicht.
   - **Unit-Ansicht**: die 10 Abschnitte von Unit 1 mit Fortschrittsbalken. Ist
     ein Abschnitt vollständig geübt, poppt einmalig (Pop-Animation + Toast)
     ein Abzeichen „Geschafft: Unit 1 · <Abschnitt>!“ auf der Karte auf — reine
@@ -19,6 +19,8 @@ Unit 1 komplett mit Vokabeln aus `Vokabelübersicht_GL4.pdf`.
     umschaltbar, beide zeigen dieselben Wörter.
   - **Merkliste**: alle gemerkten/noch zu übenden Wörter, manuell entfernbar,
     plus „Merkliste wiederholen“ (Karteikarten-Modus nur für diese Wörter).
+  - **Spiele**: eine Übersicht mit einem Spiel pro Abschnitt (siehe unten),
+    plus die eigentliche Spiel-Ansicht.
   - Keine externen Abhängigkeiten außer Google Fonts (fällt offline auf
     Systemschriften zurück) und dem Schullogo (fällt bei Netzwerkfehler auf
     einen Text-Badge zurück).
@@ -84,10 +86,34 @@ Karteikarten-Zuordnung als `right (= exactly)` disambiguiert.
   „gesehen“-Status wird dauerhaft gespeichert (`badgesSeen`), damit die
   Animation nicht bei jedem Besuch erneut abspielt.
 
+## Spiele
+Ein Spiel pro Abschnitt (`SECTION_GAMES`, 1:1 zu `UNIT1_SECTIONS`), Typ
+wechselt bewusst durch: Memory → Zuordnung → Wahr/Falsch → Memory → …
+(nie zweimal derselbe Typ direkt hintereinander). Alle Inhalte kommen aus
+den vorhandenen Vokabellisten; nur die Wahr/Falsch-Aussagen und ihre
+Erklärungen sind selbst formuliert (nicht aus dem Buch übernommen).
+
+- **Memory** (Abschnitte 1, 4, 7, 10): 8 Wortpaare mit passendem Emoji,
+  verdeckte Karten mit Flip-Animation, Paar- und Zug-Zähler. Zwei
+  aufgedeckte gleiche Karten bleiben offen (grün), ungleiche drehen sich
+  nach kurzer Verzögerung zurück.
+- **Zuordnung** (Abschnitte 2, 5, 8): links 8 englische Begriffe, rechts
+  ihre deutschen Übersetzungen (gemischt). Klick links + Klick rechts
+  bildet ein Paar; richtig wird grün und gesperrt, falsch blinkt kurz rot
+  und beide werden wieder frei wählbar.
+- **Wahr/Falsch** (Abschnitte 3, 6, 9): 8 selbst geschriebene
+  Englisch-Aussagen pro Abschnitt, je mit True/False-Buttons. Nach der
+  Antwort sofort Feedback in Grün/Rot mit kurzer Erklärung auf Englisch,
+  die Buttons sind danach für diese Aussage gesperrt; „›“ blättert weiter.
+
+Erreichbar über „Spiele“ im Hauptmenü → Abschnitt auswählen. Fortschritt in
+den Spielen selbst wird aktuell nicht gespeichert (kein Einfluss auf
+Karteikarten/Übersicht/Merkliste) — reines Zusatzangebot zum Üben.
+
 ## Umfang dieser Version
 Start- und Unit-1-Lernstrecke sind funktional umgesetzt und getestet. Offen:
 - Hör- und Schreibübungen (Kachel „Übungen“) — nächster Schritt.
-- Vokabeln für Units 2–4.
+- Vokabeln für Units 2–4 (und damit auch: Spiele für Units 2–4).
 - Teacher-Freischaltung units-übergreifend („erst wenn ich freigebe“) — bislang
   nicht nötig, da nur Unit 1 Inhalte hat. Geplanter Ansatz laut Absprache:
   innerhalb einer Unit bleibt alles frei (siehe Abschnitts-Abzeichen oben), nur

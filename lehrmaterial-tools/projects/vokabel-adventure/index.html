@@ -404,6 +404,86 @@
     color:var(--ink-8); cursor:pointer; flex:none; display:flex; align-items:center; justify-content:center; padding:0;
   }
   .mk-remove:hover{ background:rgba(224,137,154,.16); border-color:rgba(224,137,154,.4); color:#f0aebb; }
+
+  /* ---- Spiele: Uebersicht ---- */
+  .game-type-chip{
+    display:inline-flex; align-items:center; gap:6px; padding:5px 11px; border-radius:999px; flex:none;
+    font-size:11.5px; font-weight:500; letter-spacing:.02em;
+  }
+  .game-type-chip.memory{ background:rgba(143,182,232,.16); color:var(--blue); }
+  .game-type-chip.match{ background:rgba(127,209,193,.16); color:var(--teal); }
+  .game-type-chip.truefalse{ background:rgba(244,201,93,.16); color:var(--gold); }
+
+  /* ---- Memory ---- */
+  .mem-toolbar{ display:flex; gap:18px; font-size:13px; color:var(--ink-7); flex-wrap:wrap; }
+  .mem-toolbar b{ color:var(--ink-2); font-weight:500; font-variant-numeric:tabular-nums; }
+  .mem-grid{ display:grid; grid-template-columns:repeat(4, 1fr); gap:10px; width:100%; max-width:420px; }
+  @media (max-width:480px){ .mem-grid{ grid-template-columns:repeat(3, 1fr); gap:8px; } }
+  .mem-card{
+    aspect-ratio:1; border-radius:14px; cursor:pointer; perspective:900px; border:none; background:none; padding:0;
+  }
+  .mem-card-inner{
+    position:relative; width:100%; height:100%; border-radius:14px; transition:transform .4s cubic-bezier(.2,.8,.2,1);
+    transform-style:preserve-3d;
+  }
+  .mem-card.flipped .mem-card-inner, .mem-card.matched .mem-card-inner{ transform:rotateY(180deg); }
+  @media (prefers-reduced-motion:reduce){ .mem-card-inner{ transition:none; } }
+  .page.motion-off .mem-card-inner{ transition:none; }
+  .mem-face{
+    position:absolute; inset:0; backface-visibility:hidden; border-radius:14px; border:1px solid var(--border-strong);
+    display:flex; align-items:center; justify-content:center;
+  }
+  .mem-face-back{ background:linear-gradient(160deg,#213b5e,#152640); font-size:20px; color:var(--ink-8); }
+  .mem-face-front{
+    background:linear-gradient(160deg,#2a4568,#1a2f4c); transform:rotateY(180deg); flex-direction:column; gap:4px; padding:4px;
+  }
+  .mem-card.matched .mem-face-front{ background:linear-gradient(160deg, rgba(127,209,193,.35), rgba(127,209,193,.15)); border-color:rgba(127,209,193,.5); }
+  .mem-emoji{ font-size:26px; line-height:1; }
+  .mem-word{ font-size:10px; color:var(--ink-5); text-align:center; line-height:1.2; }
+  .mem-done{ font-size:14px; color:var(--teal); }
+
+  /* ---- Zuordnung ---- */
+  .match-wrap{ display:grid; grid-template-columns:1fr 1fr; gap:10px 16px; width:100%; max-width:560px; }
+  @media (max-width:480px){ .match-wrap{ gap:8px; } }
+  .match-col{ display:flex; flex-direction:column; gap:8px; }
+  .match-item{
+    text-align:left; padding:11px 13px; border-radius:11px; background:var(--card); border:1px solid var(--border);
+    color:var(--ink-2); font-size:13.5px; cursor:pointer; line-height:1.35;
+  }
+  .match-item:hover{ background:rgba(255,255,255,.11); }
+  .match-item.selected{ border-color:rgba(143,182,232,.6); background:rgba(143,182,232,.14); }
+  .match-item.correct{ border-color:rgba(127,209,193,.55); background:rgba(127,209,193,.16); color:var(--teal); cursor:default; }
+  .match-item.wrong{ animation:matchShake .35s ease; border-color:rgba(224,137,154,.6); background:rgba(224,137,154,.16); }
+  @keyframes matchShake{ 0%,100%{transform:translateX(0)} 25%{transform:translateX(-4px)} 75%{transform:translateX(4px)} }
+  @media (prefers-reduced-motion:reduce){ .match-item.wrong{ animation:none; } }
+  .page.motion-off .match-item.wrong{ animation:none; }
+  .match-status{ font-size:13px; color:var(--ink-8); }
+
+  /* ---- Wahr/Falsch ---- */
+  .tf-wrap{ display:flex; flex-direction:column; gap:16px; max-width:480px; }
+  .tf-progress{ font-size:13px; color:var(--ink-8); }
+  .tf-card{
+    border-radius:18px; padding:22px; background:var(--card); border:1px solid var(--border);
+    font-family:Fredoka,sans-serif; font-size:17px; line-height:1.4; color:var(--ink-1); min-height:80px;
+    display:flex; align-items:center;
+  }
+  .tf-buttons{ display:flex; gap:10px; }
+  .tf-buttons button{
+    flex:1; padding:13px; border-radius:12px; border:1px solid var(--border-strong); background:var(--card-2);
+    color:var(--ink-2); font-size:14px; cursor:pointer;
+  }
+  .tf-buttons button:hover:not(:disabled){ background:rgba(255,255,255,.14); }
+  .tf-buttons button:disabled{ cursor:default; opacity:.55; }
+  .tf-buttons button.chosen-correct{ background:rgba(127,209,193,.22); border-color:rgba(127,209,193,.6); color:var(--teal); opacity:1; }
+  .tf-buttons button.chosen-wrong{ background:rgba(224,137,154,.22); border-color:rgba(224,137,154,.6); color:#f0aebb; opacity:1; }
+  .tf-feedback{
+    border-radius:12px; padding:12px 14px; font-size:13.5px; line-height:1.5; display:none;
+  }
+  .tf-feedback.show{ display:block; }
+  .tf-feedback.correct{ background:rgba(127,209,193,.14); border:1px solid rgba(127,209,193,.4); color:var(--teal); }
+  .tf-feedback.wrong{ background:rgba(224,137,154,.14); border:1px solid rgba(224,137,154,.4); color:#f0aebb; }
+  .tf-nav{ display:flex; justify-content:flex-end; }
+  .tf-score{ font-size:13px; color:var(--ink-8); }
 </style>
 </head>
 <body>
@@ -569,6 +649,36 @@
 
     <div id="mkListWrap"></div>
     <div data-mode-panel="mkreview" id="mkReviewPanel"></div>
+  </div>
+</div>
+
+<!-- Spiele: Uebersicht -->
+<div class="page view" id="viewGames" data-view="games">
+  <div class="wrap">
+    <div class="subhead">
+      <button class="back" id="gamesBackBtn" aria-label="Zurück zum Startbildschirm">←</button>
+      <span class="crumb">Vokabel-Adventure</span>
+    </div>
+    <div>
+      <h1 class="page-title">Spiele</h1>
+      <p class="page-sub">Ein Spiel pro Abschnitt aus Unit 1 — mal Memory, mal Zuordnung, mal Wahr/Falsch.</p>
+    </div>
+    <div class="sec-list" id="gameList"></div>
+  </div>
+</div>
+
+<!-- Spiele: einzelnes Spiel -->
+<div class="page view" id="viewGamePlay" data-view="gameplay">
+  <div class="wrap">
+    <div class="subhead">
+      <button class="back" id="gamePlayBackBtn" aria-label="Zurück zur Spiele-Übersicht">←</button>
+      <span class="crumb">Vokabel-Adventure · Spiele</span>
+    </div>
+    <div>
+      <h1 class="page-title" id="gamePlayTitle"></h1>
+      <p class="page-sub" id="gamePlaySub"></p>
+    </div>
+    <div id="gamePlayBody"></div>
   </div>
 </div>
 
@@ -823,6 +933,61 @@
     for (var i = 0; i < UNIT1_WORDS.length; i++) if (UNIT1_WORDS[i].en === en) return UNIT1_WORDS[i];
     return null;
   }
+
+  // Ein Spiel pro Abschnitt, Typ wechselt bewusst durch (Memory/Zuordnung/Wahr-Falsch).
+  // memory/match referenzieren nur "en" (Text kommt aus UNIT1_SECTIONS); truefalse ist
+  // selbst formuliert, nicht aus dem Buch uebernommen.
+  var SECTION_GAMES = [
+    { type: "memory", emojis: [
+      ["skyscraper", "🏙️"], ["desert", "🏜️"], ["sled", "🛷"], ["the Northern Lights", "🌌"],
+      ["cool", "🧊"], ["temperature", "🌡️"], ["foot, feet (pl)", "🦶"], ["the US (= the United States)", "🇺🇸"]
+    ] },
+    { type: "match", wordEns: ["flag", "state", "population", "billionaire", "identity", "extreme", "dry", "mountainous"] },
+    { type: "truefalse", items: [
+      { statement: "'Wealthy' means the same as 'poor'.", correct: false, explanation: "'Wealthy' means 'reich' — the opposite of 'poor', not the same." },
+      { statement: "A 'route planner' helps you find your way somewhere.", correct: true, explanation: "A route planner (Routenplaner) shows directions to a place." },
+      { statement: "'Harsh' describes something soft and gentle.", correct: false, explanation: "'Harsh' means 'rau; hart' — the opposite of soft and gentle." },
+      { statement: "'Vacation' (AE) means the same as 'holidays' (BE).", correct: true, explanation: "American 'vacation' = British 'holidays'." },
+      { statement: "'Wheat' is a type of grain.", correct: true, explanation: "Wheat (Weizen) is a cereal grain used to make flour and bread." },
+      { statement: "'Awesome' is a negative word.", correct: false, explanation: "'Awesome' means 'super; spitze' — it's a positive word." },
+      { statement: "'To symbolize' means to represent something.", correct: true, explanation: "'To symbolize' (symbolisieren) means to stand for an idea." },
+      { statement: "'Corn' (AE) means 'Reis' in German.", correct: false, explanation: "'Corn' (AE) means 'Mais', not 'Reis' (rice)." }
+    ] },
+    { type: "memory", emojis: [
+      ["bat", "⚾"], ["high school (AE)", "🏫"], ["apartment (AE)", "🏢"], ["shopping mall", "🛍️"],
+      ["restroom (AE)", "🚻"], ["dress code", "👔"], ["backyard (AE)", "🌳"], ["hallway (AE)", "🚪"]
+    ] },
+    { type: "match", wordEns: ["movie (AE)", "walk-in closet", "curfew", "downtown (AE)", "elevator (AE)", "movie theater (AE)", "soccer (AE)", "to meet up"] },
+    { type: "truefalse", items: [
+      { statement: "'To keep in touch' means to stay in contact with someone.", correct: true, explanation: "'To keep in touch' (in Kontakt bleiben) means talking to someone regularly." },
+      { statement: "'To dislike' something means you like it a lot.", correct: false, explanation: "'To dislike' (nicht mögen) is the opposite — you don't like it." },
+      { statement: "If you live 'in the middle of nowhere', you live in a big city center.", correct: false, explanation: "It means far from everything (mitten in der Pampa), not a city center." },
+      { statement: "'To be crazy about' something means you love it.", correct: true, explanation: "'To be crazy about' (verrückt sein nach) means you're very enthusiastic about it." },
+      { statement: "'To unpack' means to put your things into a suitcase.", correct: false, explanation: "'To unpack' (auspacken) means taking things OUT of a suitcase." },
+      { statement: "The 'foreground' is the part of a picture closest to you.", correct: true, explanation: "The foreground (Vordergrund) is what's in front, closest to the viewer." },
+      { statement: "'To find one's way around' means to get lost easily.", correct: false, explanation: "It means the opposite: knowing how to navigate a place well." },
+      { statement: "'No wonder' is used when something is not surprising.", correct: true, explanation: "'No wonder' (kein Wunder) means something makes sense." }
+    ] },
+    { type: "memory", emojis: [
+      ["protest", "✊"], ["to demonstrate", "📢"], ["liberty", "🗽"], ["justice", "⚖️"],
+      ["shopper", "🛒"], ["geek", "🤓"], ["Pledge of Allegiance", "🇺🇸"], ["to order", "🍽️"]
+    ] },
+    { type: "match", wordEns: ["turkey", "brussels sprout", "federal holiday", "harvest", "parade", "to avoid", "Native American", "to give thanks"] },
+    { type: "truefalse", items: [
+      { statement: "A 'nightmare' is a wonderful dream.", correct: false, explanation: "A nightmare (Albtraum) is a scary, bad dream." },
+      { statement: "If something is 'exaggerated', it's described as bigger or worse than it really is.", correct: true, explanation: "'Exaggerated' (übertrieben) means made to sound more extreme than reality." },
+      { statement: "'Dizzy' means you feel like the room is spinning.", correct: true, explanation: "'Dizzy' (schwindelig) describes that spinning, unsteady feeling." },
+      { statement: "A 'police officer' is someone who bakes bread.", correct: false, explanation: "A police officer (Polizist/-in) enforces the law, not a baker." },
+      { statement: "'To panic' means to stay calm in a difficult situation.", correct: false, explanation: "'To panic' (in Panik geraten) means the opposite — losing control out of fear." },
+      { statement: "'Twice' means two times.", correct: true, explanation: "'Twice' (zweimal) simply means 'two times'." },
+      { statement: "If a plan is 'impossible', it can easily be done.", correct: false, explanation: "'Impossible' (unmöglich) means it cannot be done at all." },
+      { statement: "A 'coincidence' is something that happens by chance.", correct: true, explanation: "A coincidence (Zufall) is an unplanned event that just happens." }
+    ] },
+    { type: "memory", emojis: [
+      ["garlic", "🧄"], ["toothpaste", "🪥"], ["motorcycle (AE)", "🏍️"], ["drums (pl)", "🥁"],
+      ["humorous", "😂"], ["to brainstorm", "💡"], ["pose", "🕺"], ["boyfriend", "💑"]
+    ] }
+  ];
 
   function pad(n){ return n < 10 ? "0" + n : "" + n; }
   function todayStr(d){ d = d || new Date(); return d.getFullYear() + "-" + pad(d.getMonth()+1) + "-" + pad(d.getDate()); }
@@ -1181,6 +1346,7 @@
     views.forEach(function(v){ v.classList.toggle("active", v.getAttribute("data-view") === name); });
     if (name === "unit") renderUnitView();
     else if (name === "merkliste") renderMerklisteView();
+    else if (name === "games") renderGamesList();
     if (name !== "start") { try { window.scrollTo(0, 0); } catch(e) {} }
   }
 
@@ -1481,6 +1647,238 @@
     }));
   });
 
+  // ---- Spiele: Uebersicht ----
+  var GAME_TYPE_LABEL = { memory: "Memory", match: "Zuordnung", truefalse: "Wahr/Falsch" };
+  var currentGameIndex = 0;
+
+  function renderGamesList(){
+    var list = $("gameList");
+    list.innerHTML = "";
+    UNIT1_SECTIONS.forEach(function(sec, idx){
+      var game = SECTION_GAMES[idx];
+      if (!game) return;
+      var card = el("button", { className: "sec-card", type: "button" }, [
+        el("span", { className: "sec-num", text: String(idx + 1) }),
+        el("span", { className: "sec-info" }, [
+          el("div", { className: "sec-name", text: sec.name })
+        ]),
+        el("span", { className: "game-type-chip " + game.type, text: GAME_TYPE_LABEL[game.type] })
+      ]);
+      card.addEventListener("click", function(){ openGame(idx); });
+      list.appendChild(card);
+    });
+  }
+  $("gamesBackBtn").addEventListener("click", function(){ showView("start"); });
+  $("gamePlayBackBtn").addEventListener("click", function(){ showView("games"); });
+
+  function openGame(idx){
+    currentGameIndex = idx;
+    var sec = UNIT1_SECTIONS[idx];
+    var game = SECTION_GAMES[idx];
+    if (!sec || !game) return;
+    $("gamePlayTitle").textContent = sec.name;
+    $("gamePlaySub").textContent = "Unit 1 · " + GAME_TYPE_LABEL[game.type];
+    var body = $("gamePlayBody");
+    body.innerHTML = "";
+    if (game.type === "memory") body.appendChild(buildMemoryGame(game.emojis));
+    else if (game.type === "match") body.appendChild(buildMatchGame(game.wordEns));
+    else if (game.type === "truefalse") body.appendChild(buildTrueFalseGame(game.items));
+    showView("gameplay");
+  }
+
+  // ---- Memory ----
+  function shuffle(arr){
+    var a = arr.slice();
+    for (var i = a.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = a[i]; a[i] = a[j]; a[j] = t;
+    }
+    return a;
+  }
+
+  function buildMemoryGame(emojiPairs){
+    var wrap = el("div", { className: "fc-wrap" });
+    var toolbar = el("div", { className: "mem-toolbar" }, [
+      el("span", null, [document.createTextNode("Paare: "), el("b", { id: "memPairs", text: "0 / " + emojiPairs.length })]),
+      el("span", null, [document.createTextNode("Züge: "), el("b", { id: "memMoves", text: "0" })])
+    ]);
+    var grid = el("div", { className: "mem-grid" });
+    wrap.appendChild(toolbar);
+    wrap.appendChild(grid);
+
+    var cards = [];
+    emojiPairs.forEach(function(pair, i){
+      cards.push({ en: pair[0], emoji: pair[1], pairId: i });
+      cards.push({ en: pair[0], emoji: pair[1], pairId: i });
+    });
+    cards = shuffle(cards);
+
+    var moves = 0, matched = 0, open = [], lock = false;
+    var pairsEl = toolbar.querySelector("#memPairs"), movesEl = toolbar.querySelector("#memMoves");
+
+    cards.forEach(function(card, i){
+      var btn = el("button", { className: "mem-card", type: "button", "aria-label": "Karte verdeckt" });
+      var inner = el("div", { className: "mem-card-inner" }, [
+        el("div", { className: "mem-face mem-face-back" }, [document.createTextNode("?")]),
+        el("div", { className: "mem-face mem-face-front" }, [
+          el("span", { className: "mem-emoji", text: card.emoji }),
+          el("span", { className: "mem-word", text: card.en })
+        ])
+      ]);
+      btn.appendChild(inner);
+      btn.addEventListener("click", function(){
+        if (lock || btn.classList.contains("flipped") || btn.classList.contains("matched")) return;
+        btn.classList.add("flipped");
+        btn.setAttribute("aria-label", card.en);
+        open.push({ btn: btn, card: card });
+        if (open.length === 2) {
+          moves++; movesEl.textContent = String(moves);
+          lock = true;
+          var a = open[0], b = open[1];
+          if (a.card.pairId === b.card.pairId) {
+            a.btn.classList.add("matched"); b.btn.classList.add("matched");
+            matched++; pairsEl.textContent = matched + " / " + emojiPairs.length;
+            open = []; lock = false;
+            if (matched === emojiPairs.length) {
+              wrap.appendChild(el("div", { className: "mem-done", text: "🎉 Geschafft — alle Paare gefunden!" }));
+            }
+          } else {
+            setTimeout(function(){
+              a.btn.classList.remove("flipped"); a.btn.setAttribute("aria-label", "Karte verdeckt");
+              b.btn.classList.remove("flipped"); b.btn.setAttribute("aria-label", "Karte verdeckt");
+              open = []; lock = false;
+            }, 700);
+          }
+        }
+      });
+      grid.appendChild(btn);
+    });
+    return wrap;
+  }
+
+  // ---- Zuordnung ----
+  function buildMatchGame(wordEns){
+    var words = wordEns.map(function(en){ return findWord(en); }).filter(Boolean);
+    var wrap = el("div", { className: "fc-wrap" });
+    var status = el("div", { className: "match-status", id: "matchStatus" });
+    var grid = el("div", { className: "match-wrap" });
+    var leftCol = el("div", { className: "match-col" });
+    var rightCol = el("div", { className: "match-col" });
+    grid.appendChild(leftCol); grid.appendChild(rightCol);
+    wrap.appendChild(status); wrap.appendChild(grid);
+
+    var leftOrder = shuffle(words.map(function(w, i){ return i; }));
+    var rightOrder = shuffle(words.map(function(w, i){ return i; }));
+    var selectedLeft = null, selectedRight = null, solved = 0, lock = false;
+    var leftBtns = {}, rightBtns = {};
+
+    function updateStatus(){ status.textContent = solved + " / " + words.length + " Paare"; }
+    updateStatus();
+
+    leftOrder.forEach(function(i){
+      var btn = el("button", { className: "match-item", type: "button", text: words[i].en });
+      btn.addEventListener("click", function(){
+        if (lock || btn.classList.contains("correct")) return;
+        Object.keys(leftBtns).forEach(function(k){ leftBtns[k].classList.remove("selected"); });
+        btn.classList.add("selected");
+        selectedLeft = i;
+        tryMatch();
+      });
+      leftBtns[i] = btn;
+      leftCol.appendChild(btn);
+    });
+    rightOrder.forEach(function(i){
+      var btn = el("button", { className: "match-item", type: "button", text: words[i].de });
+      btn.addEventListener("click", function(){
+        if (lock || btn.classList.contains("correct")) return;
+        Object.keys(rightBtns).forEach(function(k){ rightBtns[k].classList.remove("selected"); });
+        btn.classList.add("selected");
+        selectedRight = i;
+        tryMatch();
+      });
+      rightBtns[i] = btn;
+      rightCol.appendChild(btn);
+    });
+
+    function tryMatch(){
+      if (selectedLeft === null || selectedRight === null) return;
+      lock = true;
+      var lBtn = leftBtns[selectedLeft], rBtn = rightBtns[selectedRight];
+      if (selectedLeft === selectedRight) {
+        lBtn.classList.remove("selected"); rBtn.classList.remove("selected");
+        lBtn.classList.add("correct"); rBtn.classList.add("correct");
+        solved++; updateStatus();
+        selectedLeft = null; selectedRight = null; lock = false;
+        if (solved === words.length) {
+          wrap.appendChild(el("div", { className: "mem-done", text: "🎉 Geschafft — alle Paare richtig zugeordnet!" }));
+        }
+      } else {
+        lBtn.classList.add("wrong"); rBtn.classList.add("wrong");
+        setTimeout(function(){
+          lBtn.classList.remove("selected", "wrong"); rBtn.classList.remove("selected", "wrong");
+          selectedLeft = null; selectedRight = null; lock = false;
+        }, 500);
+      }
+    }
+    return wrap;
+  }
+
+  // ---- Wahr/Falsch ----
+  function buildTrueFalseGame(items){
+    var wrap = el("div", { className: "tf-wrap" });
+    var progress = el("div", { className: "tf-progress" });
+    var card = el("div", { className: "tf-card" });
+    var buttons = el("div", { className: "tf-buttons" });
+    var trueBtn = el("button", { type: "button", text: "True" });
+    var falseBtn = el("button", { type: "button", text: "False" });
+    buttons.appendChild(trueBtn); buttons.appendChild(falseBtn);
+    var feedback = el("div", { className: "tf-feedback" });
+    var navRow = el("div", { className: "tf-nav" });
+    var nextBtn = el("button", { className: "fc-nav", type: "button", "aria-label": "Nächste Aussage", text: "›" });
+    navRow.appendChild(nextBtn);
+    var score = el("div", { className: "tf-score" });
+    wrap.appendChild(progress); wrap.appendChild(card); wrap.appendChild(buttons); wrap.appendChild(feedback); wrap.appendChild(navRow); wrap.appendChild(score);
+
+    var index = 0, correctCount = 0, answered = [];
+
+    function renderCard(){
+      var item = items[index];
+      progress.textContent = (index + 1) + " / " + items.length;
+      card.textContent = item.statement;
+      trueBtn.className = ""; falseBtn.className = "";
+      trueBtn.disabled = false; falseBtn.disabled = false;
+      feedback.className = "tf-feedback";
+      feedback.textContent = "";
+      score.textContent = "Richtig: " + correctCount + " / " + answered.length;
+      if (answered[index] !== undefined) showAnswered(answered[index]);
+    }
+
+    function showAnswered(chosen){
+      var item = items[index];
+      trueBtn.disabled = true; falseBtn.disabled = true;
+      var chosenBtn = chosen ? trueBtn : falseBtn;
+      chosenBtn.classList.add(chosen === item.correct ? "chosen-correct" : "chosen-wrong");
+      feedback.classList.add("show", item.correct ? "correct" : "wrong");
+      feedback.textContent = (chosen === item.correct ? "✓ Richtig — " : "✗ Nicht ganz — ") + item.explanation;
+    }
+
+    function answer(chosen){
+      if (answered[index] !== undefined) return;
+      var item = items[index];
+      answered[index] = chosen;
+      if (chosen === item.correct) correctCount++;
+      showAnswered(chosen);
+      score.textContent = "Richtig: " + correctCount + " / " + answered.filter(function(a){ return a !== undefined; }).length;
+    }
+
+    trueBtn.addEventListener("click", function(){ answer(true); });
+    falseBtn.addEventListener("click", function(){ answer(false); });
+    nextBtn.addEventListener("click", function(){ index = (index + 1) % items.length; renderCard(); });
+
+    renderCard();
+    return wrap;
+  }
+
   // ---- Drawer ----
   var navDrawer = $("navDrawer");
   var menuBtn = $("menuBtn");
@@ -1509,7 +1907,7 @@
       case "continue": showView("unit"); break;
       case "chapters": openChaptersModal(); break;
       case "exercises": comingSoonModal("Übungen", "Hör- und Schreibübungen sind noch nicht freigeschaltet."); break;
-      case "games": comingSoonModal("Spiele", "Spiele folgen im nächsten Ausbauschritt."); break;
+      case "games": showView("games"); break;
       case "wordlist": showView("merkliste"); break;
       case "duel": comingSoonModal("Duell", "Vokabel-Duelle gegen " + DUEL_CLASS + " folgen im nächsten Ausbauschritt."); break;
       case "options": openOptionsModal(); break;
@@ -1577,6 +1975,8 @@
     closeDrawer: closeDrawer,
     showView: showView,
     openSection: openSection,
+    openGame: openGame,
+    SECTION_GAMES: SECTION_GAMES,
     currentView: function(){ return currentView; },
     isDrawerOpen: function(){ return navDrawer.classList.contains("open"); },
     isModalOpen: function(){ return modalLayer.classList.contains("open"); }

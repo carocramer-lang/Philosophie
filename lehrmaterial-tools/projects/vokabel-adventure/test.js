@@ -59,13 +59,11 @@ check("Modal-Titel Duell", doc.getElementById("modalTitle").textContent === "Due
 key(win, doc, "Escape");
 check("Escape schliesst Modal", G.isModalOpen() === false);
 
-// --- Menuepunkt "Spiele" (Inhalte folgen, aktuell Platzhalter) ---
+// --- Menuepunkt "Spiele" fuehrt zur Spiele-Uebersicht ---
 click(win, doc.getElementById("menuBtn"));
 check("'Spiele' steht im Menue", !!doc.querySelector('[data-nav="games"]'));
 click(win, doc.querySelector('[data-nav="games"]'));
-check("'Spiele' oeffnet ein Modal", G.isModalOpen() === true);
-check("Modal-Titel Spiele", doc.getElementById("modalTitle").textContent === "Spiele");
-key(win, doc, "Escape");
+check("'Spiele' oeffnet die Spiele-Uebersicht (kein Modal mehr)", G.currentView() === "games" && !G.isModalOpen());
 
 // --- Kapitel-Modal: Unit 1 klickbar, Unit 2-4 gesperrt ---
 click(win, doc.getElementById("chaptersTile"));
@@ -215,6 +213,89 @@ check("Merkliste-Liste zeigt jetzt 0 Eintraege", doc.querySelectorAll("#mkListWr
   const row = Array.from(doc4.querySelectorAll("#secOverviewPanel .ov-table tr")).find(tr => tr.querySelector(".en").textContent.indexOf(w.en) === 0);
   check("Übersicht zeigt Gekonnt-Häkchen auch nach Entfernen von der Merkliste", !!row && row.classList.contains("ov-row-known"));
   check("Stern ist nach Meisterschaft wieder aus (nicht mehr auf Merkliste)", !!row && !row.querySelector(".ov-star").classList.contains("on"));
+}
+
+// --- Spiele: ein Spiel pro Abschnitt, Typ wechselt, Daten stimmen mit den Woertern ueberein ---
+{
+  check("Ein Spiel pro Abschnitt", G.SECTION_GAMES.length === G.UNIT1_SECTIONS.length);
+  const types = G.SECTION_GAMES.map(g => g.type);
+  check("Alle Spieltypen sind memory/match/truefalse", types.every(t => ["memory", "match", "truefalse"].includes(t)));
+  check("Nie zweimal derselbe Spieltyp direkt hintereinander", types.every((t, i) => i === 0 || t !== types[i - 1]));
+  check("Alle drei Spieltypen kommen vor", new Set(types).size === 3);
+
+  G.SECTION_GAMES.forEach((game, idx) => {
+    const sectionEns = new Set(G.UNIT1_SECTIONS[idx].words.map(w => w.en));
+    if (game.type === "memory") {
+      check(`Memory Abschnitt ${idx + 1}: alle Emoji-Woerter existieren in der Station`, game.emojis.every(([en]) => sectionEns.has(en)));
+      check(`Memory Abschnitt ${idx + 1}: mind. 6 Paare`, game.emojis.length >= 6);
+    } else if (game.type === "match") {
+      check(`Zuordnung Abschnitt ${idx + 1}: alle Woerter existieren in der Station`, game.wordEns.every(en => sectionEns.has(en)));
+      check(`Zuordnung Abschnitt ${idx + 1}: mind. 6 Paare`, game.wordEns.length >= 6);
+    } else if (game.type === "truefalse") {
+      check(`Wahr/Falsch Abschnitt ${idx + 1}: jede Aussage hat Erklaerung + boolean`, game.items.every(it => typeof it.correct === "boolean" && !!it.statement && !!it.explanation));
+      check(`Wahr/Falsch Abschnitt ${idx + 1}: mind. 6 Aussagen`, game.items.length >= 6);
+    }
+  });
+}
+
+// --- Spiele-Uebersicht: Navigation und Kachel pro Abschnitt ---
+{
+  const { win: winG, doc: docG } = freshDom();
+  const GG = winG.__game;
+  GG.showView("games");
+  const gameCards = Array.from(docG.querySelectorAll("#gameList .sec-card"));
+  check("Spiele-Uebersicht zeigt 10 Karten", gameCards.length === 10);
+  check("Erste Karte zeigt Memory-Chip", !!gameCards[0].querySelector(".game-type-chip.memory"));
+  check("Zweite Karte zeigt Zuordnung-Chip", !!gameCards[1].querySelector(".game-type-chip.match"));
+  check("Dritte Karte zeigt Wahr/Falsch-Chip", !!gameCards[2].querySelector(".game-type-chip.truefalse"));
+
+  // --- Memory: Klick auf zwei identische Karten bleibt offen und zaehlt als Paar ---
+  click(winG, gameCards[0]);
+  check("Klick auf Memory-Karte oeffnet die Spiel-Ansicht", GG.currentView() === "gameplay");
+  const memCards = Array.from(docG.querySelectorAll(".mem-card"));
+  check("Memory-Grid hat 16 Karten (8 Paare)", memCards.length === 16);
+  const firstWord = memCards[0].querySelector(".mem-word").textContent;
+  const matchIdx = memCards.findIndex((c, i) => i !== 0 && c.querySelector(".mem-word").textContent === firstWord);
+  click(winG, memCards[0]);
+  click(winG, memCards[matchIdx]);
+  check("Gefundenes Paar bekommt 'matched'", memCards[0].classList.contains("matched") && memCards[matchIdx].classList.contains("matched"));
+  check("Paarzaehler steht auf 1 / 8", docG.getElementById("memPairs").textContent === "1 / 8");
+  check("Zugzaehler steht auf 1", docG.getElementById("memMoves").textContent === "1");
+
+  // --- zurueck zur Spiele-Uebersicht, dann Zuordnung oeffnen ---
+  click(winG, docG.getElementById("gamePlayBackBtn"));
+  check("Zurueck fuehrt zur Spiele-Uebersicht", GG.currentView() === "games");
+  const gameCards2 = Array.from(docG.querySelectorAll("#gameList .sec-card"));
+  click(winG, gameCards2[1]);
+  const leftItems = Array.from(docG.querySelectorAll(".match-col"))[0].querySelectorAll(".match-item");
+  const rightItems = Array.from(docG.querySelectorAll(".match-col"))[1].querySelectorAll(".match-item");
+  check("Zuordnung zeigt 8 Begriffe links und rechts", leftItems.length === 8 && rightItems.length === 8);
+  // richtiges Paar finden: linkes Wort mit seiner deutschen Übersetzung verknuepfen
+  const wordObj = GG.SECTION_GAMES[1].wordEns.map(en => ({ en, de: GG.UNIT1_WORDS.find(w => w.en === en).de })).find(w => w.en === leftItems[0].textContent);
+  const rightMatch = Array.from(rightItems).find(r => r.textContent === wordObj.de);
+  click(winG, leftItems[0]);
+  click(winG, rightMatch);
+  check("Richtiges Paar wird gruen markiert und gesperrt", leftItems[0].classList.contains("correct") && rightMatch.classList.contains("correct"));
+  check("Status zeigt 1 / 8 Paare", docG.getElementById("matchStatus").textContent === "1 / 8 Paare");
+
+  // --- zurueck, dann Wahr/Falsch oeffnen ---
+  click(winG, docG.getElementById("gamePlayBackBtn"));
+  const gameCards3 = Array.from(docG.querySelectorAll("#gameList .sec-card"));
+  click(winG, gameCards3[2]);
+  const tfItem = GG.SECTION_GAMES[2].items[0];
+  const trueBtn = docG.querySelector(".tf-buttons button:first-child");
+  const falseBtn = docG.querySelector(".tf-buttons button:last-child");
+  const rightBtn = tfItem.correct ? trueBtn : falseBtn;
+  const wrongBtn = tfItem.correct ? falseBtn : trueBtn;
+  click(winG, rightBtn);
+  check("Richtige Antwort wird als 'chosen-correct' markiert", rightBtn.classList.contains("chosen-correct"));
+  check("Feedback zeigt die Erklaerung", docG.querySelector(".tf-feedback").textContent.indexOf(tfItem.explanation) !== -1);
+  check("Buttons sind danach gesperrt", trueBtn.disabled && falseBtn.disabled);
+  click(winG, wrongBtn); // gesperrt: darf nichts mehr aendern
+  check("Erneuter Klick nach Antwort aendert nichts mehr", rightBtn.classList.contains("chosen-correct") && !wrongBtn.classList.contains("chosen-wrong"));
+  const nextBtn = docG.querySelector(".tf-nav .fc-nav");
+  click(winG, nextBtn);
+  check("Weiter-Button zeigt die naechste Aussage", docG.querySelector(".tf-progress").textContent === "2 / " + GG.SECTION_GAMES[2].items.length);
 }
 
 // --- Export ---
