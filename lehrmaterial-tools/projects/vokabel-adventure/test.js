@@ -24,9 +24,9 @@ check("Test-Hook vorhanden", !!G);
 check("Speicherstand nach erstem Laden vorhanden", !!win.localStorage.getItem(G.STORAGE_KEY));
 check("Startzustand: Unit 1 mit echtem Namen", doc.getElementById("unitLabel").textContent === "Unit 1 · Living in America");
 check("Startzustand: 0 / N Vokabeln", doc.getElementById("wordsLabel").textContent === "0 / " + G.UNIT1_WORDS.length + " Vokabeln");
-check("Startzustand: CTA zeigt Loslegen", doc.getElementById("ctaTitle").textContent === "Loslegen");
+check("Startzustand: CTA zeigt Start", doc.getElementById("ctaTitle").textContent === "Start");
 check("Startzustand: Streak 1 Tag nach erstem Besuch", G.state.streakCount === 1);
-check("Merkliste startet leer", doc.getElementById("wordlistSub").textContent === "0 Wörter");
+check("Merkliste startet leer", doc.getElementById("wordlistSub").textContent === "0 words");
 
 // --- Unit 1: Datenstruktur ---
 check("4 Units definiert", G.UNITS.length === 4);
@@ -127,8 +127,8 @@ check("Abschnitt 1 zeigt aktualisierten Fortschritt (Sterne zaehlen nicht als ge
 // --- Startbildschirm: CTA und Merkliste-Zaehler aktualisiert ---
 click(win, doc.getElementById("unitBackBtn"));
 check("Zurueck fuehrt zum Startbildschirm", G.currentView() === "start");
-check("CTA zeigt jetzt Weiterspielen", doc.getElementById("ctaTitle").textContent === "Weiterspielen");
-check("Merkliste-Kachel zeigt 2 Wörter", doc.getElementById("wordlistSub").textContent === "2 Wörter");
+check("CTA zeigt jetzt Continue", doc.getElementById("ctaTitle").textContent === "Continue");
+check("Merkliste-Kachel zeigt 2 words", doc.getElementById("wordlistSub").textContent === "2 words");
 
 // --- Merkliste-Ansicht: direkte Navigation ueber Kachel ---
 click(win, doc.getElementById("wordlistTile"));
