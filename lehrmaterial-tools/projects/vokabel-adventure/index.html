@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Vokabel-Adventure — Startbildschirm</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --bg-0:#0b1729; --bg-1:#12253d; --bg-2:#1c3352;
+    --ink-0:#e8eef7; --ink-1:#f0f5fb; --ink-2:#eaf1fa; --ink-3:#dfe9f6;
+    --ink-4:#cfdcec; --ink-5:#c9d8ea; --ink-6:#bccde2; --ink-7:#a9bed6;
+    --ink-8:#93aac6; --ink-9:#7f96b3;
+    --gold:#f4c95d; --gold-hover:#ffe3a3; --gold-deep:#e79a2f; --gold-dark:#f0a63e;
+    --teal:#7fd1c1; --blue:#8fb6e8; --pink:#e0899a;
+    --card:rgba(255,255,255,.06); --card-2:rgba(255,255,255,.07);
+    --border:rgba(255,255,255,.13); --border-strong:rgba(255,255,255,.16);
+    --focus:#8fd3ff;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--bg-0)}
+  body{font-family:Outfit,system-ui,-apple-system,sans-serif;color:var(--ink-0)}
+  h1{margin:0}
+  button{font:inherit;color:inherit}
+  a{color:var(--gold)}
+  a:hover{color:var(--gold-hover)}
+  a:focus-visible,button:focus-visible,[tabindex]:focus-visible{
+    outline:3px solid var(--focus); outline-offset:2px; border-radius:6px;
+  }
+
+  .page{
+    min-height:100vh;
+    background:radial-gradient(120% 80% at 50% 0%, var(--bg-2) 0%, var(--bg-1) 45%, var(--bg-0) 100%);
+    display:flex; justify-content:center;
+    padding:22px 16px 18px;
+  }
+  @media (min-width:560px){ .page{ padding:28px 22px 22px; } }
+  .wrap{ width:100%; max-width:1180px; display:flex; flex-direction:column; gap:20px; }
+  @media (min-width:560px){ .wrap{ gap:22px; } }
+
+  /* header */
+  .topbar{ display:flex; align-items:flex-start; justify-content:space-between; gap:14px; flex-wrap:wrap; }
+  .brand{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+  .icon-btn{
+    width:44px; height:44px; border-radius:13px; background:var(--card-2);
+    border:1px solid var(--border-strong); display:flex; flex-direction:column;
+    align-items:center; justify-content:center; gap:4px; cursor:pointer;
+    padding:0; transition:background .18s ease;
+  }
+  .icon-btn:hover{ background:rgba(255,255,255,.14); }
+  .icon-btn .bar{ width:18px; height:2px; background:var(--ink-3); border-radius:2px; }
+  .logo-badge{
+    height:46px; display:flex; align-items:center; padding:7px 13px; border-radius:12px;
+    background:#fff; box-shadow:0 6px 18px rgba(0,0,0,.28);
+  }
+  .logo-badge img{ display:block; height:32px; width:auto; }
+  .logo-fallback{ font-family:Fredoka,sans-serif; font-weight:600; font-size:14px; color:#12253d; white-space:nowrap; }
+  .class-label{ font-size:14px; font-weight:500; color:var(--ink-4); }
+
+  .pill-row{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+  .pill{
+    display:flex; align-items:center; gap:9px; padding:9px 14px; border-radius:999px;
+    background:var(--card); border:1px solid var(--border); font-size:13px; color:var(--ink-5);
+    cursor:pointer; transition:background .18s ease;
+  }
+  .pill:hover{ background:rgba(255,255,255,.12); }
+  .pill .dot{ width:8px; height:8px; flex:none; }
+  .dot-diamond{ border-radius:2px; transform:rotate(45deg); background:var(--teal); }
+  .dot-circle{ border-radius:50%; background:var(--gold); }
+
+  /* nav drawer */
+  .drawer{
+    position:fixed; inset:0; z-index:40; display:flex; visibility:hidden;
+  }
+  .drawer.open{ visibility:visible; }
+  .drawer-scrim{
+    position:absolute; inset:0; background:rgba(6,12,22,.6); opacity:0; transition:opacity .18s ease;
+  }
+  .drawer.open .drawer-scrim{ opacity:1; }
+  .drawer-panel{
+    position:relative; width:min(300px,84vw); height:100%; background:var(--bg-1);
+    border-right:1px solid var(--border); padding:18px; display:flex; flex-direction:column; gap:6px;
+    transform:translateX(-100%); transition:transform .2s ease;
+  }
+  .drawer.open .drawer-panel{ transform:translateX(0); }
+  .drawer h2{ font-family:Fredoka,sans-serif; font-size:18px; margin:0 0 8px; color:var(--ink-1); }
+  .drawer-item{
+    display:block; width:100%; text-align:left; background:none; border:none; cursor:pointer;
+    padding:11px 12px; border-radius:10px; color:var(--ink-3); font-size:14.5px;
+  }
+  .drawer-item:hover{ background:rgba(255,255,255,.08); }
+  .drawer-close{
+    position:absolute; top:14px; right:-46px; width:36px; height:36px; border-radius:10px;
+    background:rgba(255,255,255,.1); border:1px solid var(--border); color:var(--ink-2);
+    cursor:pointer; display:none;
+  }
+
+  /* title */
+  .titleblock{ text-align:center; display:flex; flex-direction:column; align-items:center; gap:10px; }
+  .titleblock h1{
+    font-family:Fredoka,sans-serif; font-weight:600; font-size:clamp(28px,7vw,58px);
+    line-height:1.04; letter-spacing:-.01em; color:#fff;
+  }
+  .title-meta{ display:flex; align-items:center; gap:12px; flex-wrap:wrap; justify-content:center; }
+  .badge-book{
+    padding:5px 13px; border-radius:999px; background:rgba(244,201,93,.14);
+    border:1px solid rgba(244,201,93,.35); color:var(--gold); font-size:13px;
+    letter-spacing:.06em; text-transform:uppercase; font-weight:500;
+  }
+  .title-sub{ font-size:15px; color:var(--ink-7); font-weight:300; }
+
+  /* main grid */
+  .main-grid{ display:grid; grid-template-columns:1fr; gap:24px; align-items:stretch; }
+  @media (min-width:760px){
+    .main-grid{ grid-template-columns:minmax(0,1.55fr) minmax(280px,1fr); }
+  }
+
+  .hero{
+    position:relative; border-radius:22px; overflow:hidden; border:1px solid var(--border-strong);
+    box-shadow:0 26px 60px rgba(0,0,0,.45); min-height:260px;
+  }
+  @media (min-width:760px){ .hero{ border-radius:26px; min-height:340px; } }
+  .hero img{
+    display:block; width:100%; height:100%; object-fit:cover; object-position:center 42%;
+    animation:floaty 7s ease-in-out infinite;
+  }
+  @media (prefers-reduced-motion:reduce){ .hero img{ animation:none; } }
+  .page.motion-off .hero img{ animation:none; }
+  @keyframes floaty{ 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-10px); } }
+  .hero-scrim{
+    position:absolute; inset:0;
+    background:linear-gradient(to top, rgba(9,20,34,.92) 0%, rgba(9,20,34,.25) 34%, rgba(9,20,34,0) 62%);
+  }
+  .hero-foot{
+    position:absolute; left:16px; right:16px; bottom:16px; display:flex; align-items:flex-end;
+    justify-content:space-between; gap:14px; flex-wrap:wrap;
+  }
+  .hero-progress{ display:flex; flex-direction:column; gap:7px; min-width:180px; flex:1; }
+  .hero-progress-labels{ display:flex; justify-content:space-between; align-items:baseline; font-size:13px; color:var(--ink-6); gap:10px; }
+  .hero-progress-labels strong{ font-weight:500; color:var(--ink-2); }
+  .bar-track{ height:7px; border-radius:99px; background:rgba(255,255,255,.16); overflow:hidden; }
+  .bar-fill{ height:100%; border-radius:99px; background:linear-gradient(90deg,var(--gold),var(--gold-dark)); transition:width .3s ease; }
+  .streak-badge{
+    padding:6px 11px; border-radius:9px; background:rgba(255,255,255,.12); border:1px solid var(--border-strong);
+    font-size:12px; color:var(--ink-3); display:flex; align-items:center; gap:7px; white-space:nowrap;
+  }
+  .streak-badge .dot{ width:8px; height:8px; border-radius:50%; background:var(--gold-dark); display:block; flex:none; }
+
+  .side{ display:flex; flex-direction:column; gap:12px; }
+  .cta{
+    position:relative; border-radius:20px; padding:22px 54px 22px 22px; text-align:left;
+    background:linear-gradient(160deg,#f6cf68,var(--gold-deep)); color:#1b1205; cursor:pointer;
+    box-shadow:0 16px 34px rgba(231,154,47,.3); display:flex; flex-direction:column; gap:4px;
+    border:none; width:100%; transition:box-shadow .18s ease, transform .18s ease;
+  }
+  @media (min-width:760px){ .cta{ border-radius:22px; padding:24px 58px 24px 22px; flex:1.25; justify-content:center; } }
+  .cta:hover{ box-shadow:0 22px 44px rgba(231,154,47,.42); transform:translateY(-2px); }
+  .cta-title{ font-family:Fredoka,sans-serif; font-size:26px; font-weight:600; line-height:1.05; }
+  @media (min-width:760px){ .cta-title{ font-size:30px; } }
+  .cta-sub{ font-size:14px; opacity:.72; }
+  .cta-arrow{
+    position:absolute; right:20px; top:50%; margin-top:-13px; width:0; height:0;
+    border-left:20px solid rgba(27,18,5,.75); border-top:13px solid transparent; border-bottom:13px solid transparent;
+  }
+
+  .tile-grid{ display:grid; grid-template-columns:1fr 1fr; gap:10px; flex:1; }
+  @media (min-width:760px){ .tile-grid{ gap:12px; } }
+  .tile{
+    border-radius:16px; padding:14px 13px; background:var(--card); border:1px solid var(--border);
+    cursor:pointer; display:flex; flex-direction:column; justify-content:space-between; gap:12px;
+    text-align:left; color:inherit; transition:background .18s ease, transform .18s ease;
+  }
+  @media (min-width:760px){ .tile{ border-radius:18px; padding:16px 15px; gap:14px; } }
+  .tile:hover{ background:rgba(255,255,255,.11); transform:translateY(-2px); }
+  .tile-title{ font-size:15.5px; font-weight:500; color:var(--ink-1); }
+  @media (min-width:760px){ .tile-title{ font-size:16px; } }
+  .tile-sub{ font-size:12px; color:var(--ink-8); }
+  .tile-icon-rect{ width:26px; height:20px; border-radius:5px; border:2px solid var(--teal); }
+  .tile-icon-bars{ display:flex; flex-direction:column; gap:4px; }
+  .tile-icon-bars span{ height:3px; background:var(--blue); border-radius:2px; display:block; }
+  .tile-icon-bars span:nth-child(1){ width:26px; } .tile-icon-bars span:nth-child(2){ width:20px; } .tile-icon-bars span:nth-child(3){ width:24px; }
+  .tile-icon-circle{ width:22px; height:22px; border-radius:50%; border:2px solid var(--gold); }
+  .tile-icon-diamond{ width:22px; height:22px; transform:rotate(45deg); border:2px solid var(--pink); border-radius:4px; }
+
+  /* footer */
+  .footbar{
+    margin-top:auto; padding-top:6px; display:flex; align-items:center; justify-content:space-between;
+    gap:14px; border-top:1px solid rgba(255,255,255,.09); font-size:12.5px; color:var(--ink-9); flex-wrap:wrap;
+  }
+  .footlinks{ display:flex; gap:16px; }
+  .footlinks button{ background:none; border:none; padding:2px 0; cursor:pointer; color:var(--ink-9); }
+  .footlinks button:hover{ color:var(--ink-4); }
+
+  /* modal */
+  .modal-layer{ position:fixed; inset:0; z-index:50; display:none; align-items:center; justify-content:center; padding:18px; }
+  .modal-layer.open{ display:flex; }
+  .modal-scrim{ position:absolute; inset:0; background:rgba(6,12,22,.68); }
+  .modal{
+    position:relative; width:min(440px,100%); max-height:82vh; overflow:auto; background:var(--bg-1);
+    border:1px solid var(--border-strong); border-radius:18px; padding:22px; display:flex; flex-direction:column; gap:14px;
+    box-shadow:0 30px 70px rgba(0,0,0,.5);
+  }
+  .modal h2{ font-family:Fredoka,sans-serif; font-size:20px; margin:0; color:#fff; }
+  .modal p{ margin:0; font-size:14.5px; line-height:1.55; color:var(--ink-5); }
+  .modal-close{
+    position:absolute; top:14px; right:14px; width:32px; height:32px; border-radius:9px;
+    background:rgba(255,255,255,.08); border:1px solid var(--border); color:var(--ink-2); cursor:pointer;
+  }
+  .modal-close:hover{ background:rgba(255,255,255,.16); }
+  .field-row{ display:flex; align-items:center; justify-content:space-between; gap:12px; padding:10px 0; border-top:1px solid rgba(255,255,255,.08); }
+  .field-row:first-of-type{ border-top:none; }
+  .field-row label{ font-size:14px; color:var(--ink-4); }
+  .btn-line{
+    display:inline-flex; align-items:center; gap:8px; padding:10px 14px; border-radius:10px;
+    background:rgba(244,201,93,.14); border:1px solid rgba(244,201,93,.35); color:var(--gold);
+    cursor:pointer; font-size:13.5px; align-self:flex-start;
+  }
+  .btn-line:hover{ background:rgba(244,201,93,.22); }
+  .btn-line.danger{ background:rgba(224,137,154,.14); border-color:rgba(224,137,154,.4); color:#f0aebb; }
+  .btn-line.danger:hover{ background:rgba(224,137,154,.22); }
+  .achv-list{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:8px; }
+  .achv{ display:flex; align-items:center; gap:10px; padding:9px 10px; border-radius:10px; background:rgba(255,255,255,.04); }
+  .achv.locked{ opacity:.45; }
+  .achv-dot{ width:9px; height:9px; border-radius:50%; background:var(--gold); flex:none; }
+  .achv.locked .achv-dot{ background:var(--ink-9); }
+  .stat-table{ width:100%; border-collapse:collapse; font-size:13.5px; }
+  .stat-table td{ padding:7px 0; border-top:1px solid rgba(255,255,255,.08); color:var(--ink-5); }
+  .stat-table tr:first-child td{ border-top:none; }
+  .stat-table td:last-child{ text-align:right; color:var(--ink-2); font-weight:500; }
+  .switch{
+    position:relative; width:40px; height:22px; border-radius:99px; background:rgba(255,255,255,.16);
+    border:1px solid var(--border); cursor:pointer; flex:none; padding:0;
+  }
+  .switch .knob{ position:absolute; top:2px; left:2px; width:16px; height:16px; border-radius:50%; background:var(--ink-3); transition:left .16s ease; }
+  .switch[aria-checked="true"]{ background:rgba(244,201,93,.4); border-color:rgba(244,201,93,.6); }
+  .switch[aria-checked="true"] .knob{ left:20px; background:var(--gold); }
+
+  .sr-only{ position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; }
+</style>
+</head>
+<body>
+<div class="page" id="page">
+  <div class="wrap">
+
+    <header class="topbar">
+      <div class="brand">
+        <button class="icon-btn" id="menuBtn" aria-haspopup="true" aria-expanded="false" aria-controls="navDrawer" aria-label="Menü öffnen">
+          <span class="bar"></span><span class="bar"></span><span class="bar"></span>
+        </button>
+        <div class="logo-badge">
+          <img src="https://www.pelizaeus.de/typo3conf/sites/default/images/pelizaeus-logo.png" alt="Pelizaeus-Gymnasium Paderborn"
+               onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'logo-fallback',textContent:'Pelizaeus-Gymnasium'}))" />
+        </div>
+        <span class="class-label">Englisch · Jahrgang 8</span>
+      </div>
+      <div class="pill-row">
+        <button class="pill" id="optionsBtn"><span class="dot dot-diamond"></span>Optionen</button>
+        <button class="pill" id="achievementsBtn"><span class="dot dot-circle"></span>Erfolge</button>
+      </div>
+    </header>
+
+    <nav class="drawer" id="navDrawer" aria-label="Hauptmenü">
+      <div class="drawer-scrim" data-close-drawer></div>
+      <div class="drawer-panel">
+        <h2>Vokabel-Adventure</h2>
+        <button class="drawer-item" data-nav="continue">Weiterspielen</button>
+        <button class="drawer-item" data-nav="chapters">Kapitel</button>
+        <button class="drawer-item" data-nav="exercises">Übungen</button>
+        <button class="drawer-item" data-nav="wordlist">Merkliste</button>
+        <button class="drawer-item" data-nav="duel">Duell</button>
+        <button class="drawer-item" data-nav="options">Optionen</button>
+        <button class="drawer-item" data-nav="achievements">Erfolge</button>
+        <button class="drawer-item" data-nav="help">Hilfe</button>
+        <button class="drawer-item" data-nav="teacher">Lehrkraft-Ansicht</button>
+      </div>
+    </nav>
+
+    <main>
+      <div class="titleblock">
+        <h1>Vokabel-Adventure</h1>
+        <div class="title-meta">
+          <span class="badge-book">Green Line 4</span>
+          <span class="title-sub">In and around the US</span>
+        </div>
+      </div>
+
+      <div class="main-grid" style="margin-top:24px">
+        <section class="hero" aria-label="Fortschritt aktuelle Unit">
+          <img src="hero.jpg" alt="Maskottchen Geist schwebt über einer leuchtenden USA-Karte mit Hollywood-Schriftzug, Freiheitsstatue, Wolkenkratzern und Football" />
+          <div class="hero-scrim"></div>
+          <div class="hero-foot">
+            <div class="hero-progress">
+              <div class="hero-progress-labels">
+                <strong id="unitLabel">Unit 1</strong>
+                <span id="wordsLabel">0 / 100 Vokabeln</span>
+              </div>
+              <div class="bar-track">
+                <div class="bar-fill" id="progressBar" role="progressbar" aria-labelledby="unitLabel" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" style="width:0%"></div>
+              </div>
+            </div>
+            <div class="streak-badge">
+              <span class="dot"></span><span id="streakLabel">0 Tage in Folge</span>
+            </div>
+          </div>
+        </section>
+
+        <div class="side">
+          <button class="cta" id="continueBtn">
+            <span class="cta-title" id="ctaTitle">Loslegen</span>
+            <span class="cta-sub" id="ctaSub">Unit 1 · Bereit zum Start</span>
+            <span class="cta-arrow" aria-hidden="true"></span>
+          </button>
+
+          <div class="tile-grid">
+            <button class="tile" id="chaptersTile">
+              <span class="tile-icon-rect"></span>
+              <span><span class="tile-title">Kapitel</span><br><span class="tile-sub" id="chaptersSub">8 Units</span></span>
+            </button>
+            <button class="tile" id="exercisesTile">
+              <span class="tile-icon-bars"><span></span><span></span><span></span></span>
+              <span><span class="tile-title">Übungen</span><br><span class="tile-sub">Hören · Schreiben</span></span>
+            </button>
+            <button class="tile" id="wordlistTile">
+              <span class="tile-icon-circle"></span>
+              <span><span class="tile-title">Merkliste</span><br><span class="tile-sub" id="wordlistSub">0 Wörter</span></span>
+            </button>
+            <button class="tile" id="duelTile">
+              <span class="tile-icon-diamond"></span>
+              <span><span class="tile-title">Duell</span><br><span class="tile-sub" id="duelSub">Klasse 8b</span></span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <footer class="footbar">
+      <div id="schoolYearLabel">Pelizaeus-Gymnasium Paderborn</div>
+      <div class="footlinks">
+        <button id="helpBtn">Hilfe</button>
+        <button id="teacherBtn">Lehrkraft-Ansicht</button>
+      </div>
+    </footer>
+  </div>
+</div>
+
+<div class="modal-layer" id="modalLayer">
+  <div class="modal-scrim" data-close-modal></div>
+  <div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <button class="modal-close" id="modalCloseBtn" aria-label="Schließen" data-close-modal>✕</button>
+    <h2 id="modalTitle"></h2>
+    <div id="modalBody"></div>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var STORAGE_KEY = "vokabel_adventure_v1";
+  var TOTAL_UNITS = 8;
+  var DEFAULT_WORDS_TOTAL = 100;
+  var DEFAULT_ROUNDS_TOTAL = 12;
+  var DUEL_CLASS = "Klasse 8b";
+
+  function pad(n){ return n < 10 ? "0" + n : "" + n; }
+  function todayStr(d){ d = d || new Date(); return d.getFullYear() + "-" + pad(d.getMonth()+1) + "-" + pad(d.getDate()); }
+  function yesterdayStr(todayIso){
+    var d = new Date(todayIso + "T00:00:00");
+    d.setDate(d.getDate() - 1);
+    return todayStr(d);
+  }
+
+  function defaultState(){
+    return {
+      v: 1,
+      unitNumber: 1,
+      unitName: "",
+      wordsLearned: 0,
+      wordsTotal: DEFAULT_WORDS_TOTAL,
+      round: 0,
+      roundsTotal: DEFAULT_ROUNDS_TOTAL,
+      merkliste: [],
+      streakCount: 0,
+      lastVisitDate: null,
+      reducedMotion: null
+    };
+  }
+
+  function loadState(){
+    var raw;
+    try { raw = localStorage.getItem(STORAGE_KEY); } catch(e) { raw = null; }
+    if (!raw) return defaultState();
+    try {
+      var parsed = JSON.parse(raw);
+      var d = defaultState();
+      for (var k in d) { if (parsed[k] !== undefined) d[k] = parsed[k]; }
+      return d;
+    } catch(e) { return defaultState(); }
+  }
+
+  function saveState(state){
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch(e) {}
+  }
+
+  // reine Funktion, damit sie ohne echtes Datum testbar ist
+  function computeStreak(prevCount, prevDateIso, todayIso){
+    if (prevDateIso === todayIso) return { count: prevCount || 1, date: todayIso };
+    if (prevDateIso === yesterdayStr(todayIso)) return { count: (prevCount || 0) + 1, date: todayIso };
+    return { count: 1, date: todayIso };
+  }
+
+  function applyDailyVisit(state){
+    var today = todayStr();
+    var result = computeStreak(state.streakCount, state.lastVisitDate, today);
+    state.streakCount = result.count;
+    state.lastVisitDate = result.date;
+    return state;
+  }
+
+  function computeAchievements(state){
+    return [
+      { id: "first-visit", label: "Erster Besuch", unlocked: state.streakCount >= 1 },
+      { id: "streak-3", label: "3 Tage in Folge", unlocked: state.streakCount >= 3 },
+      { id: "streak-7", label: "7 Tage in Folge", unlocked: state.streakCount >= 7 },
+      { id: "words-10", label: "Erste 10 Vokabeln gelernt", unlocked: state.wordsLearned >= 10 },
+      { id: "wordlist-5", label: "5 Wörter auf der Merkliste", unlocked: state.merkliste.length >= 5 }
+    ];
+  }
+
+  var state = loadState();
+  applyDailyVisit(state);
+  saveState(state);
+
+  // ---- Rendering ----
+  var $ = function(id){ return document.getElementById(id); };
+
+  function render(){
+    var unitLabel = state.unitName ? ("Unit " + state.unitNumber + " · " + state.unitName) : ("Unit " + state.unitNumber);
+    $("unitLabel").textContent = unitLabel;
+    $("wordsLabel").textContent = state.wordsLearned + " / " + state.wordsTotal + " Vokabeln";
+    var pct = state.wordsTotal > 0 ? Math.round(state.wordsLearned / state.wordsTotal * 100) : 0;
+    $("progressBar").style.width = pct + "%";
+    $("progressBar").setAttribute("aria-valuenow", String(pct));
+
+    var streakText = state.streakCount + " " + (state.streakCount === 1 ? "Tag" : "Tage") + " in Folge";
+    $("streakLabel").textContent = streakText;
+
+    var started = state.wordsLearned > 0 || state.round > 0;
+    $("ctaTitle").textContent = started ? "Weiterspielen" : "Loslegen";
+    $("ctaSub").textContent = started
+      ? ("Unit " + state.unitNumber + " · Runde " + state.round + " von " + state.roundsTotal)
+      : ("Unit " + state.unitNumber + " · Bereit zum Start");
+
+    $("chaptersSub").textContent = TOTAL_UNITS + " Units";
+    $("wordlistSub").textContent = state.merkliste.length + " " + (state.merkliste.length === 1 ? "Wort" : "Wörter");
+    $("duelSub").textContent = DUEL_CLASS;
+
+    var now = new Date();
+    var schoolYear = now.getMonth() >= 7 ? (now.getFullYear() + "/" + String(now.getFullYear()+1).slice(2))
+                                          : ((now.getFullYear()-1) + "/" + String(now.getFullYear()).slice(2));
+    $("schoolYearLabel").textContent = "Pelizaeus-Gymnasium Paderborn · Schuljahr " + schoolYear;
+
+    var page = $("page");
+    var reduce = state.reducedMotion === true || (state.reducedMotion === null && window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+    page.classList.toggle("motion-off", !!reduce);
+  }
+
+  // ---- Modal ----
+  var modalLayer = $("modalLayer");
+  var lastFocused = null;
+
+  function openModal(title, bodyNode){
+    $("modalTitle").textContent = title;
+    var body = $("modalBody");
+    body.innerHTML = "";
+    body.appendChild(bodyNode);
+    lastFocused = document.activeElement;
+    modalLayer.classList.add("open");
+    $("modalCloseBtn").focus();
+    document.addEventListener("keydown", onModalKeydown, true);
+  }
+
+  function closeModal(){
+    modalLayer.classList.remove("open");
+    document.removeEventListener("keydown", onModalKeydown, true);
+    if (lastFocused && typeof lastFocused.focus === "function") lastFocused.focus();
+  }
+
+  function onModalKeydown(e){
+    if (e.key === "Escape") { closeModal(); return; }
+    if (e.key !== "Tab") return;
+    var focusable = $("modal").querySelectorAll("button, [href], input, select, textarea, [tabindex]:not([tabindex='-1'])");
+    if (!focusable.length) return;
+    var first = focusable[0], last = focusable[focusable.length - 1];
+    if (e.shiftKey && document.activeElement === first) { last.focus(); e.preventDefault(); }
+    else if (!e.shiftKey && document.activeElement === last) { first.focus(); e.preventDefault(); }
+  }
+
+  Array.prototype.forEach.call(document.querySelectorAll("[data-close-modal]"), function(el){
+    el.addEventListener("click", closeModal);
+  });
+
+  function el(tag, props, children){
+    var e = document.createElement(tag);
+    if (props) for (var k in props) {
+      if (k === "className") e.className = props[k];
+      else if (k === "text") e.textContent = props[k];
+      else e.setAttribute(k, props[k]);
+    }
+    (children || []).forEach(function(c){ e.appendChild(c); });
+    return e;
+  }
+
+  function comingSoonModal(title, text){
+    var body = el("div", null, [
+      el("p", { text: text })
+    ]);
+    openModal(title, body);
+  }
+
+  // ---- Optionen ----
+  function openOptionsModal(){
+    var body = document.createElement("div");
+
+    var row1 = el("div", { className: "field-row" }, [
+      el("label", { text: "Bewegungseffekte reduzieren", id: "reduceMotionLabel" }),
+    ]);
+    var sw = el("button", {
+      className: "switch",
+      role: "switch",
+      "aria-checked": String(state.reducedMotion === true),
+      "aria-labelledby": "reduceMotionLabel"
+    }, [ el("span", { className: "knob" }) ]);
+    sw.addEventListener("click", function(){
+      state.reducedMotion = state.reducedMotion === true ? false : true;
+      saveState(state);
+      render();
+      sw.setAttribute("aria-checked", String(state.reducedMotion === true));
+    });
+    row1.appendChild(sw);
+    body.appendChild(row1);
+
+    var exportBtn = el("button", { className: "btn-line", type: "button", text: "⤓ Fortschritt exportieren (.json)" });
+    exportBtn.style.marginTop = "14px";
+    exportBtn.addEventListener("click", downloadExport);
+    body.appendChild(exportBtn);
+
+    var resetBtn = el("button", { className: "btn-line danger", type: "button", text: "Fortschritt zurücksetzen" });
+    resetBtn.style.marginTop = "10px";
+    resetBtn.addEventListener("click", function(){
+      var ok = window.confirm("Fortschritt auf diesem Gerät wirklich zurücksetzen? Das kann nicht rückgängig gemacht werden.");
+      if (!ok) return;
+      Object.assign(state, defaultState());
+      applyDailyVisit(state);
+      saveState(state);
+      render();
+      closeModal();
+    });
+    body.appendChild(resetBtn);
+
+    openModal("Optionen", body);
+  }
+
+  function exportProgressData(){
+    return JSON.stringify({
+      exportiertAm: new Date().toISOString(),
+      unit: state.unitNumber,
+      unitName: state.unitName || null,
+      wordsLearned: state.wordsLearned,
+      wordsTotal: state.wordsTotal,
+      round: state.round,
+      roundsTotal: state.roundsTotal,
+      streakCount: state.streakCount,
+      merkliste: state.merkliste
+    }, null, 2);
+  }
+
+  function downloadExport(){
+    var json = exportProgressData();
+    var blob = new Blob([json], { type: "application/json" });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a");
+    a.href = url;
+    a.download = "vokabel-adventure-fortschritt_" + todayStr() + ".json";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
+  }
+
+  // ---- Erfolge ----
+  function openAchievementsModal(){
+    var achievements = computeAchievements(state);
+    var list = el("ul", { className: "achv-list" });
+    achievements.forEach(function(a){
+      list.appendChild(el("li", { className: "achv" + (a.unlocked ? "" : " locked") }, [
+        el("span", { className: "achv-dot" }),
+        el("span", { text: a.label })
+      ]));
+    });
+    openModal("Erfolge", list);
+  }
+
+  // ---- Hilfe ----
+  function openHelpModal(){
+    var body = document.createElement("div");
+    body.appendChild(el("p", { text: "Vokabel-Adventure begleitet dich durch den Wortschatz von Green Line 4. Der Startbildschirm zeigt deinen aktuellen Fortschritt, deine Serie an aufeinanderfolgenden Tagen und deine Merkliste." }));
+    body.appendChild(el("p", { text: "Dein Fortschritt wird nur auf diesem Gerät in diesem Browser gespeichert. Sichere ihn bei Bedarf über „Optionen → Fortschritt exportieren“, bevor du den Cache leerst oder das Gerät wechselst." }));
+    body.appendChild(el("p", { text: "Die eigentlichen Lernrunden (Kapitel, Übungen, Merkliste, Duell) folgen im nächsten Ausbauschritt." }));
+    openModal("Hilfe", body);
+  }
+
+  // ---- Lehrkraft-Ansicht ----
+  function openTeacherModal(){
+    var rows = [
+      ["Unit", state.unitNumber + (state.unitName ? " · " + state.unitName : "")],
+      ["Gelernte Vokabeln", state.wordsLearned + " / " + state.wordsTotal],
+      ["Runde", state.round + " von " + state.roundsTotal],
+      ["Serie (Tage in Folge)", String(state.streakCount)],
+      ["Merkliste", String(state.merkliste.length) + " Wörter"],
+      ["Letzter Besuch", state.lastVisitDate || "—"]
+    ];
+    var table = el("table", { className: "stat-table" });
+    rows.forEach(function(r){
+      table.appendChild(el("tr", null, [ el("td", { text: r[0] }), el("td", { text: r[1] }) ]));
+    });
+    var body = document.createElement("div");
+    body.appendChild(el("p", { text: "Lokaler Stand dieses Geräts. Es gibt keine geräteübergreifende Übersicht — Fortschritt lebt ausschließlich im Browser der Schülerin bzw. des Schülers." }));
+    body.appendChild(table);
+    openModal("Lehrkraft-Ansicht", body);
+  }
+
+  // ---- Drawer ----
+  var navDrawer = $("navDrawer");
+  var menuBtn = $("menuBtn");
+
+  function openDrawer(){
+    navDrawer.classList.add("open");
+    menuBtn.setAttribute("aria-expanded", "true");
+  }
+  function closeDrawer(){
+    navDrawer.classList.remove("open");
+    menuBtn.setAttribute("aria-expanded", "false");
+  }
+  menuBtn.addEventListener("click", function(){
+    navDrawer.classList.contains("open") ? closeDrawer() : openDrawer();
+  });
+  Array.prototype.forEach.call(document.querySelectorAll("[data-close-drawer]"), function(elm){
+    elm.addEventListener("click", closeDrawer);
+  });
+  document.addEventListener("keydown", function(e){
+    if (e.key === "Escape" && navDrawer.classList.contains("open")) closeDrawer();
+  });
+
+  function handleNav(key){
+    closeDrawer();
+    switch (key) {
+      case "continue": comingSoonModal("Weiterspielen", "Die Lernrunden sind noch nicht freigeschaltet — sie folgen im nächsten Ausbauschritt von Vokabel-Adventure."); break;
+      case "chapters": comingSoonModal("Kapitel", "Die Kapitelübersicht mit allen " + TOTAL_UNITS + " Units von Green Line 4 folgt im nächsten Ausbauschritt."); break;
+      case "exercises": comingSoonModal("Übungen", "Hör- und Schreibübungen sind noch nicht freigeschaltet."); break;
+      case "wordlist": comingSoonModal("Merkliste", "Hier sammelst du Wörter, die du dir extra merken willst. Aktuell: " + state.merkliste.length + " Wörter."); break;
+      case "duel": comingSoonModal("Duell", "Vokabel-Duelle gegen " + DUEL_CLASS + " folgen im nächsten Ausbauschritt."); break;
+      case "options": openOptionsModal(); break;
+      case "achievements": openAchievementsModal(); break;
+      case "help": openHelpModal(); break;
+      case "teacher": openTeacherModal(); break;
+    }
+  }
+
+  Array.prototype.forEach.call(document.querySelectorAll("[data-nav]"), function(btn){
+    btn.addEventListener("click", function(){ handleNav(btn.getAttribute("data-nav")); });
+  });
+  $("continueBtn").addEventListener("click", function(){ handleNav("continue"); });
+  $("chaptersTile").addEventListener("click", function(){ handleNav("chapters"); });
+  $("exercisesTile").addEventListener("click", function(){ handleNav("exercises"); });
+  $("wordlistTile").addEventListener("click", function(){ handleNav("wordlist"); });
+  $("duelTile").addEventListener("click", function(){ handleNav("duel"); });
+  $("optionsBtn").addEventListener("click", function(){ handleNav("options"); });
+  $("achievementsBtn").addEventListener("click", function(){ handleNav("achievements"); });
+  $("helpBtn").addEventListener("click", function(){ handleNav("help"); });
+  $("teacherBtn").addEventListener("click", function(){ handleNav("teacher"); });
+
+  render();
+
+  window.__game = {
+    STORAGE_KEY: STORAGE_KEY,
+    state: state,
+    render: render,
+    computeStreak: computeStreak,
+    computeAchievements: computeAchievements,
+    resetProgress: function(){
+      Object.assign(state, defaultState());
+      applyDailyVisit(state);
+      saveState(state);
+      render();
+    },
+    exportProgressData: exportProgressData,
+    openModal: openModal,
+    closeModal: closeModal,
+    handleNav: handleNav,
+    openDrawer: openDrawer,
+    closeDrawer: closeDrawer,
+    isDrawerOpen: function(){ return navDrawer.classList.contains("open"); },
+    isModalOpen: function(){ return modalLayer.classList.contains("open"); }
+  };
+})();
+</script>
+</body>
+</html>
