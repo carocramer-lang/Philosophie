@@ -5,7 +5,7 @@ kein Build-Schritt. Startbildschirm nach Design-Vorlage aus Claude Design,
 Unit 1 komplett mit Vokabeln aus `Vokabelübersicht_GL4.pdf`.
 
 ## Aufbau
-- `index.html` ist das komplette Tool in sechs Ansichten (ein `showView()`-Router
+- `index.html` ist das komplette Tool in acht Ansichten (ein `showView()`-Router
   blendet die passende `.view` ein, kein Reload):
   - **Startbildschirm**: Fortschrittsanzeige, Tagesserie (Streak), vier Kacheln
     (Kapitel, Übungen, Merkliste, Duell), Menü (inkl. „Spiele“), Optionen,
@@ -21,6 +21,8 @@ Unit 1 komplett mit Vokabeln aus `Vokabelübersicht_GL4.pdf`.
     plus „Merkliste wiederholen“ (Karteikarten-Modus nur für diese Wörter).
   - **Spiele**: eine Übersicht mit einem Spiel pro Abschnitt (siehe unten),
     plus die eigentliche Spiel-Ansicht.
+  - **Übungen**: eine Übersicht mit Hörübung, Schreibübung und Lückentext pro
+    Abschnitt (siehe unten), als Tabs in derselben Abschnitts-Ansicht.
   - Keine externen Abhängigkeiten außer Google Fonts (fällt offline auf
     Systemschriften zurück) und dem Schullogo (fällt bei Netzwerkfehler auf
     einen Text-Badge zurück).
@@ -28,8 +30,9 @@ Unit 1 komplett mit Vokabeln aus `Vokabelübersicht_GL4.pdf`.
   Auslieferung als JPEG komprimiert (aus 1,4 MB PNG → ~145 KB).
 - `test.js` prüft Startzustand, Streak-Logik, Menü/Modal-Interaktion, die
   komplette Unit-1-Lernstrecke (Abschnitte, Karteikarten, Übersicht,
-  Merkliste inkl. Wiederholung und Meisterschafts-Entfernung), Erfolge,
-  Export und Zurücksetzen via jsdom.
+  Merkliste inkl. Wiederholung und Meisterschafts-Entfernung), Spiele,
+  Übungen (Datenintegrität, Navigation, Multiple-Choice-Umschaltung,
+  Lückentext-Bewertung), Erfolge, Export und Zurücksetzen via jsdom.
 
 ## Units (Green Line 4)
 Vier Units. Die vier „Across cultures“-Zwischenkapitel des Buchs bekommen
@@ -110,10 +113,38 @@ Erreichbar über „Spiele“ im Hauptmenü → Abschnitt auswählen. Fortschrit
 den Spielen selbst wird aktuell nicht gespeichert (kein Einfluss auf
 Karteikarten/Übersicht/Merkliste) — reines Zusatzangebot zum Üben.
 
+## Übungen
+Drei Übungstypen pro Abschnitt (`SECTION_EXERCISES`, 1:1 zu
+`UNIT1_SECTIONS`), als Tabs nebeneinander in derselben Ansicht wählbar —
+alle Beispielsätze, Hinweise und der Lückentext-Fließtext sind selbst
+formuliert (nicht aus dem Buch übernommen), nur die Zielwörter stammen aus
+den vorhandenen Vokabellisten:
+
+- **Hörübung**: alle Wörter des Abschnitts (Lautsprecher-Button + Web
+  Speech API des Browsers, spielt beim Öffnen der Karte automatisch einmal
+  ab). Wort eintippen, „Prüfen“ vergleicht ohne Rücksicht auf Groß-/
+  Kleinschreibung.
+- **Schreibübung**: 8 kuratierte Wörter pro Abschnitt, je in einem
+  selbst geschriebenen Lückensatz auf Englisch mit optionalem Hint
+  („💡 Hint“ zeigt eine englische Bedeutungserklärung, kein deutsches
+  Wort).
+- **Lückentext**: ein zusammenhängender, selbst verfasster englischer
+  Fließtext pro Abschnitt mit mehreren Lücken direkt im Text. Ein
+  „Prüfen“-Button färbt jedes Eingabefeld grün (richtig) oder rot
+  (falsch, aber ausgefüllt) — leere Felder bleiben neutral. „Zurücksetzen“
+  leert alle Felder wieder.
+
+Bei Hör- und Schreibübung gilt dieselbe Regel: nach 2× falscher
+Texteingabe schaltet die Aufgabe automatisch auf Multiple-Choice (die
+richtige Antwort + 3 zufällige Distraktoren aus demselben Abschnitt) um,
+bis die richtige Antwort ausgewählt wird. Erreichbar über die Kachel
+„Übungen“ auf dem Startbildschirm oder „Übungen“ im Hauptmenü →
+Abschnitt auswählen. Fortschritt wird aktuell nicht gespeichert (wie bei
+den Spielen) — reines Zusatzangebot zum Üben.
+
 ## Umfang dieser Version
 Start- und Unit-1-Lernstrecke sind funktional umgesetzt und getestet. Offen:
-- Hör- und Schreibübungen (Kachel „Übungen“) — nächster Schritt.
-- Vokabeln für Units 2–4 (und damit auch: Spiele für Units 2–4).
+- Vokabeln für Units 2–4 (und damit auch: Spiele/Übungen für Units 2–4).
 - Teacher-Freischaltung units-übergreifend („erst wenn ich freigebe“) — bislang
   nicht nötig, da nur Unit 1 Inhalte hat. Geplanter Ansatz laut Absprache:
   innerhalb einer Unit bleibt alles frei (siehe Abschnitts-Abzeichen oben), nur

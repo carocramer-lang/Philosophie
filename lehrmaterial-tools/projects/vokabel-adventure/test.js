@@ -298,6 +298,105 @@ check("Merkliste-Liste zeigt jetzt 0 Eintraege", doc.querySelectorAll("#mkListWr
   check("Weiter-Button zeigt die naechste Aussage", docG.querySelector(".tf-progress").textContent === "2 / " + GG.SECTION_GAMES[2].items.length);
 }
 
+// --- Uebungen: Datenstruktur ---
+{
+  check("Ein Uebungs-Datensatz pro Abschnitt", G.SECTION_EXERCISES.length === G.UNIT1_SECTIONS.length);
+  G.SECTION_EXERCISES.forEach((ex, idx) => {
+    check(`Abschnitt ${idx + 1}: 8 Schreibuebungs-Items`, ex.write.length === 8);
+    check(`Abschnitt ${idx + 1}: jedes Schreibuebungs-Item hat before/after/answer/hint`,
+      ex.write.every(it => typeof it.before === "string" && typeof it.after === "string" && !!it.answer && !!it.hint));
+    const blanks = (ex.cloze.match(/\{[^}]+\}/g) || []);
+    check(`Abschnitt ${idx + 1}: Luekentext hat mindestens 5 Luecken`, blanks.length >= 5);
+    check(`Abschnitt ${idx + 1}: Luekentext ist Fliesstext ohne rohe Klammer-Reste`, !/[{}]/.test(ex.cloze.replace(/\{[^}]+\}/g, "")));
+  });
+}
+
+// --- Uebungen: Navigation ueber Kachel und Menue (kein Modal mehr) ---
+{
+  const { win: winE, doc: docE } = freshDom();
+  const GE = winE.__game;
+  click(winE, docE.getElementById("exercisesTile"));
+  check("'Übungen'-Kachel fuehrt direkt zur Uebungen-Uebersicht (kein Modal)", GE.currentView() === "exercises" && !GE.isModalOpen());
+  const exCards = Array.from(docE.querySelectorAll("#exerciseList .sec-card"));
+  check("Uebungen-Uebersicht zeigt 10 Karten", exCards.length === 10);
+
+  click(winE, exCards[0]);
+  check("Klick auf Abschnitts-Karte oeffnet die Uebungs-Ansicht", GE.currentView() === "exerciseplay");
+  check("Hoerübung-Tab ist zu Beginn aktiv", docE.querySelector('[data-exmode="listen"]').classList.contains("active"));
+  check("Hoerübung-Panel ist sichtbar", docE.querySelector('[data-mode-panel="listen"]').classList.contains("active"));
+
+  click(winE, docE.querySelector('[data-exmode="write"]'));
+  check("Klick auf Schreibuebung-Tab aktiviert dessen Panel", docE.querySelector('[data-mode-panel="write"]').classList.contains("active"));
+  check("Hoerübung-Panel wird dabei deaktiviert", !docE.querySelector('[data-mode-panel="listen"]').classList.contains("active"));
+
+  click(winE, docE.querySelector('[data-exmode="cloze"]'));
+  check("Klick auf Luekentext-Tab aktiviert dessen Panel", docE.querySelector('[data-mode-panel="cloze"]').classList.contains("active"));
+
+  click(winE, docE.getElementById("exercisePlayBackBtn"));
+  check("Zurueck aus der Uebungs-Ansicht fuehrt zur Uebungen-Uebersicht", GE.currentView() === "exercises");
+  click(winE, docE.getElementById("exercisesBackBtn"));
+  check("Zurueck aus der Uebungen-Uebersicht fuehrt zum Startbildschirm", GE.currentView() === "start");
+}
+
+// --- Schreibuebung: 2x falsch schaltet auf Multiple-Choice um ---
+{
+  const { win: winW, doc: docW } = freshDom();
+  const GW = winW.__game;
+  GW.openExercise(0);
+  click(winW, docW.querySelector('[data-exmode="write"]'));
+  const panel = docW.getElementById("exWritePanel");
+  const item = GW.SECTION_EXERCISES[0].write[0];
+  const input = panel.querySelector(".answer-input");
+  const checkBtn = panel.querySelector(".check-btn");
+
+  input.value = "totally wrong";
+  click(winW, checkBtn);
+  check("1. falsche Eingabe: Eingabefeld bleibt aktiv", !panel.querySelector(".mc-grid").children.length);
+  input.value = "still wrong";
+  click(winW, checkBtn);
+  check("2. falsche Eingabe: Multiple-Choice erscheint", panel.querySelector(".mc-grid").children.length === 4);
+  check("Multiple-Choice enthaelt die richtige Antwort", Array.from(panel.querySelectorAll(".mc-btn")).some(b => b.textContent === item.answer));
+  const correctBtn = Array.from(panel.querySelectorAll(".mc-btn")).find(b => b.textContent === item.answer);
+  click(winW, correctBtn);
+  check("Richtige MC-Auswahl wird als geloest markiert", correctBtn.classList.contains("correct"));
+  check("Punktestand zaehlt geloeste Aufgabe", panel.querySelector(".ex-score").textContent === "Richtig: 1 / 1");
+}
+
+// --- Schreibuebung: sofort richtige Eingabe (Groß-/Kleinschreibung egal) ---
+{
+  const { win: winW2, doc: docW2 } = freshDom();
+  const GW2 = winW2.__game;
+  GW2.openExercise(0);
+  const panel = docW2.getElementById("exWritePanel");
+  const item = GW2.SECTION_EXERCISES[0].write[0];
+  panel.querySelector(".answer-input").value = item.answer.toUpperCase();
+  click(winW2, panel.querySelector(".check-btn"));
+  check("Richtige Eingabe (andere Groß-/Kleinschreibung) wird akzeptiert", panel.querySelector(".ex-score").textContent === "Richtig: 1 / 1");
+  check("Eingabefeld wird nach richtiger Antwort gesperrt", panel.querySelector(".answer-input").disabled);
+}
+
+// --- Luekentext: Pruefen faerbt Felder gruen/rot, leere Felder bleiben neutral ---
+{
+  const { win: winC, doc: docC } = freshDom();
+  const GC = winC.__game;
+  GC.openExercise(0);
+  click(winC, docC.querySelector('[data-exmode="cloze"]'));
+  const clozePanel = docC.getElementById("exClozePanel");
+  const blanks = Array.from(clozePanel.querySelectorAll(".blank-input"));
+  check("Luekentext zeigt Eingabefelder fuer jede Luecke", blanks.length >= 5);
+  blanks[0].value = blanks[0].dataset.answer.toUpperCase();
+  blanks[1].value = "definitiv falsch";
+  // blanks[2] bleibt leer
+  click(winC, clozePanel.querySelector(".check-btn"));
+  check("Richtig ausgefuellte Luecke wird gruen markiert", blanks[0].classList.contains("correct"));
+  check("Falsch ausgefuellte Luecke wird rot markiert", blanks[1].classList.contains("wrong"));
+  check("Leere Luecke bleibt neutral (weder gruen noch rot)", !blanks[2].classList.contains("correct") && !blanks[2].classList.contains("wrong"));
+  check("Ergebnis-Anzeige zaehlt richtige Luecken", clozePanel.querySelector(".cloze-result").textContent === "1 von " + blanks.length + " richtig");
+
+  click(winC, clozePanel.querySelector(".next-btn"));
+  check("Zuruecksetzen leert alle Felder", blanks.every(b => b.value === "" && !b.classList.contains("correct") && !b.classList.contains("wrong")));
+}
+
 // --- Export ---
 const exported = JSON.parse(G.exportProgressData());
 check("Export enthaelt Streak", exported.streakCount === 1);

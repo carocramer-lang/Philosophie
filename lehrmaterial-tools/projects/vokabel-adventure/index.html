@@ -484,6 +484,81 @@
   .tf-feedback.wrong{ background:rgba(224,137,154,.14); border:1px solid rgba(224,137,154,.4); color:#f0aebb; }
   .tf-nav{ display:flex; justify-content:flex-end; }
   .tf-score{ font-size:13px; color:var(--ink-8); }
+
+  /* ---- Uebungen: Hoerueben + Schreibueben (gemeinsamer Motor) ---- */
+  .ex-progress{ font-size:13px; color:var(--ink-8); margin-bottom:4px; }
+  .ex-card{
+    border-radius:18px; padding:24px; background:var(--card); border:1px solid var(--border);
+    display:flex; flex-direction:column; align-items:center; gap:16px; text-align:center;
+  }
+  .speak-btn{
+    width:60px; height:60px; border-radius:50%; border:1px solid rgba(244,201,93,.4);
+    background:rgba(244,201,93,.14); color:var(--gold); cursor:pointer; display:flex; align-items:center; justify-content:center;
+    font-size:24px; flex:none;
+  }
+  .speak-btn:hover{ background:rgba(244,201,93,.22); }
+  .speak-btn:disabled{ opacity:.4; cursor:default; }
+  .speak-hint{ font-size:12px; color:var(--ink-8); }
+  .cloze-sentence{ font-family:Fredoka,sans-serif; font-size:18px; line-height:1.5; color:var(--ink-1); }
+  .cloze-blank{ display:inline-block; min-width:70px; border-bottom:2px solid var(--gold); }
+  .hint-row{ display:flex; align-items:center; gap:10px; }
+  .hint-btn{
+    padding:7px 13px; border-radius:9px; border:1px solid var(--border-strong); background:var(--card-2);
+    color:var(--ink-4); font-size:12.5px; cursor:pointer;
+  }
+  .hint-btn:hover{ background:rgba(255,255,255,.14); }
+  .hint-text{ font-size:13px; color:var(--ink-7); font-style:italic; }
+  .answer-row{ display:flex; gap:10px; width:100%; max-width:320px; }
+  .answer-input{
+    flex:1; padding:12px 14px; border-radius:11px; background:var(--bg-1); border:1px solid var(--border-strong);
+    color:var(--ink-1); font-size:15px;
+  }
+  .answer-input:disabled{ opacity:.6; }
+  .check-btn{
+    padding:12px 18px; border-radius:11px; border:1px solid rgba(244,201,93,.4); background:rgba(244,201,93,.16);
+    color:var(--gold); cursor:pointer; font-size:14px; font-weight:500;
+  }
+  .check-btn:hover{ background:rgba(244,201,93,.26); }
+  .check-btn:disabled{ opacity:.4; cursor:default; }
+  .mc-grid{ display:grid; grid-template-columns:1fr 1fr; gap:10px; width:100%; max-width:340px; }
+  .mc-btn{
+    padding:12px; border-radius:11px; border:1px solid var(--border-strong); background:var(--card-2);
+    color:var(--ink-2); cursor:pointer; font-size:14px;
+  }
+  .mc-btn:hover:not(:disabled){ background:rgba(255,255,255,.14); }
+  .mc-btn:disabled{ cursor:default; }
+  .mc-btn.wrong{ background:rgba(224,137,154,.22); border-color:rgba(224,137,154,.6); color:#f0aebb; }
+  .mc-btn.correct{ background:rgba(127,209,193,.22); border-color:rgba(127,209,193,.6); color:var(--teal); }
+  .mc-note{ font-size:12px; color:var(--gold); }
+  .feedback{ font-size:13.5px; border-radius:10px; padding:10px 13px; display:none; width:100%; max-width:320px; }
+  .feedback.show{ display:block; }
+  .feedback.correct{ background:rgba(127,209,193,.14); border:1px solid rgba(127,209,193,.4); color:var(--teal); }
+  .feedback.wrong{ background:rgba(224,137,154,.14); border:1px solid rgba(224,137,154,.4); color:#f0aebb; }
+  .next-btn{
+    padding:10px 18px; border-radius:11px; border:1px solid var(--border-strong); background:var(--card-2);
+    color:var(--ink-3); cursor:pointer; font-size:13.5px; align-self:flex-end;
+  }
+  .next-btn:hover{ background:rgba(255,255,255,.14); }
+  .ex-score{ font-size:13px; color:var(--ink-8); }
+
+  /* ---- Uebungen: Luekentext (Fliesstext) ---- */
+  .cloze-passage{
+    border-radius:18px; padding:22px; background:var(--card); border:1px solid var(--border);
+    font-size:15.5px; line-height:2.1; color:var(--ink-2);
+  }
+  .blank-input{
+    width:110px; margin:0 3px; padding:5px 8px; border-radius:8px; text-align:center;
+    background:var(--bg-1); border:1px solid var(--border-strong); color:var(--ink-1); font-size:14px;
+  }
+  .blank-input.correct{ background:rgba(127,209,193,.2); border-color:rgba(127,209,193,.6); color:var(--teal); }
+  .blank-input.wrong{ background:rgba(224,137,154,.2); border-color:rgba(224,137,154,.6); color:#f0aebb; }
+  .cloze-actions{ display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+  .cloze-result{ font-size:13.5px; color:var(--ink-7); }
+
+  .ex-type-chip{
+    display:inline-flex; align-items:center; gap:6px; padding:5px 11px; border-radius:999px; flex:none;
+    font-size:11.5px; font-weight:500; letter-spacing:.02em; background:rgba(143,182,232,.16); color:var(--blue);
+  }
 </style>
 </head>
 <body>
@@ -679,6 +754,46 @@
       <p class="page-sub" id="gamePlaySub"></p>
     </div>
     <div id="gamePlayBody"></div>
+  </div>
+</div>
+
+<!-- Uebungen: Uebersicht -->
+<div class="page view" id="viewExercises" data-view="exercises">
+  <div class="wrap">
+    <div class="subhead">
+      <button class="back" id="exercisesBackBtn" aria-label="Zurück zum Startbildschirm">←</button>
+      <span class="crumb">Vokabel-Adventure</span>
+    </div>
+    <div>
+      <h1 class="page-title">Übungen</h1>
+      <p class="page-sub">Hörübung, Schreibübung und Lückentext — für jeden Abschnitt aus Unit 1.</p>
+    </div>
+    <div class="sec-list" id="exerciseList"></div>
+  </div>
+</div>
+
+<!-- Uebungen: ein Abschnitt (drei Uebungstypen) -->
+<div class="page view" id="viewExercisePlay" data-view="exerciseplay">
+  <div class="wrap">
+    <div class="subhead">
+      <button class="back" id="exercisePlayBackBtn" aria-label="Zurück zur Übungen-Übersicht">←</button>
+      <span class="crumb">Vokabel-Adventure · Übungen</span>
+    </div>
+    <div>
+      <h1 class="page-title" id="exercisePlayTitle"></h1>
+      <p class="page-sub" id="exercisePlaySub"></p>
+    </div>
+    <div class="note" id="speechNote"></div>
+
+    <div class="modeswitch" role="tablist" aria-label="Übungstyp wählen">
+      <button type="button" data-exmode="listen" class="active" role="tab" aria-selected="true">🔊 Hörübung</button>
+      <button type="button" data-exmode="write" role="tab" aria-selected="false">✍️ Schreibübung</button>
+      <button type="button" data-exmode="cloze" role="tab" aria-selected="false">📄 Lückentext</button>
+    </div>
+
+    <div data-mode-panel="listen" class="active" id="exListenPanel"></div>
+    <div data-mode-panel="write" id="exWritePanel"></div>
+    <div data-mode-panel="cloze" id="exClozePanel"></div>
   </div>
 </div>
 
@@ -987,6 +1102,121 @@
       ["garlic", "🧄"], ["toothpaste", "🪥"], ["motorcycle (AE)", "🏍️"], ["drums (pl)", "🥁"],
       ["humorous", "😂"], ["to brainstorm", "💡"], ["pose", "🕺"], ["boyfriend", "💑"]
     ] }
+  ];
+
+  // Uebungen pro Abschnitt: Hoerworte kommen live aus UNIT1_SECTIONS (kein
+  // Extra-Text noetig), "write" (Luecken-Satz) und "cloze" (Fliesstext) sind
+  // selbst formuliert, nicht aus dem Buch uebernommen.
+  var SECTION_EXERCISES = [
+    { write: [
+      { before: "In", after: "areas, most people live close together in apartments.", answer: "urban", hint: "relating to a city or town" },
+      { before: "The Sahara is a huge, dry", after: "with very little rain.", answer: "desert", hint: "a dry, sandy area with almost no plants" },
+      { before: "Please check the", after: "before you go outside — it's very cold today.", answer: "temperature", hint: "how hot or cold something is" },
+      { before: "Her grandfather was an", after: "who came to the US from Italy.", answer: "immigrant", hint: "a person who moves to a new country to live there" },
+      { before: "Learning about other countries helps you understand different", after: "traditions.", answer: "cultural", hint: "relating to the customs and ideas of a group of people" },
+      { before: "You can see the whole city from the top of that", after: ".", answer: "skyscraper", hint: "a very tall building in a city" },
+      { before: "It's really hot today — can you turn on something", after: "?", answer: "cool", hint: "not warm; having a low temperature" },
+      { before: "In winter, kids in Alaska often go outside on a", after: ".", answer: "sled", hint: "a vehicle used to travel over snow" }
+    ], cloze: "The United States is a country of contrasts. Some areas are {urban}, with tall buildings and busy streets, while other parts are completely {rural}, with fields that seem to go on forever. In the north, near Alaska, you can sometimes see {the Northern Lights} dancing in the sky on a {cool} night. Many Americans are proud of their {immigration} history, because their families came from all over the world. If you travel from a {desert} in the southwest to the mountains, don't forget your warm socks for your {feet}!" },
+
+    { write: [
+      { before: "Every country has its own", after: "with special colors and symbols.", answer: "flag", hint: "a piece of cloth with colors and symbols that represents a country" },
+      { before: "New York City has a huge", after: "— millions of people live there.", answer: "population", hint: "the number of people living in a place" },
+      { before: "A", after: "has more than a billion dollars.", answer: "billionaire", hint: "a person with an extremely large amount of money" },
+      { before: "Moving to a new country can make you think about your own", after: ".", answer: "identity", hint: "who you are, especially your culture or background" },
+      { before: "Skydiving is a very", after: "sport — it's not for everyone.", answer: "extreme", hint: "very great in degree; far from what is normal" },
+      { before: "I need to buy some milk from the", after: "on the corner.", answer: "store", hint: "a shop where you buy things" },
+      { before: "The countryside near my house is completely", after: "— no hills at all.", answer: "flat", hint: "level, with no hills or bumps" },
+      { before: "Even after years abroad, she still misses her", after: ".", answer: "home country", hint: "the country where you were born or grew up" }
+    ], cloze: "On the Fourth of July, many Americans {fly} a flag in their {front yard}. My neighbors are {a family of four} — two parents and two kids — and they always put up decorations. In big cities, which are very {densely populated}, you can really feel how crowded the streets are. Out west, the land becomes {mountainous} and much more {dry}, with fewer trees and less rain. Some people prefer not to talk about money {in public}, because it feels too personal." },
+
+    { write: [
+      { before: "I used an online", after: "to check the temperature in Fahrenheit.", answer: "converter", hint: "a tool that changes one unit or type into another" },
+      { before: "The", after: "businessman owned three houses and a private plane.", answer: "wealthy", hint: "having a lot of money" },
+      { before: "The", after: "in the mountains was absolutely beautiful.", answer: "scenery", hint: "the natural things you see around you, like mountains or fields" },
+      { before: "People in some countries enjoy a very high", after: ".", answer: "standard of living", hint: "the level of comfort and money a person or group has" },
+      { before: "One important", after: "of moving abroad is learning the language.", answer: "aspect", hint: "one part or feature of a situation" },
+      { before: "We're going to Florida for our summer", after: ".", answer: "vacation", hint: "a period of time away from school or work, often for travel" },
+      { before: "That concert last night was", after: "— the band was amazing!", answer: "awesome", hint: "extremely good; impressive" },
+      { before: "Farmers in the Midwest grow a lot of", after: "to make bread.", answer: "wheat", hint: "a type of grain used to make flour and bread" }
+    ], cloze: "On our trip through the Midwest, we saw endless fields of {corn}. Our guide pointed us in the right {direction} toward an old farm, and we went on a {ride} through the countryside. The weather can be {harsh} out there in winter, with strong winds and freezing temperatures. At the farm, we met another family and quickly started {to become friends} with their kids. Later, I posted a photo online with a short {caption} explaining what the picture showed — a bald eagle, a bird often used {to symbolize} freedom and pride in America." },
+
+    { write: [
+      { before: "In the US,", after: "usually starts around age 14.", answer: "high school", hint: "school for teenagers, usually ages 14 to 18" },
+      { before: "We just moved into a small", after: "downtown.", answer: "apartment", hint: "a set of rooms to live in, in a building" },
+      { before: "Let's meet at the", after: "after school.", answer: "shopping mall", hint: "a large building with many shops inside" },
+      { before: "Excuse me, where is the nearest", after: "?", answer: "restroom", hint: "a room with a toilet, especially in a public building" },
+      { before: "Our school has a strict", after: "— no shorts allowed.", answer: "dress code", hint: "rules about what clothes you are allowed to wear" },
+      { before: "The kids were playing catch in the", after: ".", answer: "backyard", hint: "the outdoor area behind a house" },
+      { before: "My grandparents live in a quiet", after: "outside the city.", answer: "suburb", hint: "a residential area on the edge of a city" },
+      { before: "The farmhouse was at the end of a long", after: ".", answer: "dirt road", hint: "an unpaved road made of earth" }
+    ], cloze: "When I started at a new {middle school}, everything about {everyday life} felt different. On the first day, we had an {orientation} where teachers showed us around the building. The {hallway} outside my classroom was always loud and {noisy} between lessons. I grew up used to quiet {country life}, so the city noise didn't really {interest} me at first — but I got used to it." },
+
+    { write: [
+      { before: "The new cinema is right", after: ", close to all the shops.", answer: "downtown", hint: "in or toward the center of a city" },
+      { before: "My", after: "is 9 p.m. on school nights.", answer: "curfew", hint: "a time by which you must be home" },
+      { before: "We took the", after: "up to the fifth floor.", answer: "elevator", hint: "a machine that carries people up and down in a building" },
+      { before: "Let's go to the", after: "to watch the new film.", answer: "movie theater", hint: "a place where you watch films" },
+      { before: "He plays", after: "for the school team.", answer: "soccer", hint: "a sport played with a round ball and two goals" },
+      { before: "Our apartment is on the tenth", after: ".", answer: "floor", hint: "a level of a building" },
+      { before: "My parents are pretty", after: "about homework.", answer: "strict", hint: "not allowing people to break rules" },
+      { before: "It's only a short", after: "from here to the beach.", answer: "drive", hint: "a trip in a car" }
+    ], cloze: "Our new place doesn't have a {walk-in closet}, so I still keep my clothes in boxes. It takes time {to get used to} a new home. Last night we watched a {movie} at home instead of going out. {I'm afraid} I can't {meet up} with you this weekend — my curfew is early. Maybe {not until} next week, and I promise we'll go {downtown} together soon." },
+
+    { write: [
+      { before: "We promised", after: "even after she moved away.", answer: "to keep in touch", hint: "to stay in contact with someone" },
+      { before: "He's been traveling all day —", after: "he's so tired!", answer: "no wonder", hint: "used when something is not surprising" },
+      { before: "Living abroad lets you", after: "a completely different culture.", answer: "experience", hint: "to have something happen to you; to go through something" },
+      { before: "I've never seen", after: "a beautiful sunset before.", answer: "such", hint: "used to emphasize how great something is" },
+      { before: "We just moved in — I still need", after: "all these boxes.", answer: "to unpack", hint: "to take things out of a bag or box" },
+      { before: "I used", after: "vegetables, but now I love them.", answer: "to dislike", hint: "to not like something" },
+      { before: "Keep an open", after: "when you try new food.", answer: "mind", hint: "your thoughts and attitudes" },
+      { before: "The mountains looked amazing in the", after: "of the photo.", answer: "foreground", hint: "the part of a picture closest to the viewer" }
+    ], cloze: "After a few weeks in the new city, I finally started {to find my way around} — I don't get lost anymore. At first I was {tired of} all the noise, but now I'm actually {crazy about} living here. My {likes and dislikes} have changed a lot since we moved; I used {to unpack} boxes for days, but now everything has its place. My cousins live {in the middle of nowhere}, and {no wonder} they love the quiet!" },
+
+    { write: [
+      { before: "The student", after: "decided on the new school rules.", answer: "committee", hint: "a group of people chosen to make decisions" },
+      { before: "He's a real computer", after: "— he loves coding.", answer: "geek", hint: "someone very interested in a particular subject, often technology" },
+      { before: "She faced a difficult", after: ": go to the party or study for the test.", answer: "dilemma", hint: "a situation where you must choose between two difficult options" },
+      { before: "Thousands of people joined the", after: "against the new law.", answer: "protest", hint: "a public event where people show they disagree with something" },
+      { before: "The Statue of", after: "welcomes visitors to New York.", answer: "Liberty", hint: "freedom" },
+      { before: "Everyone deserves equal", after: "under the law.", answer: "justice", hint: "fair treatment according to the law" },
+      { before: "The whole", after: "celebrated on Independence Day.", answer: "nation", hint: "a country and its people" },
+      { before: "The United States is officially a", after: ", not a monarchy.", answer: "republic", hint: "a country governed by elected representatives, not a king or queen" }
+    ], cloze: "As an {8th grader}, my school day starts with the {Pledge of Allegiance} every morning. In first {period}, we talked about {whether} students should be allowed to {demonstrate} peacefully at school. Some classmates thought it would be {mean} to interrupt other students' lessons. After class, I went shopping — the {shopper} in front of me at the counter took forever {to order} her coffee!" },
+
+    { write: [
+      { before: "We eat", after: "every year for Thanksgiving dinner.", answer: "turkey", hint: "a large bird eaten as a traditional Thanksgiving meal" },
+      { before: "I actually like", after: "— they taste good roasted.", answer: "brussels sprouts", hint: "small green vegetables that look like tiny cabbages" },
+      { before: "My aunt makes a delicious", after: "with potatoes and cheese.", answer: "casserole", hint: "a dish cooked slowly in one deep pan" },
+      { before: "Thanksgiving is a", after: "— schools and offices are closed.", answer: "federal holiday", hint: "a public holiday celebrated across the whole country" },
+      { before: "In autumn, farmers celebrate a good", after: ".", answer: "harvest", hint: "the time when crops are gathered from the fields" },
+      { before: "Every Thanksgiving morning, there's a big", after: "on TV.", answer: "parade", hint: "a public event where people march or ride through the streets" },
+      { before: "The old man was a", after: "of a terrible storm.", answer: "survivor", hint: "someone who continues to live after a difficult or dangerous event" },
+      { before: "What's your favorite", after: "at Thanksgiving dinner?", answer: "dish", hint: "a type of food prepared in a particular way" }
+    ], cloze: "We got to Grandma's house just {in time} for dinner. {Recently}, our class learned about {Native American} history and how the first Thanksgiving connected different communities. During dinner, everyone got a little {distracted} by the football game on TV. Before we ate, we took turns {to give thanks} for the good things in our lives. Afterward, my little brother and I had to {do the dishes} — a job we always try {to avoid}!" },
+
+    { write: [
+      { before: "I had a terrible", after: "about losing my phone.", answer: "nightmare", hint: "a frightening dream" },
+      { before: "What a", after: "— I was just thinking about you!", answer: "coincidence", hint: "when two things happen together by chance" },
+      { before: "I felt", after: "after spinning around too fast.", answer: "dizzy", hint: "feeling like everything is spinning; unsteady" },
+      { before: "The", after: "helped us find our way back to the hotel.", answer: "police officer", hint: "someone whose job is to enforce the law" },
+      { before: "Mind the", after: "between the train and the platform.", answer: "gap", hint: "a space or opening between two things" },
+      { before: "I've already told you", after: "— please listen!", answer: "twice", hint: "two times" },
+      { before: "It felt", after: "to finish the project in one night.", answer: "impossible", hint: "not able to be done" },
+      { before: "The teacher warned the", after: "to behave in class.", answer: "troublemaker", hint: "someone who often causes problems" }
+    ], cloze: "When the doors finally {opened}, the crowd let out a huge {cheer}. One {protester} outside was shouting into the {air}, but nobody seemed {to panic}. It felt completely {out-of-character} for our usually calm town. Later, my friend retold the story in a way that sounded a bit {exaggerated}, almost {unrealistic}." },
+
+    { write: [
+      { before: "She wore a really", after: "jacket to the party.", answer: "attractive", hint: "nice to look at; pleasing" },
+      { before: "Her", after: "picked her up after school.", answer: "boyfriend", hint: "a male partner in a romantic relationship" },
+      { before: "He always has such a positive", after: "about everything.", answer: "attitude", hint: "the way someone thinks or feels about something" },
+      { before: "This soup needs a bit more", after: ".", answer: "garlic", hint: "a strong-smelling vegetable used in cooking" },
+      { before: "The comedian was really", after: "— everyone was laughing.", answer: "humorous", hint: "funny; making people laugh" },
+      { before: "It's kind of", after: "that the fire station burned down.", answer: "ironic", hint: "when something happens that is the opposite of what you'd expect" },
+      { before: "Every", after: "in the group had a different opinion.", answer: "individual", hint: "a single person, considered separately" },
+      { before: "He rides his", after: "to work every day.", answer: "motorcycle", hint: "a two-wheeled vehicle with an engine" }
+    ], cloze: "For our project, we had {to brainstorm} {several} ideas before we could {create} our final yearbook page. My partner has a great {sense of style}, so she chose the colors and photos. I worked on the writing and tried to get the {tone} just right — friendly, not too serious. In the last photo, my brother is playing the {drums}, and next to him is his favorite {transportation}: an old bike." }
   ];
 
   function pad(n){ return n < 10 ? "0" + n : "" + n; }
@@ -1347,6 +1577,7 @@
     if (name === "unit") renderUnitView();
     else if (name === "merkliste") renderMerklisteView();
     else if (name === "games") renderGamesList();
+    else if (name === "exercises") renderExercisesList();
     if (name !== "start") { try { window.scrollTo(0, 0); } catch(e) {} }
   }
 
@@ -1879,6 +2110,275 @@
     return wrap;
   }
 
+  // ---- Uebungen: Uebersicht ----
+  var hasSpeech = "speechSynthesis" in window;
+  var currentExerciseIndex = 0;
+
+  function speak(text){
+    if (!hasSpeech) return;
+    try {
+      window.speechSynthesis.cancel();
+      var u = new SpeechSynthesisUtterance(text);
+      u.lang = "en-US";
+      u.rate = 0.9;
+      window.speechSynthesis.speak(u);
+    } catch (e) {}
+  }
+
+  function renderExercisesList(){
+    var list = $("exerciseList");
+    list.innerHTML = "";
+    UNIT1_SECTIONS.forEach(function(sec, idx){
+      var card = el("button", { className: "sec-card", type: "button" }, [
+        el("span", { className: "sec-num", text: String(idx + 1) }),
+        el("span", { className: "sec-info" }, [
+          el("div", { className: "sec-name", text: sec.name })
+        ]),
+        el("span", { className: "ex-type-chip", text: "3 Übungstypen" })
+      ]);
+      card.addEventListener("click", function(){ openExercise(idx); });
+      list.appendChild(card);
+    });
+  }
+  $("exercisesBackBtn").addEventListener("click", function(){ showView("start"); });
+  $("exercisePlayBackBtn").addEventListener("click", function(){ showView("exercises"); });
+
+  function openExercise(idx){
+    currentExerciseIndex = idx;
+    var sec = UNIT1_SECTIONS[idx];
+    if (!sec) return;
+    $("exercisePlayTitle").textContent = sec.name;
+    $("exercisePlaySub").textContent = "Unit 1 · Abschnitt " + (idx + 1) + " von " + UNIT1_SECTIONS.length;
+    $("speechNote").textContent = hasSpeech
+      ? "Sprachausgabe läuft über die Sprachsynthese des Browsers — Stimme klingt synthetisch, keine Muttersprachler-Aufnahme."
+      : "Dieser Browser unterstützt keine Sprachausgabe — die Hörübung zeigt stattdessen nur den Text.";
+    renderExercisePanels(idx);
+    showView("exerciseplay");
+  }
+
+  function renderExercisePanels(idx){
+    var sec = UNIT1_SECTIONS[idx];
+    var exData = SECTION_EXERCISES[idx];
+
+    var listenPanel = $("exListenPanel");
+    listenPanel.innerHTML = "";
+    var listenWords = sec.words.map(function(w){ return w.en; });
+    listenPanel.appendChild(buildExercise(listenWords, {
+      renderCard: function(card, word){
+        var btn = el("button", { className: "speak-btn", type: "button", "aria-label": "Wort abspielen" }, [document.createTextNode("🔊")]);
+        btn.disabled = !hasSpeech;
+        btn.addEventListener("click", function(){ speak(word); });
+        card.appendChild(btn);
+        card.appendChild(el("div", { className: "speak-hint", text: hasSpeech ? "Anhören, dann Wort eintippen" : "Sprachausgabe nicht verfügbar in diesem Browser" }));
+        if (hasSpeech) setTimeout(function(){ speak(word); }, 200);
+      }
+    }));
+
+    var writePanel = $("exWritePanel");
+    writePanel.innerHTML = "";
+    writePanel.appendChild(buildExercise(exData.write, {
+      renderCard: function(card, item){
+        card.appendChild(el("div", { className: "cloze-sentence" }, [
+          document.createTextNode(item.before + " "),
+          el("span", { className: "cloze-blank" }),
+          document.createTextNode(" " + item.after)
+        ]));
+        var hintRow = el("div", { className: "hint-row" });
+        var hintBtn = el("button", { className: "hint-btn", type: "button", text: "💡 Hint" });
+        var hintText = el("span", { className: "hint-text" });
+        hintBtn.addEventListener("click", function(){
+          hintText.textContent = item.hint;
+          hintBtn.style.display = "none";
+        });
+        hintRow.appendChild(hintBtn); hintRow.appendChild(hintText);
+        card.appendChild(hintRow);
+      }
+    }));
+
+    var clozePanel = $("exClozePanel");
+    clozePanel.innerHTML = "";
+    clozePanel.appendChild(buildClozePassage(exData.cloze));
+  }
+
+  // Gemeinsamer Motor fuer Hoer- und Schreibuebung: Text-Eingabe, nach 2x
+  // falsch schaltet die Aufgabe auf Multiple-Choice um, bis die richtige
+  // Antwort gewaehlt ist.
+  function buildExercise(items, opts){
+    opts = opts || {};
+    var wrap = el("div", { className: "fc-wrap" });
+    if (!items.length) {
+      wrap.appendChild(el("div", { className: "fc-empty", text: "Keine Aufgaben." }));
+      return wrap;
+    }
+    var progress = el("div", { className: "ex-progress" });
+    var card = el("div", { className: "ex-card" });
+    var answerRow = el("div", { className: "answer-row" });
+    var input = el("input", { className: "answer-input", type: "text", placeholder: "Antwort eingeben …", autocomplete: "off", spellcheck: "false" });
+    var checkBtn = el("button", { className: "check-btn", type: "button", text: "Prüfen" });
+    answerRow.appendChild(input); answerRow.appendChild(checkBtn);
+    var mcGrid = el("div", { className: "mc-grid" });
+    var mcNote = el("div", { className: "mc-note", text: "Mehrfachauswahl nach 2× falscher Eingabe — wähle die richtige Antwort." });
+    mcNote.style.display = "none";
+    var feedback = el("div", { className: "feedback" });
+    var nextBtn = el("button", { className: "next-btn", type: "button", text: "Weiter ›" });
+    var score = el("div", { className: "ex-score" });
+    wrap.appendChild(progress); wrap.appendChild(card);
+    wrap.appendChild(answerRow); wrap.appendChild(mcNote); wrap.appendChild(mcGrid);
+    wrap.appendChild(feedback); wrap.appendChild(nextBtn); wrap.appendChild(score);
+
+    var index = 0, wrongCount = 0, correctCount = 0, done = 0, solved = false;
+
+    function answerText(item){ return typeof item === "string" ? item : item.answer; }
+
+    function distractorsFor(item){
+      var correct = answerText(item);
+      var pool = items.map(answerText).filter(function(a){ return a !== correct; });
+      return shuffle(pool).slice(0, 3);
+    }
+
+    function showFeedback(ok, msg){
+      feedback.className = "feedback show " + (ok ? "correct" : "wrong");
+      feedback.textContent = msg;
+    }
+
+    function markSolved(){
+      solved = true;
+      correctCount++;
+      done++;
+      score.textContent = "Richtig: " + correctCount + " / " + done;
+      checkBtn.disabled = true; input.disabled = true;
+      Array.prototype.forEach.call(mcGrid.children, function(b){ b.disabled = true; });
+    }
+
+    function renderMC(item){
+      mcNote.style.display = "block";
+      answerRow.style.display = "none";
+      mcGrid.innerHTML = "";
+      var correct = answerText(item);
+      var options = shuffle(distractorsFor(item).concat([correct]));
+      options.forEach(function(opt){
+        var btn = el("button", { className: "mc-btn", type: "button", text: opt });
+        btn.addEventListener("click", function(){
+          if (solved) return;
+          if (opt === correct) {
+            btn.classList.add("correct");
+            showFeedback(true, "✓ Richtig — genau: \"" + correct + "\".");
+            markSolved();
+          } else {
+            btn.classList.add("wrong");
+            btn.disabled = true;
+            showFeedback(false, "✗ Nicht dieses Wort — versuch es weiter.");
+          }
+        });
+        mcGrid.appendChild(btn);
+      });
+    }
+
+    function renderItem(){
+      var item = items[index];
+      wrongCount = 0; solved = false;
+      progress.textContent = (index + 1) + " / " + items.length;
+      card.innerHTML = "";
+      answerRow.style.display = "flex";
+      mcNote.style.display = "none";
+      mcGrid.innerHTML = "";
+      input.value = ""; input.disabled = false; checkBtn.disabled = false;
+      feedback.className = "feedback";
+      feedback.textContent = "";
+      if (opts.renderCard) opts.renderCard(card, item);
+      input.focus();
+    }
+
+    function checkAnswer(){
+      if (solved) return;
+      var item = items[index];
+      var correct = answerText(item);
+      var val = normalize(input.value);
+      if (!val) return;
+      if (val === normalize(correct)) {
+        showFeedback(true, "✓ Richtig!");
+        markSolved();
+      } else {
+        wrongCount++;
+        if (wrongCount >= 2) {
+          showFeedback(false, "✗ Nicht ganz — jetzt zum Auswählen.");
+          renderMC(item);
+        } else {
+          showFeedback(false, "✗ Nicht ganz — versuch's nochmal.");
+          input.value = ""; input.focus();
+        }
+      }
+    }
+
+    checkBtn.addEventListener("click", checkAnswer);
+    input.addEventListener("keydown", function(e){ if (e.key === "Enter") checkAnswer(); });
+    nextBtn.addEventListener("click", function(){ index = (index + 1) % items.length; renderItem(); });
+
+    renderItem();
+    return wrap;
+  }
+
+  function normalize(s){ return String(s).trim().toLowerCase().replace(/\s+/g, " "); }
+
+  // ---- Uebungen: Luekentext (Fliesstext, alle Luecken zusammen pruefen) ----
+  // Format im Text: {Loesung} markiert eine Luecke direkt im Fliesstext.
+  function buildClozePassage(text){
+    var wrap = document.createElement("div");
+    var passage = el("p", { className: "cloze-passage" });
+    var actions = el("div", { className: "cloze-actions" });
+    var checkBtn = el("button", { className: "check-btn", type: "button", text: "Prüfen" });
+    var resetBtn = el("button", { className: "next-btn", type: "button", text: "Zurücksetzen" });
+    var result = el("span", { className: "cloze-result" });
+    actions.appendChild(checkBtn); actions.appendChild(resetBtn); actions.appendChild(result);
+    wrap.appendChild(passage); wrap.appendChild(actions);
+
+    var inputs = [];
+    var re = /\{([^}]+)\}/g, lastIndex = 0, m;
+    while ((m = re.exec(text))) {
+      if (m.index > lastIndex) passage.appendChild(document.createTextNode(text.slice(lastIndex, m.index)));
+      var answer = m[1];
+      var input = el("input", { className: "blank-input", type: "text", autocomplete: "off", spellcheck: "false", "aria-label": "Lücke" });
+      input.dataset.answer = answer;
+      input.style.width = Math.max(70, answer.length * 11) + "px";
+      input.addEventListener("input", function(){ this.classList.remove("correct", "wrong"); });
+      inputs.push(input);
+      passage.appendChild(input);
+      lastIndex = re.lastIndex;
+    }
+    if (lastIndex < text.length) passage.appendChild(document.createTextNode(text.slice(lastIndex)));
+
+    checkBtn.addEventListener("click", function(){
+      var right = 0;
+      inputs.forEach(function(inp){
+        var ok = normalize(inp.value) === normalize(inp.dataset.answer);
+        inp.classList.toggle("correct", ok);
+        inp.classList.toggle("wrong", !ok && inp.value.trim() !== "");
+        if (ok) right++;
+      });
+      result.textContent = right + " von " + inputs.length + " richtig";
+    });
+    resetBtn.addEventListener("click", function(){
+      inputs.forEach(function(inp){ inp.value = ""; inp.classList.remove("correct", "wrong"); });
+      result.textContent = "";
+      inputs[0].focus();
+    });
+
+    return wrap;
+  }
+
+  Array.prototype.forEach.call(document.querySelectorAll("[data-exmode]"), function(btn){
+    btn.addEventListener("click", function(){
+      var mode = btn.getAttribute("data-exmode");
+      Array.prototype.forEach.call(document.querySelectorAll("[data-exmode]"), function(b){
+        b.classList.remove("active"); b.setAttribute("aria-selected", "false");
+      });
+      btn.classList.add("active"); btn.setAttribute("aria-selected", "true");
+      Array.prototype.forEach.call(document.querySelectorAll("#viewExercisePlay [data-mode-panel]"), function(p){
+        p.classList.toggle("active", p.getAttribute("data-mode-panel") === mode);
+      });
+    });
+  });
+
   // ---- Drawer ----
   var navDrawer = $("navDrawer");
   var menuBtn = $("menuBtn");
@@ -1906,7 +2406,7 @@
     switch (key) {
       case "continue": showView("unit"); break;
       case "chapters": openChaptersModal(); break;
-      case "exercises": comingSoonModal("Übungen", "Hör- und Schreibübungen sind noch nicht freigeschaltet."); break;
+      case "exercises": showView("exercises"); break;
       case "games": showView("games"); break;
       case "wordlist": showView("merkliste"); break;
       case "duel": comingSoonModal("Duell", "Vokabel-Duelle gegen " + DUEL_CLASS + " folgen im nächsten Ausbauschritt."); break;
@@ -1977,6 +2477,9 @@
     openSection: openSection,
     openGame: openGame,
     SECTION_GAMES: SECTION_GAMES,
+    openExercise: openExercise,
+    SECTION_EXERCISES: SECTION_EXERCISES,
+    hasSpeech: function(){ return hasSpeech; },
     currentView: function(){ return currentView; },
     isDrawerOpen: function(){ return navDrawer.classList.contains("open"); },
     isModalOpen: function(){ return modalLayer.classList.contains("open"); }
