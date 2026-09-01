@@ -54,7 +54,7 @@ Im Kapitel-Modal ist nur Unit 1 anklickbar, Units 2–4 sind sichtbar aber als
 Buchtexte/Beispielsätze übernommen — nur die Wort-Übersetzungs-Paare) in
 10 Abschnitten von ca. 20 Wörtern, nach Buchstruktur benannt:
 
-Einstieg (1/3–3/3) · Check-in · Station 1 (1/2–2/2) · Station 2 · Station 3 ·
+Introduction (1/3–3/3) · Check-in · Station 1 (1/2–2/2) · Station 2 · Station 3 ·
 Story: Nightmare at the mall! · Skills & Unit task — zusammen 189 Wörter.
 
 Ein Homonym-Paar (`right` = „Recht“ vs. „direkt; genau“) wurde zur eindeutigen
