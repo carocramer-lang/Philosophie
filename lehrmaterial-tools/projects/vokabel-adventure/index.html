@@ -434,6 +434,7 @@
         <button class="drawer-item" data-nav="continue">Weiterspielen</button>
         <button class="drawer-item" data-nav="chapters">Kapitel</button>
         <button class="drawer-item" data-nav="exercises">Übungen</button>
+        <button class="drawer-item" data-nav="games">Spiele</button>
         <button class="drawer-item" data-nav="wordlist">Merkliste</button>
         <button class="drawer-item" data-nav="duel">Duell</button>
         <button class="drawer-item" data-nav="options">Optionen</button>
@@ -1508,6 +1509,7 @@
       case "continue": showView("unit"); break;
       case "chapters": openChaptersModal(); break;
       case "exercises": comingSoonModal("Übungen", "Hör- und Schreibübungen sind noch nicht freigeschaltet."); break;
+      case "games": comingSoonModal("Spiele", "Spiele folgen im nächsten Ausbauschritt."); break;
       case "wordlist": showView("merkliste"); break;
       case "duel": comingSoonModal("Duell", "Vokabel-Duelle gegen " + DUEL_CLASS + " folgen im nächsten Ausbauschritt."); break;
       case "options": openOptionsModal(); break;

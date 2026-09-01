@@ -59,6 +59,14 @@ check("Modal-Titel Duell", doc.getElementById("modalTitle").textContent === "Due
 key(win, doc, "Escape");
 check("Escape schliesst Modal", G.isModalOpen() === false);
 
+// --- Menuepunkt "Spiele" (Inhalte folgen, aktuell Platzhalter) ---
+click(win, doc.getElementById("menuBtn"));
+check("'Spiele' steht im Menue", !!doc.querySelector('[data-nav="games"]'));
+click(win, doc.querySelector('[data-nav="games"]'));
+check("'Spiele' oeffnet ein Modal", G.isModalOpen() === true);
+check("Modal-Titel Spiele", doc.getElementById("modalTitle").textContent === "Spiele");
+key(win, doc, "Escape");
+
 // --- Kapitel-Modal: Unit 1 klickbar, Unit 2-4 gesperrt ---
 click(win, doc.getElementById("chaptersTile"));
 check("Kapitel-Modal oeffnet", G.isModalOpen() === true);
