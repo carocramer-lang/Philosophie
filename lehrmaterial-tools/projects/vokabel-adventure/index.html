@@ -238,10 +238,136 @@
   .switch[aria-checked="true"] .knob{ left:20px; background:var(--gold); }
 
   .sr-only{ position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; }
+
+  /* ---- additional views (Unit, Section, Merkliste) ---- */
+  .view{ display:none; }
+  .view.active{ display:flex; }
+
+  .subhead{ display:flex; align-items:center; gap:10px; }
+  .subhead .back{
+    width:36px; height:36px; border-radius:10px; background:var(--card-2); border:1px solid var(--border-strong);
+    display:flex; align-items:center; justify-content:center; color:var(--ink-3); cursor:pointer; padding:0; flex:none;
+  }
+  .subhead .back:hover{ background:rgba(255,255,255,.14); }
+  .subhead .crumb{ font-size:13px; color:var(--ink-7); }
+  .view h1.page-title{
+    font-family:Fredoka,sans-serif; font-weight:600; font-size:clamp(24px,4.5vw,34px);
+    letter-spacing:-.01em; color:#fff; margin:2px 0 0;
+  }
+  .view .page-sub{ font-size:14px; color:var(--ink-7); font-weight:300; margin:4px 0 0; }
+
+  .sec-list{ display:flex; flex-direction:column; gap:10px; }
+  .sec-card{
+    display:flex; align-items:center; gap:14px; padding:14px 16px; border-radius:16px;
+    background:var(--card); border:1px solid var(--border); cursor:pointer; text-align:left;
+    color:inherit; width:100%; transition:background .18s ease;
+  }
+  .sec-card:hover{ background:rgba(255,255,255,.11); }
+  .sec-card.done{ border-color:rgba(127,209,193,.4); }
+  .sec-num{
+    width:34px; height:34px; border-radius:10px; background:rgba(255,255,255,.08); flex:none;
+    display:flex; align-items:center; justify-content:center; font-family:Fredoka,sans-serif; font-size:14px; color:var(--ink-4);
+  }
+  .sec-card.done .sec-num{ background:rgba(127,209,193,.18); color:var(--teal); }
+  .sec-info{ flex:1; min-width:0; }
+  .sec-name{ font-size:14.5px; font-weight:500; color:var(--ink-1); }
+  .sec-meta{ font-size:12px; color:var(--ink-8); margin-top:2px; }
+  .sec-bar-track{ height:5px; border-radius:99px; background:rgba(255,255,255,.12); overflow:hidden; margin-top:7px; }
+  .sec-bar-fill{ height:100%; border-radius:99px; background:linear-gradient(90deg,var(--gold),var(--gold-dark)); }
+
+  /* mode switch (section view) */
+  .modeswitch{ display:inline-flex; gap:4px; padding:4px; border-radius:14px; background:var(--card); border:1px solid var(--border); align-self:flex-start; }
+  .modeswitch button{
+    border:none; background:none; padding:9px 16px; border-radius:11px; font-size:13.5px; color:var(--ink-6);
+    cursor:pointer;
+  }
+  .modeswitch button.active{ background:linear-gradient(160deg,#f6cf68,var(--gold-deep)); color:#1b1205; font-weight:500; }
+  [data-mode-panel]{ display:none; }
+  [data-mode-panel].active{ display:block; }
+
+  /* flashcards */
+  .fc-wrap{ display:flex; flex-direction:column; align-items:center; gap:16px; }
+  .fc-progress{ font-size:13px; color:var(--ink-8); font-variant-numeric:tabular-nums; }
+  .fc-track{ width:100%; max-width:360px; height:5px; border-radius:99px; background:rgba(255,255,255,.12); overflow:hidden; }
+  .fc-track-fill{ height:100%; background:linear-gradient(90deg,var(--gold),var(--gold-dark)); border-radius:99px; transition:width .25s ease; }
+  .flashcard{ width:100%; max-width:360px; height:210px; cursor:pointer; perspective:1200px; -webkit-perspective:1200px; }
+  .flashcard-inner{
+    position:relative; width:100%; height:100%; transition:transform .45s cubic-bezier(.2,.8,.2,1);
+    transform-style:preserve-3d; -webkit-transform-style:preserve-3d;
+  }
+  .flashcard.flipped .flashcard-inner{ transform:rotateY(180deg); }
+  @media (prefers-reduced-motion:reduce){ .flashcard-inner{ transition:none; } }
+  .page.motion-off .flashcard-inner{ transition:none; }
+  .fc-face{
+    position:absolute; inset:0; backface-visibility:hidden; -webkit-backface-visibility:hidden;
+    border-radius:20px; border:1px solid var(--border-strong); box-shadow:0 22px 50px rgba(0,0,0,.4);
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; padding:22px; text-align:center;
+  }
+  .fc-front{ background:linear-gradient(160deg,#213b5e,#152640); }
+  .fc-back{ background:linear-gradient(160deg,#f6cf68,var(--gold-deep)); color:#1b1205; transform:rotateY(180deg); }
+  .fc-tag{ font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-8); }
+  .fc-back .fc-tag{ color:rgba(27,18,5,.6); }
+  .fc-word{ font-family:Fredoka,sans-serif; font-weight:600; font-size:24px; line-height:1.2; }
+  .fc-hint{ font-size:11.5px; color:var(--ink-9); }
+  .fc-back .fc-hint{ color:rgba(27,18,5,.55); }
+  .fc-controls{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; justify-content:center; }
+  .fc-nav{
+    width:38px; height:38px; border-radius:11px; background:var(--card-2); border:1px solid var(--border-strong);
+    color:var(--ink-3); cursor:pointer; display:flex; align-items:center; justify-content:center; flex:none;
+  }
+  .fc-nav:hover{ background:rgba(255,255,255,.14); }
+  .fc-assess{ display:flex; gap:10px; }
+  .fc-assess button{
+    padding:10px 16px; border-radius:11px; border:1px solid var(--border-strong); cursor:pointer; font-size:13px;
+    display:flex; align-items:center; gap:8px; background:var(--card-2); color:var(--ink-3);
+  }
+  .fc-assess .know{ border-color:rgba(127,209,193,.4); }
+  .fc-assess .know:hover{ background:rgba(127,209,193,.16); }
+  .fc-assess .practice{ border-color:rgba(224,137,154,.4); }
+  .fc-assess .practice:hover{ background:rgba(224,137,154,.16); }
+  .fc-assess .dot{ width:8px; height:8px; border-radius:50%; }
+  .fc-assess .know .dot{ background:var(--teal); }
+  .fc-assess .practice .dot{ background:var(--pink); }
+  .fc-empty{ font-size:14px; color:var(--ink-7); text-align:center; padding:30px 0; }
+
+  /* overview */
+  .ov-toolbar{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:space-between; }
+  .ov-count{ font-size:12.5px; color:var(--ink-8); white-space:nowrap; }
+  .ov-table{ width:100%; border-collapse:collapse; margin-top:6px; }
+  .ov-table tr{ border-top:1px solid rgba(255,255,255,.07); }
+  .ov-table tr:first-child{ border-top:none; }
+  .ov-table td{ padding:10px 6px; font-size:13.5px; vertical-align:top; }
+  .ov-table td.en{ color:var(--ink-1); font-weight:500; width:44%; }
+  .ov-table td.de{ color:var(--ink-6); }
+  .ov-table td.mark{ width:34px; text-align:right; }
+  .ov-star{
+    width:26px; height:26px; border-radius:8px; border:1px solid var(--border-strong); background:var(--card-2);
+    cursor:pointer; color:var(--ink-8); display:inline-flex; align-items:center; justify-content:center; padding:0;
+  }
+  .ov-star.on{ background:rgba(244,201,93,.18); border-color:rgba(244,201,93,.5); color:var(--gold); }
+
+  /* merkliste */
+  .mk-toolbar{ display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+  .mk-list{ display:flex; flex-direction:column; gap:8px; }
+  .mk-row{
+    display:flex; align-items:center; gap:12px; padding:11px 13px; border-radius:13px;
+    background:var(--card); border:1px solid var(--border);
+  }
+  .mk-info{ flex:1; min-width:0; }
+  .mk-en{ font-size:14px; font-weight:500; color:var(--ink-1); }
+  .mk-de{ font-size:12.5px; color:var(--ink-7); }
+  .mk-progress{ display:flex; gap:3px; flex:none; }
+  .mk-progress .dot{ width:7px; height:7px; border-radius:50%; background:rgba(255,255,255,.16); }
+  .mk-progress .dot.on{ background:var(--teal); }
+  .mk-remove{
+    width:30px; height:30px; border-radius:9px; background:var(--card-2); border:1px solid var(--border-strong);
+    color:var(--ink-8); cursor:pointer; flex:none; display:flex; align-items:center; justify-content:center; padding:0;
+  }
+  .mk-remove:hover{ background:rgba(224,137,154,.16); border-color:rgba(224,137,154,.4); color:#f0aebb; }
 </style>
 </head>
 <body>
-<div class="page" id="page">
+<div class="page view active" id="page" data-view="start">
   <div class="wrap">
 
     <header class="topbar">
@@ -345,6 +471,65 @@
   </div>
 </div>
 
+<!-- Unit-Ansicht: Liste der Abschnitte -->
+<div class="page view" id="viewUnit" data-view="unit">
+  <div class="wrap">
+    <div class="subhead">
+      <button class="back" id="unitBackBtn" aria-label="Zurück zum Startbildschirm">←</button>
+      <span class="crumb">Vokabel-Adventure · Unit 1</span>
+    </div>
+    <div>
+      <h1 class="page-title">Living in America</h1>
+      <p class="page-sub" id="unitProgressSub"></p>
+    </div>
+    <div class="sec-list" id="sectionList"></div>
+  </div>
+</div>
+
+<!-- Abschnitts-Ansicht: Karteikarten + Übersicht kombiniert -->
+<div class="page view" id="viewSection" data-view="section">
+  <div class="wrap">
+    <div class="subhead">
+      <button class="back" id="sectionBackBtn" aria-label="Zurück zur Unit-Übersicht">←</button>
+      <span class="crumb">Vokabel-Adventure · Unit 1</span>
+    </div>
+    <div>
+      <h1 class="page-title" id="sectionTitle"></h1>
+      <p class="page-sub" id="sectionSub"></p>
+    </div>
+
+    <div class="modeswitch" role="tablist" aria-label="Ansicht wählen">
+      <button type="button" data-secmode="flash" class="active" role="tab" aria-selected="true">🎴 Karteikarten</button>
+      <button type="button" data-secmode="overview" role="tab" aria-selected="false">📋 Übersicht</button>
+    </div>
+
+    <div data-mode-panel="flash" class="active" id="secFlashPanel"></div>
+    <div data-mode-panel="overview" id="secOverviewPanel"></div>
+  </div>
+</div>
+
+<!-- Merkliste -->
+<div class="page view" id="viewMerkliste" data-view="merkliste">
+  <div class="wrap">
+    <div class="subhead">
+      <button class="back" id="mkBackBtn" aria-label="Zurück zum Startbildschirm">←</button>
+      <span class="crumb">Vokabel-Adventure</span>
+    </div>
+    <div>
+      <h1 class="page-title">Merkliste</h1>
+      <p class="page-sub">Wörter, die du dir extra merken willst — von der Sterne-Markierung oder aus „Muss ich üben“. Nach 2× erfolgreicher Wiederholung verschwindet ein Wort automatisch.</p>
+    </div>
+
+    <div class="mk-toolbar">
+      <span class="ov-count" id="mkCount"></span>
+      <button class="btn-line" id="mkReviewBtn" type="button">🔁 Merkliste wiederholen</button>
+    </div>
+
+    <div id="mkListWrap"></div>
+    <div data-mode-panel="mkreview" id="mkReviewPanel"></div>
+  </div>
+</div>
+
 <div class="modal-layer" id="modalLayer">
   <div class="modal-scrim" data-close-modal></div>
   <div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
@@ -370,9 +555,232 @@
     for (var i = 0; i < UNITS.length; i++) if (UNITS[i].number === n) return UNITS[i];
     return null;
   }
-  var DEFAULT_WORDS_TOTAL = 100;
-  var DEFAULT_ROUNDS_TOTAL = 12;
   var DUEL_CLASS = "Klasse 8b";
+
+  // Unit 1 (Living in America + Across cultures 1) aus Vokabelübersicht_GL4.pdf,
+  // in Abschnitten von ca. 20 Wörtern nach Buchstruktur (Einstieg = Across
+  // cultures 1, danach Check-in/Station 1-3/Story/Skills & Unit task).
+  var UNIT1_SECTIONS = [
+    { name: 'Einstieg (1/3)', words: [
+      { en: 'contrast', de: 'Gegensatz; Kontrast; Unterschied' },
+      { en: 'the US (= the United States)', de: 'die USA (= die Vereinigten Staaten)' },
+      { en: 'urban', de: 'städtisch; Stadt-' },
+      { en: 'endless', de: 'endlos' },
+      { en: 'sparsely populated', de: 'dünn besiedelt' },
+      { en: 'rural', de: 'ländlich; Land-' },
+      { en: 'desert', de: 'Wüste; Wüstenregion' },
+      { en: 'temperature', de: 'Temperatur' },
+      { en: 'degree Fahrenheit (°F)', de: 'Grad Fahrenheit' },
+      { en: '(the) northwest', de: '(der) Nordwesten; im Nordwesten; nordwestlich' },
+      { en: 'cool', de: 'kühl' },
+      { en: 'the Northern Lights', de: 'Polarlichter; Nordlichter' },
+      { en: 'sled', de: 'Schlitten; Schlitten-' },
+      { en: 'to record', de: 'aufzeichnen; aufnehmen' },
+      { en: 'immigrant', de: 'Immigrant/-in; Einwanderer/-in' },
+      { en: 'immigration', de: 'Immigration; Einwanderung; Einreise' },
+      { en: 'cultural', de: 'kulturell' },
+      { en: 'foot, feet (pl)', de: 'Fuß (Längenmaß, ca. 30 cm)' },
+      { en: 'skyscraper', de: 'Wolkenkratzer' },
+    ] },
+    { name: 'Einstieg (2/3)', words: [
+      { en: 'flag', de: 'Flagge; Fahne' },
+      { en: 'front yard (AE)', de: 'Vorgarten' },
+      { en: 'state', de: 'Staat; Bundesstaat; Land' },
+      { en: 'to fly', de: 'hier: hissen' },
+      { en: 'in public', de: 'in der Öffentlichkeit' },
+      { en: 'a family of four', de: 'eine vierköpfige Familie' },
+      { en: 'a (day/week/year)', de: 'pro (Tag/Woche/Jahr)' },
+      { en: 'population', de: 'Bevölkerung; Population' },
+      { en: 'billionaire', de: 'Milliardär/-in' },
+      { en: 'to put together', de: 'zusammenzählen; zusammennehmen' },
+      { en: 'identity', de: 'Identität' },
+      { en: 'densely populated', de: 'dicht besiedelt' },
+      { en: 'extreme', de: 'extrem; radikal' },
+      { en: 'store (AE)', de: 'Laden; Geschäft' },
+      { en: 'flat', de: 'flach; platt' },
+      { en: 'open space', de: 'Freifläche' },
+      { en: 'dry', de: 'trocken' },
+      { en: 'mountainous', de: 'bergig' },
+      { en: 'home country', de: 'Heimatland; Heimat' },
+    ] },
+    { name: 'Einstieg (3/3)', words: [
+      { en: 'converter', de: 'Umwandler; Konverter; Rechner' },
+      { en: 'degree Celsius (°C)', de: 'Grad Celsius' },
+      { en: 'to represent', de: 'repräsentieren; darstellen; stehen für' },
+      { en: 'to symbolize (AE)', de: 'symbolisieren' },
+      { en: 'caption', de: 'Bildunterschrift; Untertitel' },
+      { en: 'harsh', de: 'rau; hart' },
+      { en: 'wealthy', de: 'wohlhabend; reich' },
+      { en: 'scenery', de: 'Landschaft' },
+      { en: 'standard of living', de: 'Lebensstandard' },
+      { en: 'space', de: 'Fläche; Platz; Raum; Ort' },
+      { en: 'aspect', de: 'Aspekt; Gesichtspunkt' },
+      { en: 'ride', de: 'Fahrt; Ritt' },
+      { en: 'to become friends', de: 'sich anfreunden; Freundschaft schließen' },
+      { en: 'vacation (AE)', de: '(Schul)Ferien; Urlaub' },
+      { en: 'awesome', de: 'super; spitze' },
+      { en: 'route planner', de: 'Routenplaner' },
+      { en: 'direction', de: 'Richtung' },
+      { en: 'corn (AE)', de: 'Mais' },
+      { en: 'wheat', de: 'Weizen' },
+    ] },
+    { name: 'Check-in', words: [
+      { en: 'everyday life', de: 'Alltag; das tägliche Leben' },
+      { en: 'bat', de: 'Schläger (z. B. beim Baseball)' },
+      { en: 'dirt road', de: 'Schotterstraße' },
+      { en: 'hallway (AE)', de: 'Flur; Korridor; Diele' },
+      { en: 'high school (AE)', de: 'High School (Oberstufe in den USA)' },
+      { en: 'middle school (AE)', de: 'Mittelschule (Mittelstufe in den USA)' },
+      { en: 'to interest', de: '(sich) interessieren' },
+      { en: 'orientation', de: 'Orientierungs-; Orientierung' },
+      { en: 'to give a talk', de: 'einen Vortrag halten' },
+      { en: 'country life', de: 'Landleben' },
+      { en: 'suburb', de: 'Vorort' },
+      { en: 'suburban', de: 'Vorstadt-' },
+      { en: 'apartment (AE)', de: 'Wohnung; Appartement' },
+      { en: 'backyard (AE)', de: 'Garten (hinter dem Haus)' },
+      { en: 'shopping mall', de: 'Einkaufszentrum' },
+      { en: 'noisy', de: 'laut' },
+      { en: 'hall pass', de: 'Erlaubnis, sich während des Unterrichts auf dem Flur aufzuhalten' },
+      { en: 'dress code', de: 'Kleiderordnung; Bekleidungsvorschriften' },
+      { en: 'restroom (AE)', de: 'Toilette' },
+    ] },
+    { name: 'Station 1 (1/2): Living here isn’t bad', words: [
+      { en: 'movie (AE)', de: 'Film' },
+      { en: 'walk-in closet', de: 'begehbarer Kleiderschrank' },
+      { en: 'not until', de: 'nicht vor; erst um/im/in' },
+      { en: 'drive', de: 'Fahrt; Anfahrt; Autofahrt' },
+      { en: 'strict', de: 'streng; strikt' },
+      { en: 'curfew', de: 'Sperrstunde; Ausgangssperre' },
+      { en: 'to meet up', de: 'sich treffen' },
+      { en: 'downtown (AE)', de: 'Stadtzentrum; im/ins Stadtzentrum' },
+      { en: 'to get used to', de: 'sich gewöhnen an' },
+      { en: 'floor', de: 'Stockwerk' },
+      { en: 'elevator (AE)', de: 'Aufzug; Lift' },
+      { en: 'movie theater (AE)', de: 'Kino' },
+      { en: 'soccer (AE)', de: 'Fußball' },
+      { en: 'I’m afraid …', de: 'Leider …' },
+    ] },
+    { name: 'Station 1 (2/2): Living here isn’t bad', words: [
+      { en: 'to keep in touch', de: 'in Kontakt bleiben' },
+      { en: 'to keep (+ gerund)', de: 'weiter tun; immer wieder tun' },
+      { en: 'no wonder', de: 'kein Wunder' },
+      { en: 'to experience', de: 'erfahren; erleben' },
+      { en: 'in the middle of nowhere', de: 'am Ende der Welt; mitten in der Pampa; mitten im Nirgendwo' },
+      { en: 'such (a/an)', de: 'solch (ein/e/r); solche/-r/-s' },
+      { en: 'to be tired of', de: 'es müde sein (zu); es leid sein (zu); es satt haben (zu)' },
+      { en: 'to find one’s way around', de: 'sich zurechtfinden' },
+      { en: 'likes and dislikes', de: 'Vorlieben und Abneigungen' },
+      { en: 'to unpack', de: 'auspacken' },
+      { en: 'to dislike', de: 'nicht mögen' },
+      { en: 'to be crazy about', de: 'verrückt sein nach; abfahren auf' },
+      { en: 'mind', de: 'Kopf; Geist; Verstand; Gedanken' },
+      { en: 'foreground', de: 'Vordergrund' },
+    ] },
+    { name: 'Station 2: That’s the worst thing to do!', words: [
+      { en: 'committee', de: 'Komitee; Ausschuss' },
+      { en: '8th grader (AE)', de: 'Achtklässler/-in' },
+      { en: 'period (AE)', de: 'Stunde; Unterrichtsstunde; Satzpunkt' },
+      { en: 'geek', de: 'Außenseiter/-in; Streber/-in' },
+      { en: 'What a/an …', de: 'Was für ein/-e …' },
+      { en: 'dilemma', de: 'Dilemma; Zwickmühle' },
+      { en: 'mean', de: 'gemein' },
+      { en: 'shopper', de: 'Käufer/-in' },
+      { en: 'protest', de: 'Protest' },
+      { en: 'child labor (AE)', de: 'Kinderarbeit' },
+      { en: 'sweatshop', de: 'Ausbeuterbetrieb' },
+      { en: 'to demonstrate', de: 'demonstrieren' },
+      { en: 'right', de: 'Recht' },
+      { en: 'Pledge of Allegiance', de: 'Treueeid auf die amerikanische Flagge' },
+      { en: 'to seem', de: 'scheinen' },
+      { en: 'ritual', de: 'Ritual' },
+      { en: 'republic', de: 'Republik' },
+      { en: 'nation', de: 'Nation' },
+      { en: 'liberty', de: 'Freiheit' },
+      { en: 'justice', de: 'Gerechtigkeit' },
+      { en: 'whether', de: 'ob' },
+      { en: 'to order', de: 'bestellen' },
+    ] },
+    { name: 'Station 3: An argument at Thanksgiving', words: [
+      { en: 'in time', de: 'rechtzeitig' },
+      { en: 'turkey', de: 'Truthahn; Pute' },
+      { en: 'for (+ Zeitraum)', de: 'seit' },
+      { en: 'I’m starving.', de: 'Ich habe einen riesen Hunger.; Ich bin am Verhungern.' },
+      { en: 'recently', de: 'in letzter Zeit; neulich; kürzlich; vor kurzem' },
+      { en: 'to avoid', de: 'vermeiden; meiden; aus dem Weg gehen' },
+      { en: 'distracted', de: 'abgelenkt' },
+      { en: 'dish', de: 'Gericht; Speise' },
+      { en: 'brussels sprout', de: 'Rosenkohl' },
+      { en: 'casserole', de: 'Auflauf; Eintopf' },
+      { en: 'I can see where you’re coming from.', de: 'Ich verstehe dich.; Ich verstehe deine Entscheidung.; Ich verstehe deinen Standpunkt.' },
+      { en: 'federal holiday', de: 'Nationalfeiertag' },
+      { en: 'to practice a religion', de: 'eine Religion ausüben' },
+      { en: 'survivor', de: 'Überlebende/-r' },
+      { en: 'Native American', de: 'Ureinwohner/-in Amerikas' },
+      { en: 'harvest', de: 'Ernte' },
+      { en: 'to give thanks', de: 'sich bedanken' },
+      { en: 'parade', de: 'Parade; Umzug' },
+      { en: 'to do the dishes', de: 'den Abwasch machen' },
+    ] },
+    { name: 'Story: Nightmare at the mall!', words: [
+      { en: 'nightmare', de: 'Albtraum' },
+      { en: 'exaggerated', de: 'übertrieben' },
+      { en: 'unrealistic', de: 'unrealistisch' },
+      { en: 'coincidence', de: 'Zufall' },
+      { en: 'to open', de: 'eröffnen' },
+      { en: 'right (= exactly)', de: 'direkt; genau' },
+      { en: 'cheer', de: 'Jubel; Hurraruf' },
+      { en: 'dizzy', de: 'schwindelig' },
+      { en: 'down with', de: 'nieder mit; weg mit' },
+      { en: 'protester', de: 'Protestierende/-r; Demonstrant/-in' },
+      { en: 'air', de: 'Luft' },
+      { en: 'troublemaker', de: 'Unruhestifter/-in' },
+      { en: 'police officer', de: 'Polizist/-in; Polizeibeamter/-beamtin' },
+      { en: 'to panic', de: 'in Panik geraten' },
+      { en: 'to leave sb alone', de: 'jmdn. in Ruhe lassen' },
+      { en: 'gap', de: 'Lücke; Spalt; Abstand' },
+      { en: 'twice', de: 'zweimal' },
+      { en: 'next stop', de: 'nächster Halt' },
+      { en: 'to be in a mess', de: 'in der Tinte sitzen; in der Klemme stecken' },
+      { en: 'to mix', de: 'zusammenpassen' },
+      { en: 'out-of-character', de: 'ungewöhnlich; untypisch' },
+      { en: 'impossible', de: 'unmöglich' },
+    ] },
+    { name: 'Skills & Unit task', words: [
+      { en: 'Go on!', de: 'Los!; Mach schon!' },
+      { en: 'attractive', de: 'attraktiv' },
+      { en: 'boyfriend', de: 'Freund (in einer Paarbeziehung)' },
+      { en: 'attitude', de: 'Haltung; Einstellung' },
+      { en: 'sense of style (no pl)', de: 'Stilgefühl' },
+      { en: 'to overdo, overdid, overdone', de: 'übertreiben; zu weit gehen' },
+      { en: 'garlic', de: 'Knoblauch' },
+      { en: 'to act', de: 'sich verhalten; handeln' },
+      { en: 'tone', de: 'Ton; Tonfall; Stil' },
+      { en: 'toothpaste', de: 'Zahnpasta' },
+      { en: 'humorous', de: 'humorvoll; lustig; witzig' },
+      { en: 'ironic', de: 'ironisch' },
+      { en: 'individual', de: 'Einzelperson; Einzelne/-r; Individuum' },
+      { en: 'pose', de: 'Pose; Haltung' },
+      { en: 'to create', de: 'entwerfen; erstellen' },
+      { en: 'to brainstorm', de: 'Ideen sammeln' },
+      { en: 'several', de: 'einige; mehrere; verschiedene' },
+      { en: 'to report', de: 'berichten; wiedergeben' },
+      { en: 'top', de: 'Spitze; oberer Teil; oberes Ende' },
+      { en: 'transportation (AE)', de: 'Transport; Beförderung; Verkehrs-' },
+      { en: 'motorcycle (AE)', de: 'Motorrad' },
+      { en: 'drums (pl)', de: 'Schlagzeug' },
+    ] },
+  ];
+
+  var UNIT1_WORDS = [];
+  UNIT1_SECTIONS.forEach(function(sec){
+    sec.words.forEach(function(w){ UNIT1_WORDS.push({ en: w.en, de: w.de, section: sec.name }); });
+  });
+  function wordBySection(sectionIndex){ return UNIT1_SECTIONS[sectionIndex] ? UNIT1_SECTIONS[sectionIndex].words : []; }
+  function findWord(en){
+    for (var i = 0; i < UNIT1_WORDS.length; i++) if (UNIT1_WORDS[i].en === en) return UNIT1_WORDS[i];
+    return null;
+  }
 
   function pad(n){ return n < 10 ? "0" + n : "" + n; }
   function todayStr(d){ d = d || new Date(); return d.getFullYear() + "-" + pad(d.getMonth()+1) + "-" + pad(d.getDate()); }
@@ -387,11 +795,8 @@
       v: 1,
       unitNumber: 1,
       unitName: UNITS[0].name,
-      wordsLearned: 0,
-      wordsTotal: DEFAULT_WORDS_TOTAL,
-      round: 0,
-      roundsTotal: DEFAULT_ROUNDS_TOTAL,
-      merkliste: [],
+      wordAssessments: {}, // "en" -> "know" | "practice", ueber alle Unit-1-Woerter
+      merkliste: [], // [{ en, de, section, reviewCount, addedAt }]
       streakCount: 0,
       lastVisitDate: null,
       reducedMotion: null
@@ -429,12 +834,66 @@
     return state;
   }
 
+  var MASTERY_REPEATS = 2; // so oft muss ein Merkliste-Wort erfolgreich wiederholt werden
+
+  function knownWordCount(state){
+    var n = 0;
+    for (var en in state.wordAssessments) if (state.wordAssessments[en] === "know") n++;
+    return n;
+  }
+
+  function sectionAssessedCount(state, section){
+    var n = 0;
+    section.words.forEach(function(w){ if (state.wordAssessments[w.en] !== undefined) n++; });
+    return n;
+  }
+
+  function sectionDoneCount(state){
+    var n = 0;
+    UNIT1_SECTIONS.forEach(function(sec){
+      if (sectionAssessedCount(state, sec) === sec.words.length) n++;
+    });
+    return n;
+  }
+
+  function merklisteIndex(state, en){
+    for (var i = 0; i < state.merkliste.length; i++) if (state.merkliste[i].en === en) return i;
+    return -1;
+  }
+
+  function addToMerkliste(state, word, sectionName){
+    if (merklisteIndex(state, word.en) !== -1) return;
+    state.merkliste.push({ en: word.en, de: word.de, section: sectionName || word.section || "", reviewCount: 0, addedAt: todayStr() });
+  }
+
+  function removeFromMerkliste(state, en){
+    var idx = merklisteIndex(state, en);
+    if (idx !== -1) state.merkliste.splice(idx, 1);
+  }
+
+  // Zentrale Bewertungslogik fuer Karteikarten: bei "practice" landet das Wort
+  // (neu) auf der Merkliste, bei "know" zaehlt eine erfolgreiche Wiederholung
+  // fuer ein Merkliste-Wort - nach MASTERY_REPEATS Erfolgen faellt es automatisch
+  // wieder herunter.
+  function assessWord(state, word, outcome, sectionName){
+    state.wordAssessments[word.en] = outcome;
+    var idx = merklisteIndex(state, word.en);
+    if (outcome === "practice") {
+      if (idx === -1) addToMerkliste(state, word, sectionName || word.section);
+      else state.merkliste[idx].reviewCount = 0;
+    } else if (outcome === "know" && idx !== -1) {
+      state.merkliste[idx].reviewCount++;
+      if (state.merkliste[idx].reviewCount >= MASTERY_REPEATS) removeFromMerkliste(state, word.en);
+    }
+  }
+
   function computeAchievements(state){
     return [
       { id: "first-visit", label: "Erster Besuch", unlocked: state.streakCount >= 1 },
       { id: "streak-3", label: "3 Tage in Folge", unlocked: state.streakCount >= 3 },
       { id: "streak-7", label: "7 Tage in Folge", unlocked: state.streakCount >= 7 },
-      { id: "words-10", label: "Erste 10 Vokabeln gelernt", unlocked: state.wordsLearned >= 10 },
+      { id: "words-10", label: "Erste 10 Vokabeln gelernt", unlocked: knownWordCount(state) >= 10 },
+      { id: "section-1", label: "Ersten Abschnitt geschafft", unlocked: sectionDoneCount(state) >= 1 },
       { id: "wordlist-5", label: "5 Wörter auf der Merkliste", unlocked: state.merkliste.length >= 5 }
     ];
   }
@@ -449,18 +908,21 @@
   function render(){
     var unitLabel = state.unitName ? ("Unit " + state.unitNumber + " · " + state.unitName) : ("Unit " + state.unitNumber);
     $("unitLabel").textContent = unitLabel;
-    $("wordsLabel").textContent = state.wordsLearned + " / " + state.wordsTotal + " Vokabeln";
-    var pct = state.wordsTotal > 0 ? Math.round(state.wordsLearned / state.wordsTotal * 100) : 0;
+    var wordsLearned = knownWordCount(state);
+    var wordsTotal = UNIT1_WORDS.length;
+    $("wordsLabel").textContent = wordsLearned + " / " + wordsTotal + " Vokabeln";
+    var pct = wordsTotal > 0 ? Math.round(wordsLearned / wordsTotal * 100) : 0;
     $("progressBar").style.width = pct + "%";
     $("progressBar").setAttribute("aria-valuenow", String(pct));
 
     var streakText = state.streakCount + " " + (state.streakCount === 1 ? "Tag" : "Tage") + " in Folge";
     $("streakLabel").textContent = streakText;
 
-    var started = state.wordsLearned > 0 || state.round > 0;
+    var doneSections = sectionDoneCount(state);
+    var started = wordsLearned > 0 || doneSections > 0;
     $("ctaTitle").textContent = started ? "Weiterspielen" : "Loslegen";
     $("ctaSub").textContent = started
-      ? ("Unit " + state.unitNumber + " · Runde " + state.round + " von " + state.roundsTotal)
+      ? ("Unit " + state.unitNumber + " · Abschnitt " + doneSections + " von " + UNIT1_SECTIONS.length)
       : ("Unit " + state.unitNumber + " · Bereit zum Start");
 
     $("chaptersSub").textContent = UNITS.length + " Units";
@@ -533,17 +995,26 @@
   // ---- Kapitel ----
   function openChaptersModal(){
     var body = document.createElement("div");
-    body.appendChild(el("p", { text: "Green Line 4 in vier Units. Die „Across cultures“-Kapitel des Buchs sind vokabelseitig jeweils in die folgende Unit eingerechnet." }));
+    body.appendChild(el("p", { text: "Green Line 4 in vier Units. Die „Across cultures“-Kapitel des Buchs sind vokabelseitig jeweils in die folgende Unit eingerechnet. Wir arbeiten Unit für Unit — Unit 1 ist startklar." }));
     var list = el("ul", { className: "achv-list" });
     UNITS.forEach(function(u){
-      var current = u.number === state.unitNumber;
-      list.appendChild(el("li", { className: "achv" + (current ? "" : " locked") }, [
-        el("span", { className: "achv-dot" }),
-        el("span", { text: "Unit " + u.number + " · " + u.name + " (mit „" + u.acrossCultures + "“)" })
-      ]));
+      var ready = u.number === 1;
+      var label = "Unit " + u.number + " · " + u.name + " (mit „" + u.acrossCultures + "“)";
+      if (ready) {
+        var btn = el("button", { className: "achv", style: "width:100%;border:none;cursor:pointer;text-align:left;font:inherit;color:inherit" }, [
+          el("span", { className: "achv-dot" }),
+          el("span", { text: label + " →" })
+        ]);
+        btn.addEventListener("click", function(){ closeModal(); showView("unit"); });
+        list.appendChild(el("li", null, [btn]));
+      } else {
+        list.appendChild(el("li", { className: "achv locked" }, [
+          el("span", { className: "achv-dot" }),
+          el("span", { text: label + " — folgt später" })
+        ]));
+      }
     });
     body.appendChild(list);
-    body.appendChild(el("p", { text: "Die einzelnen Lernrunden pro Unit folgen im nächsten Ausbauschritt." }));
     openModal("Kapitel", body);
   }
 
@@ -595,10 +1066,10 @@
       exportiertAm: new Date().toISOString(),
       unit: state.unitNumber,
       unitName: state.unitName || null,
-      wordsLearned: state.wordsLearned,
-      wordsTotal: state.wordsTotal,
-      round: state.round,
-      roundsTotal: state.roundsTotal,
+      wordsLearned: knownWordCount(state),
+      wordsTotal: UNIT1_WORDS.length,
+      abschnitteFertig: sectionDoneCount(state),
+      abschnitteGesamt: UNIT1_SECTIONS.length,
       streakCount: state.streakCount,
       merkliste: state.merkliste
     }, null, 2);
@@ -633,9 +1104,9 @@
   // ---- Hilfe ----
   function openHelpModal(){
     var body = document.createElement("div");
-    body.appendChild(el("p", { text: "Vokabel-Adventure begleitet dich durch den Wortschatz von Green Line 4. Der Startbildschirm zeigt deinen aktuellen Fortschritt, deine Serie an aufeinanderfolgenden Tagen und deine Merkliste." }));
+    body.appendChild(el("p", { text: "In „Kapitel“ lernst du die Vokabeln von Unit 1, abschnittsweise mit Karteikarten oder als Übersicht. Karteikarte umdrehen: tippen oder Leertaste. „Muss ich üben“ und der Stern in der Übersicht legen ein Wort auf deine Merkliste — dort wiederholst du es, bis du es zweimal hintereinander sicher kannst." }));
     body.appendChild(el("p", { text: "Dein Fortschritt wird nur auf diesem Gerät in diesem Browser gespeichert. Sichere ihn bei Bedarf über „Optionen → Fortschritt exportieren“, bevor du den Cache leerst oder das Gerät wechselst." }));
-    body.appendChild(el("p", { text: "Die eigentlichen Lernrunden (Kapitel, Übungen, Merkliste, Duell) folgen im nächsten Ausbauschritt." }));
+    body.appendChild(el("p", { text: "Hör- und Schreibübungen sowie das Duell gegen andere Klassen folgen im nächsten Ausbauschritt." }));
     openModal("Hilfe", body);
   }
 
@@ -643,8 +1114,8 @@
   function openTeacherModal(){
     var rows = [
       ["Unit", state.unitNumber + (state.unitName ? " · " + state.unitName : "")],
-      ["Gelernte Vokabeln", state.wordsLearned + " / " + state.wordsTotal],
-      ["Runde", state.round + " von " + state.roundsTotal],
+      ["Gelernte Vokabeln", knownWordCount(state) + " / " + UNIT1_WORDS.length],
+      ["Abschnitte fertig", sectionDoneCount(state) + " von " + UNIT1_SECTIONS.length],
       ["Serie (Tage in Folge)", String(state.streakCount)],
       ["Merkliste", String(state.merkliste.length) + " Wörter"],
       ["Letzter Besuch", state.lastVisitDate || "—"]
@@ -658,6 +1129,261 @@
     body.appendChild(table);
     openModal("Lehrkraft-Ansicht", body);
   }
+
+  // ---- View-Router ----
+  var views = Array.prototype.slice.call(document.querySelectorAll(".view"));
+  var currentView = "start";
+  function showView(name){
+    currentView = name;
+    views.forEach(function(v){ v.classList.toggle("active", v.getAttribute("data-view") === name); });
+    if (name === "unit") renderUnitView();
+    else if (name === "merkliste") renderMerklisteView();
+    if (name !== "start") { try { window.scrollTo(0, 0); } catch(e) {} }
+  }
+
+  // ---- Unit-Ansicht ----
+  function renderUnitView(){
+    $("unitProgressSub").textContent = knownWordCount(state) + " / " + UNIT1_WORDS.length + " Vokabeln gelernt · " +
+      sectionDoneCount(state) + " von " + UNIT1_SECTIONS.length + " Abschnitten fertig";
+    var list = $("sectionList");
+    list.innerHTML = "";
+    UNIT1_SECTIONS.forEach(function(sec, idx){
+      var done = sectionAssessedCount(state, sec);
+      var total = sec.words.length;
+      var isDone = done === total;
+      var card = el("button", { className: "sec-card" + (isDone ? " done" : ""), type: "button" }, [
+        el("span", { className: "sec-num", text: String(idx + 1) }),
+        el("span", { className: "sec-info" }, [
+          el("div", { className: "sec-name", text: sec.name }),
+          el("div", { className: "sec-meta", text: done + " / " + total + " Wörter geübt" }),
+          el("div", { className: "sec-bar-track" }, [
+            el("div", { className: "sec-bar-fill", style: "width:" + Math.round(done / total * 100) + "%" })
+          ])
+        ])
+      ]);
+      card.addEventListener("click", function(){ openSection(idx); });
+      list.appendChild(card);
+    });
+  }
+  $("unitBackBtn").addEventListener("click", function(){ showView("start"); });
+
+  // ---- Karteikarten-Baustein (wiederverwendbar fuer Abschnitt + Merkliste-Wiederholung) ----
+  // words: [{en, de, section?}]  onAssess(word, outcome) wird nach jeder Bewertung gerufen.
+  function buildFlashcards(words, opts){
+    opts = opts || {};
+    var wrap = el("div", { className: "fc-wrap" });
+    if (!words.length) {
+      wrap.appendChild(el("div", { className: "fc-empty", text: opts.emptyText || "Keine Karten." }));
+      return wrap;
+    }
+    var progress = el("div", { className: "fc-progress" });
+    var track = el("div", { className: "fc-track" }, [ el("div", { className: "fc-track-fill" }) ]);
+    var trackFill = track.firstChild;
+
+    var card = el("div", { className: "flashcard", tabindex: "0", role: "button", "aria-label": "Karte umdrehen" });
+    var inner = el("div", { className: "flashcard-inner" });
+    var front = el("div", { className: "fc-face fc-front" }, [
+      el("span", { className: "fc-tag" }), el("span", { className: "fc-word" }), el("span", { className: "fc-hint", text: "Tippen oder Leertaste zum Umdrehen" })
+    ]);
+    var back = el("div", { className: "fc-face fc-back" }, [
+      el("span", { className: "fc-tag" }), el("span", { className: "fc-word" })
+    ]);
+    inner.appendChild(front); inner.appendChild(back);
+    card.appendChild(inner);
+
+    var controls = el("div", { className: "fc-controls" });
+    var prevBtn = el("button", { className: "fc-nav", type: "button", "aria-label": "Vorherige Karte", text: "‹" });
+    var nextBtn = el("button", { className: "fc-nav", type: "button", "aria-label": "Nächste Karte", text: "›" });
+    var assessRow = el("div", { className: "fc-assess" });
+    var knowBtn = el("button", { className: "know", type: "button" }, [ el("span", { className: "dot" }), el("span", { text: "Kann ich schon" }) ]);
+    var practiceBtn = el("button", { className: "practice", type: "button" }, [ el("span", { className: "dot" }), el("span", { text: "Muss ich üben" }) ]);
+    assessRow.appendChild(knowBtn); assessRow.appendChild(practiceBtn);
+    controls.appendChild(prevBtn); controls.appendChild(assessRow); controls.appendChild(nextBtn);
+
+    wrap.appendChild(progress); wrap.appendChild(track); wrap.appendChild(card); wrap.appendChild(controls);
+
+    var index = 0, flipped = false;
+
+    function setFlipped(v){ flipped = v; card.classList.toggle("flipped", flipped); }
+
+    function renderCard(){
+      if (index >= words.length) index = 0;
+      if (index < 0) index = words.length - 1;
+      var w = words[index];
+      front.querySelector(".fc-tag").textContent = w.section || opts.tag || "";
+      front.querySelector(".fc-word").textContent = w.en;
+      back.querySelector(".fc-tag").textContent = w.section || opts.tag || "";
+      back.querySelector(".fc-word").textContent = w.de;
+      progress.textContent = (index + 1) + " / " + words.length;
+      trackFill.style.width = Math.round((index + 1) / words.length * 100) + "%";
+      setFlipped(false);
+    }
+
+    function next(){ index++; renderCard(); }
+    function prev(){ index--; renderCard(); }
+
+    card.addEventListener("click", function(){ setFlipped(!flipped); });
+    card.addEventListener("keydown", function(e){
+      if (e.key === " " || e.key === "Enter") { e.preventDefault(); setFlipped(!flipped); }
+      else if (e.key === "ArrowRight") next();
+      else if (e.key === "ArrowLeft") prev();
+    });
+    prevBtn.addEventListener("click", prev);
+    nextBtn.addEventListener("click", next);
+    knowBtn.addEventListener("click", function(){
+      var w = words[index];
+      if (opts.onAssess) opts.onAssess(w, "know");
+      next();
+    });
+    practiceBtn.addEventListener("click", function(){
+      var w = words[index];
+      if (opts.onAssess) opts.onAssess(w, "practice");
+      next();
+    });
+
+    renderCard();
+    return wrap;
+  }
+
+  // ---- Übersicht-Baustein (wiederverwendbar) ----
+  function buildOverview(words, opts){
+    opts = opts || {};
+    var wrap = document.createElement("div");
+    var table = el("table", { className: "ov-table" });
+    words.forEach(function(w){
+      var starred = merklisteIndex(state, w.en) !== -1;
+      var star = el("button", { className: "ov-star" + (starred ? " on" : ""), type: "button", "aria-pressed": String(starred), "aria-label": "Auf Merkliste" }, [document.createTextNode("★")]);
+      star.addEventListener("click", function(){
+        if (merklisteIndex(state, w.en) !== -1) removeFromMerkliste(state, w.en);
+        else addToMerkliste(state, w, w.section || opts.tag);
+        saveState(state);
+        star.classList.toggle("on");
+        var nowOn = star.classList.contains("on");
+        star.setAttribute("aria-pressed", String(nowOn));
+        render();
+        if (opts.onChange) opts.onChange();
+      });
+      var tr = el("tr", null, [
+        el("td", { className: "en", text: w.en }),
+        el("td", { className: "de", text: w.de }),
+        el("td", { className: "mark" }, [star])
+      ]);
+      table.appendChild(tr);
+    });
+    wrap.appendChild(table);
+    return wrap;
+  }
+
+  // ---- Abschnitts-Ansicht ----
+  var currentSectionIndex = 0;
+  function openSection(idx){
+    currentSectionIndex = idx;
+    showView("section");
+    renderSectionView();
+  }
+  function renderSectionView(){
+    var sec = UNIT1_SECTIONS[currentSectionIndex];
+    if (!sec) return;
+    $("sectionTitle").textContent = sec.name;
+    $("sectionSub").textContent = sec.words.length + " Wörter · Unit 1, Abschnitt " + (currentSectionIndex + 1) + " von " + UNIT1_SECTIONS.length;
+
+    var words = sec.words.map(function(w){ return { en: w.en, de: w.de, section: sec.name }; });
+
+    var flashPanel = $("secFlashPanel");
+    flashPanel.innerHTML = "";
+    flashPanel.appendChild(buildFlashcards(words, {
+      tag: sec.name,
+      onAssess: function(w, outcome){
+        assessWord(state, w, outcome, sec.name);
+        saveState(state);
+        render();
+        renderOverviewPanel();
+        renderUnitViewIfVisible();
+      }
+    }));
+
+    renderOverviewPanel();
+
+    function renderOverviewPanel(){
+      var ovPanel = $("secOverviewPanel");
+      ovPanel.innerHTML = "";
+      ovPanel.appendChild(buildOverview(words, { tag: sec.name }));
+    }
+  }
+  function renderUnitViewIfVisible(){ if (currentView === "unit") renderUnitView(); }
+
+  $("sectionBackBtn").addEventListener("click", function(){ showView("unit"); });
+  Array.prototype.forEach.call(document.querySelectorAll("[data-secmode]"), function(btn){
+    btn.addEventListener("click", function(){
+      var mode = btn.getAttribute("data-secmode");
+      Array.prototype.forEach.call(document.querySelectorAll("[data-secmode]"), function(b){
+        b.classList.remove("active"); b.setAttribute("aria-selected", "false");
+      });
+      btn.classList.add("active"); btn.setAttribute("aria-selected", "true");
+      Array.prototype.forEach.call(document.querySelectorAll("#viewSection [data-mode-panel]"), function(p){
+        p.classList.toggle("active", p.getAttribute("data-mode-panel") === mode);
+      });
+    });
+  });
+
+  // ---- Merkliste-Ansicht ----
+  function renderMerklisteList(){
+    $("mkCount").textContent = state.merkliste.length + " " + (state.merkliste.length === 1 ? "Wort" : "Wörter");
+    var wrap = $("mkListWrap");
+    wrap.innerHTML = "";
+    if (!state.merkliste.length) {
+      wrap.appendChild(el("div", { className: "fc-empty", text: "Deine Merkliste ist leer. Wörter landen hier über den Stern in der Übersicht oder über „Muss ich üben“ bei den Karteikarten." }));
+      return;
+    }
+    var list = el("div", { className: "mk-list" });
+    state.merkliste.forEach(function(m){
+      var dots = el("div", { className: "mk-progress" });
+      for (var i = 0; i < MASTERY_REPEATS; i++) {
+        dots.appendChild(el("span", { className: "dot" + (i < m.reviewCount ? " on" : "") }));
+      }
+      var removeBtn = el("button", { className: "mk-remove", type: "button", "aria-label": "Von Merkliste entfernen", text: "✕" });
+      removeBtn.addEventListener("click", function(en){
+        return function(){
+          removeFromMerkliste(state, en);
+          saveState(state);
+          render();
+          renderMerklisteList();
+        };
+      }(m.en));
+      list.appendChild(el("div", { className: "mk-row" }, [
+        el("div", { className: "mk-info" }, [
+          el("div", { className: "mk-en", text: m.en }),
+          el("div", { className: "mk-de", text: m.de + (m.section ? " · " + m.section : "") })
+        ]),
+        dots,
+        removeBtn
+      ]));
+    });
+    wrap.appendChild(list);
+  }
+  function renderMerklisteView(){
+    renderMerklisteList();
+    $("mkReviewPanel").innerHTML = "";
+    $("mkReviewPanel").classList.remove("active");
+  }
+  $("mkBackBtn").addEventListener("click", function(){ showView("start"); });
+  $("mkReviewBtn").addEventListener("click", function(){
+    var panel = $("mkReviewPanel");
+    if (!state.merkliste.length) { renderMerklisteView(); return; }
+    var words = state.merkliste.map(function(m){ return { en: m.en, de: m.de, section: m.section }; });
+    panel.innerHTML = "";
+    panel.classList.add("active");
+    panel.appendChild(buildFlashcards(words, {
+      emptyText: "Merkliste ist leer.",
+      onAssess: function(w, outcome){
+        var word = findWord(w.en) || w;
+        assessWord(state, word, outcome, w.section);
+        saveState(state);
+        render();
+        renderMerklisteList();
+      }
+    }));
+  });
 
   // ---- Drawer ----
   var navDrawer = $("navDrawer");
@@ -684,10 +1410,10 @@
   function handleNav(key){
     closeDrawer();
     switch (key) {
-      case "continue": comingSoonModal("Weiterspielen", "Die Lernrunden sind noch nicht freigeschaltet — sie folgen im nächsten Ausbauschritt von Vokabel-Adventure."); break;
+      case "continue": showView("unit"); break;
       case "chapters": openChaptersModal(); break;
       case "exercises": comingSoonModal("Übungen", "Hör- und Schreibübungen sind noch nicht freigeschaltet."); break;
-      case "wordlist": comingSoonModal("Merkliste", "Hier sammelst du Wörter, die du dir extra merken willst. Aktuell: " + state.merkliste.length + " Wörter."); break;
+      case "wordlist": showView("merkliste"); break;
       case "duel": comingSoonModal("Duell", "Vokabel-Duelle gegen " + DUEL_CLASS + " folgen im nächsten Ausbauschritt."); break;
       case "options": openOptionsModal(); break;
       case "achievements": openAchievementsModal(); break;
@@ -714,10 +1440,27 @@
   window.__game = {
     STORAGE_KEY: STORAGE_KEY,
     UNITS: UNITS,
+    UNIT1_SECTIONS: UNIT1_SECTIONS,
+    UNIT1_WORDS: UNIT1_WORDS,
+    MASTERY_REPEATS: MASTERY_REPEATS,
     state: state,
     render: render,
     computeStreak: computeStreak,
     computeAchievements: computeAchievements,
+    knownWordCount: function(){ return knownWordCount(state); },
+    sectionDoneCount: function(){ return sectionDoneCount(state); },
+    sectionAssessedCount: function(idx){ return sectionAssessedCount(state, UNIT1_SECTIONS[idx]); },
+    assessWord: function(en, outcome){
+      var w = findWord(en); if (!w) return;
+      assessWord(state, w, outcome, w.section);
+      saveState(state); render();
+    },
+    toggleMerkliste: function(en){
+      var w = findWord(en); if (!w) return;
+      if (merklisteIndex(state, en) !== -1) removeFromMerkliste(state, en);
+      else addToMerkliste(state, w, w.section);
+      saveState(state); render();
+    },
     resetProgress: function(){
       Object.assign(state, defaultState());
       applyDailyVisit(state);
@@ -730,6 +1473,9 @@
     handleNav: handleNav,
     openDrawer: openDrawer,
     closeDrawer: closeDrawer,
+    showView: showView,
+    openSection: openSection,
+    currentView: function(){ return currentView; },
     isDrawerOpen: function(){ return navDrawer.classList.contains("open"); },
     isModalOpen: function(){ return modalLayer.classList.contains("open"); }
   };

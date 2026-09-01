@@ -1,10 +1,14 @@
-// Funktionstest des Vokabel-Adventure-Startbildschirms via jsdom.
+// Funktionstest des Vokabel-Adventure-Startbildschirms und der Unit-1-Vokabellernstrecke via jsdom.
 const fs = require("fs"), path = require("path");
-const { JSDOM } = require("jsdom");
+const { JSDOM, VirtualConsole } = require("jsdom");
 const html = fs.readFileSync(path.join(__dirname, "index.html"), "utf8");
 
 function freshDom() {
-  const dom = new JSDOM(html, { runScripts: "dangerously", pretendToBeVisual: true, url: "https://localhost/" });
+  // jsdom kennt window.scrollTo nicht (nur fuers Aufraeumen der Ansicht gedacht,
+  // fuer die Tests irrelevant) - eigene VirtualConsole unterdrueckt nur diese Meldung.
+  const virtualConsole = new VirtualConsole();
+  virtualConsole.on("jsdomError", (e) => { if (!/Not implemented: window.scrollTo/.test(e.message)) console.error(e); });
+  const dom = new JSDOM(html, { runScripts: "dangerously", pretendToBeVisual: true, url: "https://localhost/", virtualConsole });
   return { dom, win: dom.window, doc: dom.window.document };
 }
 
@@ -19,15 +23,21 @@ let G = win.__game;
 check("Test-Hook vorhanden", !!G);
 check("Speicherstand nach erstem Laden vorhanden", !!win.localStorage.getItem(G.STORAGE_KEY));
 check("Startzustand: Unit 1 mit echtem Namen", doc.getElementById("unitLabel").textContent === "Unit 1 · Living in America");
-check("Startzustand: 0 / 100 Vokabeln", doc.getElementById("wordsLabel").textContent === "0 / 100 Vokabeln");
+check("Startzustand: 0 / N Vokabeln", doc.getElementById("wordsLabel").textContent === "0 / " + G.UNIT1_WORDS.length + " Vokabeln");
 check("Startzustand: CTA zeigt Loslegen", doc.getElementById("ctaTitle").textContent === "Loslegen");
 check("Startzustand: Streak 1 Tag nach erstem Besuch", G.state.streakCount === 1);
 check("Merkliste startet leer", doc.getElementById("wordlistSub").textContent === "0 Wörter");
 
-// --- Units (Green Line 4, Across-cultures-Kapitel eingerechnet) ---
+// --- Unit 1: Datenstruktur ---
 check("4 Units definiert", G.UNITS.length === 4);
 check("Kapitel-Kachel zeigt 4 Units", doc.getElementById("chaptersSub").textContent === "4 Units");
 check("Unit 3 ist New York (Design-Beispiel stimmte)", G.UNITS[2].name === "City of dreams: New York");
+check("Unit 1 hat 10 Abschnitte", G.UNIT1_SECTIONS.length === 10);
+check("Jeder Abschnitt hat 14-22 Wörter (ca. 20)", G.UNIT1_SECTIONS.every(s => s.words.length >= 14 && s.words.length <= 22));
+check("Unit 1 hat ueber 150 Vokabeln insgesamt", G.UNIT1_WORDS.length > 150);
+const wordEns = G.UNIT1_WORDS.map(w => w.en);
+check("Keine doppelten Karteikarten-Schluessel", new Set(wordEns).size === wordEns.length);
+check("Jedes Wort hat eine deutsche Übersetzung", G.UNIT1_WORDS.every(w => w.de && w.de.length > 0));
 
 // --- computeStreak (reine Funktion) ---
 const t0 = "2026-09-01";
@@ -42,49 +52,128 @@ check("computeStreak: kein Vorbesuch startet bei 1", G.computeStreak(0, null, t0
 click(win, doc.getElementById("menuBtn"));
 check("Menue oeffnet", G.isDrawerOpen() === true);
 check("aria-expanded gesetzt", doc.getElementById("menuBtn").getAttribute("aria-expanded") === "true");
-click(win, doc.querySelector('[data-nav="chapters"]'));
+click(win, doc.querySelector('[data-nav="duel"]'));
 check("Klick auf Menuepunkt schliesst Menue", G.isDrawerOpen() === false);
 check("Klick auf Menuepunkt oeffnet Modal", G.isModalOpen() === true);
-check("Modal-Titel Kapitel", doc.getElementById("modalTitle").textContent === "Kapitel");
-const chapterItems = Array.from(doc.querySelectorAll("#modalBody .achv"));
-check("Kapitel-Modal listet alle 4 Units", chapterItems.length === 4);
-check("Kapitel-Modal nennt Unit-Namen", chapterItems.some(li => /Living in America/.test(li.textContent)));
-click(win, doc.getElementById("modalCloseBtn"));
-check("Modal schliesst per Klick", G.isModalOpen() === false);
-
-// --- Kachel-Interaktion + Escape ---
-click(win, doc.getElementById("duelTile"));
-check("Duell-Kachel oeffnet Modal", G.isModalOpen() === true);
 check("Modal-Titel Duell", doc.getElementById("modalTitle").textContent === "Duell");
 key(win, doc, "Escape");
 check("Escape schliesst Modal", G.isModalOpen() === false);
 
-// --- Erfolge spiegeln Zustand ---
-G.state.streakCount = 7;
-G.state.wordsLearned = 12;
-click(win, doc.getElementById("achievementsBtn"));
-let unlocked = Array.from(doc.querySelectorAll("#modalBody .achv:not(.locked)")).length;
-check("Erfolge: mehrere Achievements freigeschaltet bei Streak 7 / 12 Woertern", unlocked >= 4);
-click(win, doc.getElementById("modalCloseBtn"));
+// --- Kapitel-Modal: Unit 1 klickbar, Unit 2-4 gesperrt ---
+click(win, doc.getElementById("chaptersTile"));
+check("Kapitel-Modal oeffnet", G.isModalOpen() === true);
+const chapterButtons = Array.from(doc.querySelectorAll("#modalBody button.achv"));
+check("Genau eine klickbare Unit im Kapitel-Modal", chapterButtons.length === 1);
+check("Unit 2-4 als gesperrt markiert", doc.querySelectorAll("#modalBody .achv.locked").length === 3);
+click(win, chapterButtons[0]);
+check("Klick auf Unit 1 schliesst Modal", G.isModalOpen() === false);
+check("Klick auf Unit 1 oeffnet Unit-Ansicht", G.currentView() === "unit");
+
+// --- Unit-Ansicht: 10 Abschnitts-Karten ---
+const sectionCards = Array.from(doc.querySelectorAll("#sectionList .sec-card"));
+check("10 Abschnitts-Karten gerendert", sectionCards.length === 10);
+check("Erste Karte zeigt 0 / 19 Woerter", sectionCards[0].querySelector(".sec-meta").textContent === "0 / 19 Wörter geübt");
+
+// --- Abschnitt oeffnen: Karteikarten ---
+click(win, sectionCards[0]);
+check("Abschnitts-Ansicht aktiv", G.currentView() === "section");
+check("Karteikarte zeigt erstes Wort", doc.querySelector(".fc-front .fc-word").textContent === G.UNIT1_SECTIONS[0].words[0].en);
+check("Karteikarte startet nicht umgedreht", !doc.querySelector(".flashcard").classList.contains("flipped"));
+click(win, doc.querySelector(".flashcard"));
+check("Klick auf Karte dreht sie um", doc.querySelector(".flashcard").classList.contains("flipped"));
+
+// "Muss ich üben" -> landet auf Merkliste, wird NICHT als bekannt gezaehlt
+const firstWordEn = G.UNIT1_SECTIONS[0].words[0].en;
+click(win, doc.querySelector(".fc-assess .practice"));
+check("Nach 'Muss ich üben' ist Wort auf Merkliste", G.state.merkliste.some(m => m.en === firstWordEn));
+check("Karte wechselt automatisch weiter", doc.querySelector(".fc-progress").textContent === "2 / 19");
+check("wordsLearned zaehlt 'Muss ich üben' nicht mit", G.knownWordCount() === 0);
+
+// "Kann ich schon" fuer zweites Wort -> zaehlt als gelernt, landet NICHT auf Merkliste
+const secondWordEn = G.UNIT1_SECTIONS[0].words[1].en;
+click(win, doc.querySelector(".fc-assess .know"));
+check("'Kann ich schon' erhoeht wordsLearned", G.knownWordCount() === 1);
+check("'Kann ich schon' fuer neues Wort landet nicht auf Merkliste", !G.state.merkliste.some(m => m.en === secondWordEn));
+
+// --- Übersicht: Stern verbindet direkt mit Merkliste ---
+click(win, doc.querySelector('[data-secmode="overview"]'));
+check("Übersicht-Panel aktiv", doc.querySelector('[data-mode-panel="overview"]').classList.contains("active"));
+const ovStars = Array.from(doc.querySelectorAll("#secOverviewPanel .ov-star"));
+check("Übersicht zeigt alle 19 Woerter", ovStars.length === 19);
+check("Stern fuer 'Muss ich üben'-Wort zeigt bereits an (Merkliste)", ovStars[0].classList.contains("on"));
+click(win, ovStars[2]);
+const thirdWordEn = G.UNIT1_SECTIONS[0].words[2].en;
+check("Stern-Klick fuegt Wort zur Merkliste hinzu", G.state.merkliste.some(m => m.en === thirdWordEn));
+click(win, ovStars[2]);
+check("Erneuter Stern-Klick entfernt Wort wieder", !G.state.merkliste.some(m => m.en === thirdWordEn));
+click(win, ovStars[2]); // wieder hinzufuegen fuer spaeteren Merkliste-Test
+
+// --- zurueck zur Unit-Ansicht: Fortschritt sichtbar ---
+click(win, doc.getElementById("sectionBackBtn"));
+check("Zurueck-Button fuehrt zur Unit-Ansicht", G.currentView() === "unit");
+const sectionCards2 = Array.from(doc.querySelectorAll("#sectionList .sec-card"));
+check("Abschnitt 1 zeigt aktualisierten Fortschritt (Sterne zaehlen nicht als geuebt)", sectionCards2[0].querySelector(".sec-meta").textContent === "2 / 19 Wörter geübt");
+
+// --- Startbildschirm: CTA und Merkliste-Zaehler aktualisiert ---
+click(win, doc.getElementById("unitBackBtn"));
+check("Zurueck fuehrt zum Startbildschirm", G.currentView() === "start");
+check("CTA zeigt jetzt Weiterspielen", doc.getElementById("ctaTitle").textContent === "Weiterspielen");
+check("Merkliste-Kachel zeigt 2 Wörter", doc.getElementById("wordlistSub").textContent === "2 Wörter");
+
+// --- Merkliste-Ansicht: direkte Navigation ueber Kachel ---
+click(win, doc.getElementById("wordlistTile"));
+check("Merkliste-Kachel fuehrt direkt zur Merkliste (kein Modal)", G.currentView() === "merkliste" && !G.isModalOpen());
+check("Merkliste zeigt 2 Eintraege", doc.querySelectorAll("#mkListWrap .mk-row").length === 2);
+
+// manuelles Entfernen durch die/den SuS
+const mkRemoveButtons = Array.from(doc.querySelectorAll(".mk-remove"));
+const enBeforeRemove = G.state.merkliste[0].en;
+click(win, mkRemoveButtons[0]);
+check("Manuelles Entfernen von der Merkliste funktioniert", !G.state.merkliste.some(m => m.en === enBeforeRemove));
+check("Merkliste-Liste aktualisiert sich sofort", doc.querySelectorAll("#mkListWrap .mk-row").length === 1);
+
+// --- Merkliste wiederholen: 2x erfolgreich = automatisches Entfernen ---
+click(win, doc.getElementById("mkReviewBtn"));
+check("Wiederholungs-Karteikarten erscheinen", !!doc.querySelector("#mkReviewPanel .flashcard"));
+const remainingEn = G.state.merkliste[0].en;
+click(win, doc.querySelector("#mkReviewPanel .fc-assess .know"));
+check("1. erfolgreiche Wiederholung erhoeht reviewCount", G.state.merkliste.find(m => m.en === remainingEn).reviewCount === 1);
+check("Wort bleibt nach 1x auf der Merkliste", G.state.merkliste.some(m => m.en === remainingEn));
+click(win, doc.querySelector("#mkReviewPanel .fc-nav")); // zurueck zur (einzigen) Karte
+click(win, doc.querySelector("#mkReviewPanel .fc-assess .know"));
+check("Nach 2x erfolgreicher Wiederholung von der Merkliste entfernt", !G.state.merkliste.some(m => m.en === remainingEn));
+check("Merkliste-Liste zeigt jetzt 0 Eintraege", doc.querySelectorAll("#mkListWrap .mk-row").length === 0);
+
+// --- "Muss ich üben" setzt reviewCount zurueck statt zu entfernen ---
+{
+  const { win: win3, doc: doc3 } = freshDom();
+  const G3 = win3.__game;
+  const w = G3.UNIT1_WORDS[5];
+  G3.toggleMerkliste(w.en);
+  G3.assessWord(w.en, "know");
+  check("reviewCount nach 1x know = 1", G3.state.merkliste.find(m => m.en === w.en).reviewCount === 1);
+  G3.assessWord(w.en, "practice");
+  check("'Muss ich üben' setzt reviewCount zurueck auf 0", G3.state.merkliste.find(m => m.en === w.en).reviewCount === 0);
+  check("Wort bleibt bei 'Muss ich üben' auf der Merkliste", G3.state.merkliste.some(m => m.en === w.en));
+}
 
 // --- Export ---
 const exported = JSON.parse(G.exportProgressData());
-check("Export enthaelt Streak", exported.streakCount === 7);
-check("Export enthaelt gelernte Vokabeln", exported.wordsLearned === 12);
+check("Export enthaelt Streak", exported.streakCount === 1);
+check("Export enthaelt gelernte Vokabeln", exported.wordsLearned === G.knownWordCount());
+check("Export enthaelt Abschnittsfortschritt", exported.abschnitteGesamt === 10);
 
 // --- Reset ist idempotent nutzbar ---
 G.resetProgress();
 check("Reset setzt Streak zurueck auf 1", G.state.streakCount === 1);
-check("Reset setzt gelernte Vokabeln zurueck", G.state.wordsLearned === 0);
-check("Reset aktualisiert DOM", doc.getElementById("wordsLabel").textContent === "0 / 100 Vokabeln");
+check("Reset setzt gelernte Vokabeln zurueck", G.knownWordCount() === 0);
+check("Reset leert die Merkliste", G.state.merkliste.length === 0);
+check("Reset aktualisiert DOM", doc.getElementById("wordsLabel").textContent === "0 / " + G.UNIT1_WORDS.length + " Vokabeln");
 
 // --- Zweiter Boot am Folgetag erhoeht Streak korrekt ---
 {
-  const { win: win2, doc: doc2 } = freshDom();
+  const { win: win2 } = freshDom();
   const G2 = win2.__game;
-  G2.state.streakCount = 4;
-  G2.state.lastVisitDate = "2020-01-01";
-  win2.localStorage.setItem(G2.STORAGE_KEY, JSON.stringify(G2.state));
   const r = G2.computeStreak(4, "2020-01-01", "2020-01-02");
   check("Folgetag-Simulation erhoeht Streak", r.count === 5);
 }

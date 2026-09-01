@@ -1,54 +1,94 @@
-# Vokabel-Adventure — Startbildschirm
+# Vokabel-Adventure
 
-Startbildschirm für ein geplantes Vokabellernspiel zu Green Line 4 (Englisch, Jahrgang 8,
-Unit "In and around the US"). Single-File-HTML nach Design-Vorlage aus Claude Design
-("Vokabel-Adventure Startbildschirm"), Maskottchen-Illustration als lokales Asset.
+Vokabellernspiel zu Green Line 4 (Englisch, Jahrgang 8). Single-File-HTML,
+kein Build-Schritt. Startbildschirm nach Design-Vorlage aus Claude Design,
+Unit 1 komplett mit Vokabeln aus `Vokabelübersicht_GL4.pdf`.
 
 ## Aufbau
-- `index.html` ist der komplette Startbildschirm: Fortschrittsanzeige, Tagesserie (Streak),
-  vier Kacheln (Kapitel, Übungen, Merkliste, Duell), Menü, Optionen, Erfolge, Hilfe und
-  eine geräte-lokale Lehrkraft-Ansicht. Keine externen Abhängigkeiten ausser Google Fonts
-  (fällt offline auf Systemschriften zurück) und dem Schullogo (fällt bei Netzwerkfehler
-  auf einen Text-Badge zurück).
-- `hero.jpg` ist die Maskottchen-Illustration aus der Design-Vorlage, für die Auslieferung
-  als JPEG komprimiert (aus 1,4 MB PNG → ~145 KB).
-- `test.js` prüft Startzustand, Streak-Logik, Menü/Modal-Interaktion, Erfolge, Export und
-  Zurücksetzen via jsdom.
+- `index.html` ist das komplette Tool in vier Ansichten (ein `showView()`-Router
+  blendet die passende `.view` ein, kein Reload):
+  - **Startbildschirm**: Fortschrittsanzeige, Tagesserie (Streak), vier Kacheln
+    (Kapitel, Übungen, Merkliste, Duell), Menü, Optionen, Erfolge, Hilfe,
+    geräte-lokale Lehrkraft-Ansicht.
+  - **Unit-Ansicht**: die 10 Abschnitte von Unit 1 mit Fortschrittsbalken.
+  - **Abschnitts-Ansicht**: Karteikarten (Flip-Karte, „Kann ich schon“ /
+    „Muss ich üben“) und Übersicht (durchsuchbare Tabelle mit Merk-Stern) —
+    umschaltbar, beide zeigen dieselben Wörter.
+  - **Merkliste**: alle gemerkten/noch zu übenden Wörter, manuell entfernbar,
+    plus „Merkliste wiederholen“ (Karteikarten-Modus nur für diese Wörter).
+  - Keine externen Abhängigkeiten außer Google Fonts (fällt offline auf
+    Systemschriften zurück) und dem Schullogo (fällt bei Netzwerkfehler auf
+    einen Text-Badge zurück).
+- `hero.jpg` ist die Maskottchen-Illustration aus der Design-Vorlage, für die
+  Auslieferung als JPEG komprimiert (aus 1,4 MB PNG → ~145 KB).
+- `test.js` prüft Startzustand, Streak-Logik, Menü/Modal-Interaktion, die
+  komplette Unit-1-Lernstrecke (Abschnitte, Karteikarten, Übersicht,
+  Merkliste inkl. Wiederholung und Meisterschafts-Entfernung), Erfolge,
+  Export und Zurücksetzen via jsdom.
 
-## Units
-Vier Units nach `Vokabelübersicht_GL4.pdf`. Die vier „Across cultures“-Zwischenkapitel des
-Buchs bekommen keine eigene Unit, sondern werden vokabelseitig der folgenden Unit
+## Units (Green Line 4)
+Vier Units. Die vier „Across cultures“-Zwischenkapitel des Buchs bekommen
+keine eigene Unit, sondern werden vokabelseitig der folgenden Unit
 zugeschlagen:
 
-1. Living in America (mit „The USA: Country of contrasts“)
-2. A nation invents itself (mit „School life – dos and don’ts“)
-3. City of dreams: New York (mit „At home with an American family“)
-4. The Pacific Northwest (mit „What you say and how you say it“)
+1. **Living in America** (mit „The USA: Country of contrasts“) — vollständig
+   mit Vokabeln hinterlegt, siehe unten.
+2. A nation invents itself (mit „School life – dos and don'ts“) — noch ohne Vokabeln.
+3. City of dreams: New York (mit „At home with an American family“) — noch ohne Vokabeln.
+4. The Pacific Northwest (mit „What you say and how you say it“) — noch ohne Vokabeln.
 
-Die Liste steht als `UNITS`-Array oben im Skript und wird von der Kapitel-Kachel und dem
-Kapitel-Modal gelesen — für die eigentlichen Vokabelinhalte pro Unit fehlt noch die
-Zuordnung der Wörter aus der PDF.
+Die Liste steht als `UNITS`-Array oben im Skript (Kapitel-Kachel/-Modal).
+Im Kapitel-Modal ist nur Unit 1 anklickbar, Units 2–4 sind sichtbar aber als
+„folgt später“ markiert — wir arbeiten Unit für Unit.
+
+## Unit 1: Vokabeln
+`UNIT1_SECTIONS` (im Skript, aus `Vokabelübersicht_GL4.pdf` extrahiert, keine
+Buchtexte/Beispielsätze übernommen — nur die Wort-Übersetzungs-Paare) in
+10 Abschnitten von ca. 20 Wörtern, nach Buchstruktur benannt:
+
+Einstieg (1/3–3/3) · Check-in · Station 1 (1/2–2/2) · Station 2 · Station 3 ·
+Story: Nightmare at the mall! · Skills & Unit task — zusammen 189 Wörter.
+
+Ein Homonym-Paar (`right` = „Recht“ vs. „direkt; genau“) wurde zur eindeutigen
+Karteikarten-Zuordnung als `right (= exactly)` disambiguiert.
+
+## Lern- und Merklisten-Logik
+- **Karteikarte umdrehen**: Klick/Tippen oder Leertaste. Pfeiltasten/Buttons
+  blättern weiter.
+- **„Kann ich schon“**: zählt das Wort als gelernt (`wordAssessments`). Steht
+  das Wort zu diesem Zeitpunkt auf der Merkliste, zählt das als eine
+  erfolgreiche Wiederholung.
+- **„Muss ich üben“**: das Wort landet (neu) auf der Merkliste, ein
+  begonnener Wiederholungs-Fortschritt wird zurückgesetzt.
+- **Stern in der Übersicht**: schaltet die Merkliste direkt um (an/aus) —
+  unabhängig von „Kann ich schon“/„Muss ich üben“.
+- **Meisterschaft**: nach 2× erfolgreicher Wiederholung (`MASTERY_REPEATS`)
+  verschwindet ein Wort automatisch von der Merkliste.
+- **Manuelles Entfernen**: jeder Merkliste-Eintrag hat einen eigenen
+  Entfernen-Button — SuS können jederzeit selbst aufräumen.
+- **Merkliste wiederholen**: eigener Karteikarten-Durchlauf nur über die
+  aktuelle Merkliste, mit derselben Bewertungslogik.
 
 ## Umfang dieser Version
-Nur der Startbildschirm ist funktional umgesetzt. Übungen und Merkliste-Funktionen sind
-noch offen (siehe frühere Konversation zu Aufgabentypen und Freischalt-Logik). Das Duell
-gegen andere Klassen ist bewusst zurückgestellt, bis Partnerklassen feststehen — die
-Kachel bleibt als „folgt später“-Hinweis stehen. Bereits echt und getestet:
-- Kapitelübersicht mit den vier echten Units (siehe oben).
-- Tagesserie (Streak), die bei jedem Besuch tagesgenau und idempotent fortgeschrieben wird.
-- Erfolge, abgeleitet aus dem gespeicherten Fortschritt.
-- Fortschritt exportieren (.json) und Fortschritt zurücksetzen, unter „Optionen“.
-- Lehrkraft-Ansicht zeigt den lokalen Gerätestand (kein geräteübergreifendes Tracking,
-  siehe `docs/konventionen.md`).
+Start- und Unit-1-Lernstrecke sind funktional umgesetzt und getestet. Offen:
+- Hör- und Schreibübungen (Kachel „Übungen“) — nächster Schritt.
+- Vokabeln für Units 2–4.
+- Teacher-Freischaltung units-übergreifend („erst wenn ich freigebe“) — bislang
+  nicht nötig, da nur Unit 1 Inhalte hat; SuS können sich innerhalb von Unit 1
+  frei zwischen den Abschnitten bewegen.
+- Duell gegen andere Klassen ist bewusst zurückgestellt, bis Partnerklassen
+  feststehen — die Kachel bleibt als „folgt später“-Hinweis stehen.
 
-Anders als in der Design-Vorlage (Beispielwerte: Unit 3, 62/100 Vokabeln, 4 Tage Serie,
-14 Wörter auf der Merkliste) startet die ausgelieferte Version mit einem echten leeren
-Zustand (Unit 1 · Living in America, 0/100, „Loslegen“), damit keine erfundenen
-Lernstände angezeigt werden. Optik, Layout und Farben folgen der Vorlage 1:1.
+Anders als in der ursprünglichen Design-Vorlage (Beispielwerte: Unit 3,
+62/100 Vokabeln, 4 Tage Serie, 14 Wörter auf der Merkliste) startet die
+ausgelieferte Version mit einem echten leeren Zustand (Unit 1 · Living in
+America, 0/189, „Loslegen“), damit keine erfundenen Lernstände angezeigt
+werden. Optik, Layout und Farben folgen der Vorlage 1:1.
 
 ## Persistenz
-localStorage-Key `vokabel_adventure_v1`. Vor Geräte- oder Browserwechsel über
-„Optionen → Fortschritt exportieren“ sichern.
+localStorage-Key `vokabel_adventure_v1`. Enthält `wordAssessments` (Wort →
+„know“/„practice“) und `merkliste` (mit `reviewCount`). Vor Geräte- oder
+Browserwechsel über „Optionen → Fortschritt exportieren“ sichern.
 
 ## Test
 Aus dem Repo-Wurzelverzeichnis: `npm test`. Oder direkt: `node projects/vokabel-adventure/test.js`.
