@@ -161,6 +161,35 @@ check("Merkliste-Liste zeigt jetzt 0 Eintraege", doc.querySelectorAll("#mkListWr
   check("Wort bleibt bei 'Muss ich üben' auf der Merkliste", G3.state.merkliste.some(m => m.en === w.en));
 }
 
+// --- Abschnitts-Abzeichen: reine Belohnung, kein Gate ---
+{
+  const { win: winB, doc: docB } = freshDom();
+  const GB = winB.__game;
+  GB.showView("unit");
+  let cards = Array.from(docB.querySelectorAll("#sectionList .sec-card"));
+  check("Vor Abschluss: kein Abzeichen im ersten Abschnitt", !cards[0].querySelector(".sec-badge"));
+  check("Vor Abschluss: zweiter Abschnitt trotzdem anklickbar (kein Gate)", !cards[1].disabled);
+
+  // Abschnitt 1 vollstaendig als gekonnt markieren -> Abzeichen sollte beim naechsten
+  // Rendern der Unit-Ansicht mit Pop-Animation auftauchen und dauerhaft gespeichert werden.
+  GB.completeSection(0);
+  GB.showView("unit");
+  cards = Array.from(docB.querySelectorAll("#sectionList .sec-card"));
+  const badge0 = cards[0].querySelector(".sec-badge");
+  check("Abzeichen erscheint, sobald Abschnitt fertig ist", !!badge0);
+  check("Frisch verdientes Abzeichen spielt Pop-Animation ab", badge0.classList.contains("pop"));
+  check("Abzeichen wird dauerhaft gemerkt (badgesSeen)", GB.state.badgesSeen.indexOf(GB.UNIT1_SECTIONS[0].name) !== -1);
+  check("Toast zeigt 'Geschafft' (nicht 'freigespielt')", docB.getElementById("unitToast").textContent.indexOf("Geschafft") !== -1);
+  check("Toast nennt nicht mehr 'freigespielt'", docB.getElementById("unitToast").textContent.indexOf("freigespielt") === -1);
+  check("Zweiter Abschnitt bleibt ohne eigenes Abzeichen weiterhin frei anklickbar", !cards[1].disabled);
+
+  // Erneutes Rendern (z.B. nach Zurueck-Navigation) darf die Animation NICHT wiederholen.
+  GB.showView("start");
+  GB.showView("unit");
+  const badge0Again = docB.querySelector("#sectionList .sec-card").querySelector(".sec-badge");
+  check("Abzeichen bleibt sichtbar, aber Animation laeuft beim erneuten Rendern nicht erneut", !!badge0Again && !badge0Again.classList.contains("pop"));
+}
+
 // --- Gekonnt-Status bleibt erhalten, auch wenn das Wort von der Merkliste verschwindet ---
 {
   const { win: win4, doc: doc4 } = freshDom();

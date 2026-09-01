@@ -10,7 +10,10 @@ Unit 1 komplett mit Vokabeln aus `Vokabelübersicht_GL4.pdf`.
   - **Startbildschirm**: Fortschrittsanzeige, Tagesserie (Streak), vier Kacheln
     (Kapitel, Übungen, Merkliste, Duell), Menü, Optionen, Erfolge, Hilfe,
     geräte-lokale Lehrkraft-Ansicht.
-  - **Unit-Ansicht**: die 10 Abschnitte von Unit 1 mit Fortschrittsbalken.
+  - **Unit-Ansicht**: die 10 Abschnitte von Unit 1 mit Fortschrittsbalken. Ist
+    ein Abschnitt vollständig geübt, poppt einmalig (Pop-Animation + Toast)
+    ein Abzeichen „Geschafft: Unit 1 · <Abschnitt>!“ auf der Karte auf — reine
+    Belohnung, kein Gate: alle Abschnitte bleiben jederzeit frei anklickbar.
   - **Abschnitts-Ansicht**: Karteikarten (Flip-Karte, „Kann ich schon“ /
     „Muss ich üben“) und Übersicht (durchsuchbare Tabelle mit Merk-Stern) —
     umschaltbar, beide zeigen dieselben Wörter.
@@ -73,14 +76,24 @@ Karteikarten-Zuordnung als `right (= exactly)` disambiguiert.
   Entfernen-Button — SuS können jederzeit selbst aufräumen.
 - **Merkliste wiederholen**: eigener Karteikarten-Durchlauf nur über die
   aktuelle Merkliste, mit derselben Bewertungslogik.
+- **Abschnitts-Abzeichen**: rein motivational, kein Gate. Sobald ein Abschnitt
+  vollständig geübt ist (jedes Wort mindestens einmal bewertet), erscheint auf
+  der Karte in der Unit-Ansicht einmalig ein Abzeichen mit Pop-Animation und
+  Toast „Geschafft: Unit 1 · <Abschnitt>!“. Alle Abschnitte bleiben davon
+  unabhängig jederzeit frei anklickbar (freies Tempo bleibt erhalten). Der
+  „gesehen“-Status wird dauerhaft gespeichert (`badgesSeen`), damit die
+  Animation nicht bei jedem Besuch erneut abspielt.
 
 ## Umfang dieser Version
 Start- und Unit-1-Lernstrecke sind funktional umgesetzt und getestet. Offen:
 - Hör- und Schreibübungen (Kachel „Übungen“) — nächster Schritt.
 - Vokabeln für Units 2–4.
 - Teacher-Freischaltung units-übergreifend („erst wenn ich freigebe“) — bislang
-  nicht nötig, da nur Unit 1 Inhalte hat; SuS können sich innerhalb von Unit 1
-  frei zwischen den Abschnitten bewegen.
+  nicht nötig, da nur Unit 1 Inhalte hat. Geplanter Ansatz laut Absprache:
+  innerhalb einer Unit bleibt alles frei (siehe Abschnitts-Abzeichen oben), nur
+  der Übergang zur nächsten Unit wird von der Lehrkraft manuell freigegeben
+  (Signal dafür: alle Abzeichen einer Unit gesammelt, sichtbar in der
+  Lehrkraft-Ansicht) — noch nicht gebaut, da Unit 2 noch keine Vokabeln hat.
 - Duell gegen andere Klassen ist bewusst zurückgestellt, bis Partnerklassen
   feststehen — die Kachel bleibt als „folgt später“-Hinweis stehen.
 
@@ -92,7 +105,8 @@ werden. Optik, Layout und Farben folgen der Vorlage 1:1.
 
 ## Persistenz
 localStorage-Key `vokabel_adventure_v1`. Enthält `wordAssessments` (Wort →
-„know“/„practice“) und `merkliste` (mit `reviewCount`). Vor Geräte- oder
+„know“/„practice“), `merkliste` (mit `reviewCount`) und `badgesSeen` (welche
+Abschnitts-Abzeichen ihre Animation schon gezeigt haben). Vor Geräte- oder
 Browserwechsel über „Optionen → Fortschritt exportieren“ sichern.
 
 ## Test
