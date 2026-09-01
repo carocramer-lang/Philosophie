@@ -63,7 +63,12 @@ Karteikarten-Zuordnung als `right (= exactly)` disambiguiert.
 - **Stern in der Übersicht**: schaltet die Merkliste direkt um (an/aus) —
   unabhängig von „Kann ich schon“/„Muss ich üben“.
 - **Meisterschaft**: nach 2× erfolgreicher Wiederholung (`MASTERY_REPEATS`)
-  verschwindet ein Wort automatisch von der Merkliste.
+  verschwindet ein Wort von der Merkliste — bleibt aber ganz normal im
+  Abschnitt (Karteikarten/Übersicht) stehen, für Wiederholung z. B. vor
+  einer Klassenarbeit. In der Übersicht markiert ein dauerhaftes grünes
+  Häkchen jedes Wort, das mindestens einmal als „Kann ich schon“ bewertet
+  wurde — unabhängig vom Stern/Merkliste-Status, verschwindet also nicht
+  mit der Merkliste.
 - **Manuelles Entfernen**: jeder Merkliste-Eintrag hat einen eigenen
   Entfernen-Button — SuS können jederzeit selbst aufräumen.
 - **Merkliste wiederholen**: eigener Karteikarten-Durchlauf nur über die

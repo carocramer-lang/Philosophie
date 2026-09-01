@@ -345,6 +345,11 @@
     cursor:pointer; color:var(--ink-8); display:inline-flex; align-items:center; justify-content:center; padding:0;
   }
   .ov-star.on{ background:rgba(244,201,93,.18); border-color:rgba(244,201,93,.5); color:var(--gold); }
+  .ov-row-known{ background:rgba(127,209,193,.06); }
+  .ov-known-badge{
+    display:inline-flex; align-items:center; justify-content:center; width:16px; height:16px; margin-left:7px;
+    border-radius:50%; background:rgba(127,209,193,.18); color:var(--teal); font-size:10px; line-height:1; flex:none;
+  }
 
   /* merkliste */
   .mk-toolbar{ display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
@@ -1252,6 +1257,7 @@
     var table = el("table", { className: "ov-table" });
     words.forEach(function(w){
       var starred = merklisteIndex(state, w.en) !== -1;
+      var known = state.wordAssessments[w.en] === "know";
       var star = el("button", { className: "ov-star" + (starred ? " on" : ""), type: "button", "aria-pressed": String(starred), "aria-label": "Auf Merkliste" }, [document.createTextNode("★")]);
       star.addEventListener("click", function(){
         if (merklisteIndex(state, w.en) !== -1) removeFromMerkliste(state, w.en);
@@ -1263,8 +1269,17 @@
         render();
         if (opts.onChange) opts.onChange();
       });
-      var tr = el("tr", null, [
-        el("td", { className: "en", text: w.en }),
+      var enCell = el("td", { className: "en" }, [
+        document.createTextNode(w.en)
+      ]);
+      if (known) {
+        enCell.appendChild(el("span", { className: "ov-known-badge", title: "Schon als gekonnt markiert" }, [
+          document.createTextNode("✓"),
+          el("span", { className: "sr-only", text: " – schon als gekonnt markiert" })
+        ]));
+      }
+      var tr = el("tr", { className: known ? "ov-row-known" : "" }, [
+        enCell,
         el("td", { className: "de", text: w.de }),
         el("td", { className: "mark" }, [star])
       ]);

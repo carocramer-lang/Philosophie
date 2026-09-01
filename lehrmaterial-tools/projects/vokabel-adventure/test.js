@@ -101,6 +101,10 @@ check("Übersicht-Panel aktiv", doc.querySelector('[data-mode-panel="overview"]'
 const ovStars = Array.from(doc.querySelectorAll("#secOverviewPanel .ov-star"));
 check("Übersicht zeigt alle 19 Woerter", ovStars.length === 19);
 check("Stern fuer 'Muss ich üben'-Wort zeigt bereits an (Merkliste)", ovStars[0].classList.contains("on"));
+const ovRows = Array.from(doc.querySelectorAll("#secOverviewPanel .ov-table tr"));
+check("'Kann ich schon'-Wort bekommt Gekonnt-Häkchen in der Übersicht", ovRows[1].classList.contains("ov-row-known") && !!ovRows[1].querySelector(".ov-known-badge"));
+check("'Muss ich üben'-Wort bekommt KEIN Gekonnt-Häkchen", !ovRows[0].classList.contains("ov-row-known") && !ovRows[0].querySelector(".ov-known-badge"));
+check("Nicht bewertetes Wort bekommt KEIN Gekonnt-Häkchen", !ovRows[3].classList.contains("ov-row-known"));
 click(win, ovStars[2]);
 const thirdWordEn = G.UNIT1_SECTIONS[0].words[2].en;
 check("Stern-Klick fuegt Wort zur Merkliste hinzu", G.state.merkliste.some(m => m.en === thirdWordEn));
@@ -155,6 +159,25 @@ check("Merkliste-Liste zeigt jetzt 0 Eintraege", doc.querySelectorAll("#mkListWr
   G3.assessWord(w.en, "practice");
   check("'Muss ich üben' setzt reviewCount zurueck auf 0", G3.state.merkliste.find(m => m.en === w.en).reviewCount === 0);
   check("Wort bleibt bei 'Muss ich üben' auf der Merkliste", G3.state.merkliste.some(m => m.en === w.en));
+}
+
+// --- Gekonnt-Status bleibt erhalten, auch wenn das Wort von der Merkliste verschwindet ---
+{
+  const { win: win4, doc: doc4 } = freshDom();
+  const G4 = win4.__game;
+  const w = G4.UNIT1_WORDS[10];
+  G4.toggleMerkliste(w.en);
+  G4.assessWord(w.en, "know"); // reviewCount 1
+  G4.assessWord(w.en, "know"); // reviewCount 2 -> Meisterschaft, von Merkliste entfernt
+  check("Wort ist nach Meisterschaft von der Merkliste verschwunden", !G4.state.merkliste.some(m => m.en === w.en));
+  check("Wort zaehlt weiterhin als gelernt (wordAssessments bleibt)", G4.knownWordCount() >= 1 && win4.localStorage.getItem(G4.STORAGE_KEY).includes('"' + w.en.replace(/"/g, '\\"') + '":"know"'));
+  // Übersicht des zugehoerigen Abschnitts zeigt weiterhin das Haekchen
+  const secIdx = G4.UNIT1_SECTIONS.findIndex(s => s.words.some(x => x.en === w.en));
+  G4.openSection(secIdx);
+  doc4.querySelector('[data-secmode="overview"]').dispatchEvent(new win4.MouseEvent("click", { bubbles: true }));
+  const row = Array.from(doc4.querySelectorAll("#secOverviewPanel .ov-table tr")).find(tr => tr.querySelector(".en").textContent.indexOf(w.en) === 0);
+  check("Übersicht zeigt Gekonnt-Häkchen auch nach Entfernen von der Merkliste", !!row && row.classList.contains("ov-row-known"));
+  check("Stern ist nach Meisterschaft wieder aus (nicht mehr auf Merkliste)", !!row && !row.querySelector(".ov-star").classList.contains("on"));
 }
 
 // --- Export ---
