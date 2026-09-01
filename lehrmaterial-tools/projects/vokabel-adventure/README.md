@@ -15,11 +15,26 @@ Unit "In and around the US"). Single-File-HTML nach Design-Vorlage aus Claude De
 - `test.js` prüft Startzustand, Streak-Logik, Menü/Modal-Interaktion, Erfolge, Export und
   Zurücksetzen via jsdom.
 
+## Units
+Vier Units nach `Vokabelübersicht_GL4.pdf`. Die vier „Across cultures“-Zwischenkapitel des
+Buchs bekommen keine eigene Unit, sondern werden vokabelseitig der folgenden Unit
+zugeschlagen:
+
+1. Living in America (mit „The USA: Country of contrasts“)
+2. A nation invents itself (mit „School life – dos and don’ts“)
+3. City of dreams: New York (mit „At home with an American family“)
+4. The Pacific Northwest (mit „What you say and how you say it“)
+
+Die Liste steht als `UNITS`-Array oben im Skript und wird von der Kapitel-Kachel und dem
+Kapitel-Modal gelesen — für die eigentlichen Vokabelinhalte pro Unit fehlt noch die
+Zuordnung der Wörter aus der PDF.
+
 ## Umfang dieser Version
-Nur der Startbildschirm ist funktional umgesetzt. Kapitel, Übungen, Merkliste und Duell
-zeigen einen Hinweis, dass die eigentlichen Lernrunden im nächsten Ausbauschritt folgen
-(siehe frühere Konversation zu Aufgabentypen und Freischalt-Logik). Bereits echt und
-getestet:
+Nur der Startbildschirm ist funktional umgesetzt. Übungen und Merkliste-Funktionen sind
+noch offen (siehe frühere Konversation zu Aufgabentypen und Freischalt-Logik). Das Duell
+gegen andere Klassen ist bewusst zurückgestellt, bis Partnerklassen feststehen — die
+Kachel bleibt als „folgt später“-Hinweis stehen. Bereits echt und getestet:
+- Kapitelübersicht mit den vier echten Units (siehe oben).
 - Tagesserie (Streak), die bei jedem Besuch tagesgenau und idempotent fortgeschrieben wird.
 - Erfolge, abgeleitet aus dem gespeicherten Fortschritt.
 - Fortschritt exportieren (.json) und Fortschritt zurücksetzen, unter „Optionen“.
@@ -28,8 +43,8 @@ getestet:
 
 Anders als in der Design-Vorlage (Beispielwerte: Unit 3, 62/100 Vokabeln, 4 Tage Serie,
 14 Wörter auf der Merkliste) startet die ausgelieferte Version mit einem echten leeren
-Zustand (Unit 1, 0/100, „Loslegen“), damit keine erfundenen Lernstände angezeigt werden.
-Optik, Layout und Farben folgen der Vorlage 1:1.
+Zustand (Unit 1 · Living in America, 0/100, „Loslegen“), damit keine erfundenen
+Lernstände angezeigt werden. Optik, Layout und Farben folgen der Vorlage 1:1.
 
 ## Persistenz
 localStorage-Key `vokabel_adventure_v1`. Vor Geräte- oder Browserwechsel über

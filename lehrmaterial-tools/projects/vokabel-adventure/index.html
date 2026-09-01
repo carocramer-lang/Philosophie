@@ -358,7 +358,18 @@
 (function(){
   "use strict";
   var STORAGE_KEY = "vokabel_adventure_v1";
-  var TOTAL_UNITS = 8;
+  // Green Line 4: die "Across cultures"-Zwischenkapitel werden vokabelseitig
+  // jeweils der folgenden Unit zugeschlagen, daher 4 Units statt 8 Buchkapitel.
+  var UNITS = [
+    { number: 1, name: "Living in America", acrossCultures: "The USA: Country of contrasts" },
+    { number: 2, name: "A nation invents itself", acrossCultures: "School life – dos and don’ts" },
+    { number: 3, name: "City of dreams: New York", acrossCultures: "At home with an American family" },
+    { number: 4, name: "The Pacific Northwest", acrossCultures: "What you say and how you say it" }
+  ];
+  function unitByNumber(n){
+    for (var i = 0; i < UNITS.length; i++) if (UNITS[i].number === n) return UNITS[i];
+    return null;
+  }
   var DEFAULT_WORDS_TOTAL = 100;
   var DEFAULT_ROUNDS_TOTAL = 12;
   var DUEL_CLASS = "Klasse 8b";
@@ -375,7 +386,7 @@
     return {
       v: 1,
       unitNumber: 1,
-      unitName: "",
+      unitName: UNITS[0].name,
       wordsLearned: 0,
       wordsTotal: DEFAULT_WORDS_TOTAL,
       round: 0,
@@ -452,7 +463,7 @@
       ? ("Unit " + state.unitNumber + " · Runde " + state.round + " von " + state.roundsTotal)
       : ("Unit " + state.unitNumber + " · Bereit zum Start");
 
-    $("chaptersSub").textContent = TOTAL_UNITS + " Units";
+    $("chaptersSub").textContent = UNITS.length + " Units";
     $("wordlistSub").textContent = state.merkliste.length + " " + (state.merkliste.length === 1 ? "Wort" : "Wörter");
     $("duelSub").textContent = DUEL_CLASS;
 
@@ -517,6 +528,23 @@
       el("p", { text: text })
     ]);
     openModal(title, body);
+  }
+
+  // ---- Kapitel ----
+  function openChaptersModal(){
+    var body = document.createElement("div");
+    body.appendChild(el("p", { text: "Green Line 4 in vier Units. Die „Across cultures“-Kapitel des Buchs sind vokabelseitig jeweils in die folgende Unit eingerechnet." }));
+    var list = el("ul", { className: "achv-list" });
+    UNITS.forEach(function(u){
+      var current = u.number === state.unitNumber;
+      list.appendChild(el("li", { className: "achv" + (current ? "" : " locked") }, [
+        el("span", { className: "achv-dot" }),
+        el("span", { text: "Unit " + u.number + " · " + u.name + " (mit „" + u.acrossCultures + "“)" })
+      ]));
+    });
+    body.appendChild(list);
+    body.appendChild(el("p", { text: "Die einzelnen Lernrunden pro Unit folgen im nächsten Ausbauschritt." }));
+    openModal("Kapitel", body);
   }
 
   // ---- Optionen ----
@@ -657,7 +685,7 @@
     closeDrawer();
     switch (key) {
       case "continue": comingSoonModal("Weiterspielen", "Die Lernrunden sind noch nicht freigeschaltet — sie folgen im nächsten Ausbauschritt von Vokabel-Adventure."); break;
-      case "chapters": comingSoonModal("Kapitel", "Die Kapitelübersicht mit allen " + TOTAL_UNITS + " Units von Green Line 4 folgt im nächsten Ausbauschritt."); break;
+      case "chapters": openChaptersModal(); break;
       case "exercises": comingSoonModal("Übungen", "Hör- und Schreibübungen sind noch nicht freigeschaltet."); break;
       case "wordlist": comingSoonModal("Merkliste", "Hier sammelst du Wörter, die du dir extra merken willst. Aktuell: " + state.merkliste.length + " Wörter."); break;
       case "duel": comingSoonModal("Duell", "Vokabel-Duelle gegen " + DUEL_CLASS + " folgen im nächsten Ausbauschritt."); break;
@@ -685,6 +713,7 @@
 
   window.__game = {
     STORAGE_KEY: STORAGE_KEY,
+    UNITS: UNITS,
     state: state,
     render: render,
     computeStreak: computeStreak,

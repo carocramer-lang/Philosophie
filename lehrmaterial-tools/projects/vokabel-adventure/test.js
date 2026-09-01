@@ -18,11 +18,16 @@ let { win, doc } = freshDom();
 let G = win.__game;
 check("Test-Hook vorhanden", !!G);
 check("Speicherstand nach erstem Laden vorhanden", !!win.localStorage.getItem(G.STORAGE_KEY));
-check("Startzustand: Unit 1", doc.getElementById("unitLabel").textContent === "Unit 1");
+check("Startzustand: Unit 1 mit echtem Namen", doc.getElementById("unitLabel").textContent === "Unit 1 · Living in America");
 check("Startzustand: 0 / 100 Vokabeln", doc.getElementById("wordsLabel").textContent === "0 / 100 Vokabeln");
 check("Startzustand: CTA zeigt Loslegen", doc.getElementById("ctaTitle").textContent === "Loslegen");
 check("Startzustand: Streak 1 Tag nach erstem Besuch", G.state.streakCount === 1);
 check("Merkliste startet leer", doc.getElementById("wordlistSub").textContent === "0 Wörter");
+
+// --- Units (Green Line 4, Across-cultures-Kapitel eingerechnet) ---
+check("4 Units definiert", G.UNITS.length === 4);
+check("Kapitel-Kachel zeigt 4 Units", doc.getElementById("chaptersSub").textContent === "4 Units");
+check("Unit 3 ist New York (Design-Beispiel stimmte)", G.UNITS[2].name === "City of dreams: New York");
 
 // --- computeStreak (reine Funktion) ---
 const t0 = "2026-09-01";
@@ -41,6 +46,9 @@ click(win, doc.querySelector('[data-nav="chapters"]'));
 check("Klick auf Menuepunkt schliesst Menue", G.isDrawerOpen() === false);
 check("Klick auf Menuepunkt oeffnet Modal", G.isModalOpen() === true);
 check("Modal-Titel Kapitel", doc.getElementById("modalTitle").textContent === "Kapitel");
+const chapterItems = Array.from(doc.querySelectorAll("#modalBody .achv"));
+check("Kapitel-Modal listet alle 4 Units", chapterItems.length === 4);
+check("Kapitel-Modal nennt Unit-Namen", chapterItems.some(li => /Living in America/.test(li.textContent)));
 click(win, doc.getElementById("modalCloseBtn"));
 check("Modal schliesst per Klick", G.isModalOpen() === false);
 
