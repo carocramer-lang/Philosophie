@@ -21,14 +21,16 @@ Duell-Feature, keine Schulname-/Logo-Anzeige.
     plus „Merkliste wiederholen“ — identische Logik zum Englisch-Tool.
   - **Spiele**: eine Übersicht mit einem Spiel pro Abschnitt (siehe unten),
     plus die eigentliche Spiel-Ansicht.
-  - „Übungen“ ist aktuell nur ein Platzhalter-Hinweis (noch nicht gebaut).
+  - **Übungen**: eine Übersicht mit einem Lückentext pro Abschnitt (siehe
+    unten); Hör- und Schreibübung folgen noch.
 - `hero.svg` ist ein **Platzhalter-Titelbild** (stilisierter Eiffelturm) bis
   das endgültige Marianne-Motiv fertig ist.
 - `test.js` prüft Startzustand, Streak-Logik, Menü/Modal-Interaktion, die
   komplette Teil-1-Lernstrecke (Abschnitte, Karteikarten, Übersicht,
   Merkliste inkl. Wiederholung und Meisterschafts-Entfernung), Spiele,
-  Abschnitts-Abzeichen, Export und Zurücksetzen via jsdom — sowie explizit,
-  dass keine Duell-Kachel/-Menüpunkt und kein Schullogo mehr existieren.
+  Übungen (Lückentext-Bewertung), Abschnitts-Abzeichen, Export und
+  Zurücksetzen via jsdom — sowie explizit, dass keine Duell-Kachel/
+  -Menüpunkt und kein Schullogo mehr existieren.
 
 ## Vokabelquelle
 `Vokabeln_Franzoesisch_Deutsch.pdf` — eine durchgehende Französisch-Deutsch-
@@ -98,6 +100,18 @@ Erreichbar über „Spiele“ im Hauptmenü → Abschnitt auswählen. Fortschrit
 den Spielen selbst wird aktuell nicht gespeichert (kein Einfluss auf
 Karteikarten/Übersicht/Merkliste) — reines Zusatzangebot zum Üben.
 
+## Übungen
+Ein selbst verfasster Lückentext pro Abschnitt (`SECTION_CLOZE`, 1:1 zu
+`UNIT1_SECTIONS`) — ein zusammenhängender französischer Fließtext mit
+Lücken direkt im Text (Format `{Lösung}`), baut auf den Vokabeln des
+jeweiligen Abschnitts auf. Kein Text ist aus dem Lehrwerk übernommen.
+
+Ein „Prüfen“-Button färbt jedes Eingabefeld grün (richtig) oder rot
+(falsch, aber ausgefüllt) — Groß-/Kleinschreibung ist egal, leere Felder
+bleiben neutral. „Zurücksetzen“ leert alle Felder wieder. Erreichbar über
+„Übungen“ im Hauptmenü → Abschnitt auswählen. Hör- und Schreibübung mit
+echter französischer Aussprache sind in Recherche (siehe unten).
+
 ## Unterschiede zum Englisch-Tool (auf Wunsch)
 - Kein Duell-Feature (Kachel, Menüpunkt, Modal komplett entfernt).
 - Kein Schullogo, kein Schulname im Header/Footer.
@@ -107,8 +121,11 @@ Karteikarten/Übersicht/Merkliste) — reines Zusatzangebot zum Üben.
 
 ## Umfang dieser Version / offene Punkte
 - **Titelbild**: aktuell nur Platzhalter (`hero.svg`, stilisierter
-  Eiffelturm). Das endgültige Marianne-Motiv folgt über den Design-Skill.
-- **Übungen** (Hör-/Schreibübung, Lückentext): noch nicht gebaut.
+  Eiffelturm). Das endgültige Marianne-Motiv wird über den Design-Skill
+  gestaltet.
+- **Hör-/Schreibübung mit echter französischer Aussprache**: in Recherche —
+  die Web Speech API liefert nur synthetische Stimmen, eine Alternative mit
+  echten Muttersprachler-Aufnahmen wird geprüft.
 - **Teile 2–4** (ca. 485 weitere Wörter): noch nicht gebaut, folgen
   schrittweise wie Teil 1.
 

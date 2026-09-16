@@ -55,12 +55,23 @@ click(win, doc.getElementById("menuBtn"));
 check("Menue oeffnet", G.isDrawerOpen() === true);
 check("aria-expanded gesetzt", doc.getElementById("menuBtn").getAttribute("aria-expanded") === "true");
 check("Kein Duell-Menuepunkt mehr", !doc.querySelector('[data-nav="duel"]'));
-click(win, doc.querySelector('[data-nav="exercises"]'));
+check("'Spiele' steht im Menue", !!doc.querySelector('[data-nav="games"]'));
+click(win, doc.querySelector('[data-nav="achievements"]'));
 check("Klick auf Menuepunkt schliesst Menue", G.isDrawerOpen() === false);
-check("Klick auf 'Übungen' oeffnet Platzhalter-Modal", G.isModalOpen() === true);
-check("Modal-Titel Übungen", doc.getElementById("modalTitle").textContent === "Übungen");
+check("Klick auf 'Erfolge' oeffnet Modal", G.isModalOpen() === true);
+check("Modal-Titel Erfolge", doc.getElementById("modalTitle").textContent === "Erfolge");
 key(win, doc, "Escape");
 check("Escape schliesst Modal", G.isModalOpen() === false);
+
+// --- Menuepunkt "Spiele" und "Übungen" fuehren zu echten Ansichten (kein Modal) ---
+click(win, doc.getElementById("menuBtn"));
+click(win, doc.querySelector('[data-nav="games"]'));
+check("'Spiele' oeffnet die Spiele-Uebersicht (kein Modal)", G.currentView() === "games" && !G.isModalOpen());
+click(win, doc.getElementById("gamesBackBtn"));
+click(win, doc.getElementById("menuBtn"));
+click(win, doc.querySelector('[data-nav="exercises"]'));
+check("'Übungen' oeffnet die Uebungen-Uebersicht (kein Modal)", G.currentView() === "exercises" && !G.isModalOpen());
+click(win, doc.getElementById("exercisesBackBtn"));
 
 // --- Kapitel-Modal: Teil 1 klickbar, Teil 2-4 gesperrt ---
 click(win, doc.getElementById("chaptersTile"));
@@ -275,6 +286,56 @@ check("Merkliste-Liste zeigt jetzt 0 Eintraege", doc.querySelectorAll("#mkListWr
   click(winG, docG.querySelector(".tempo-start"));
   check("Tempo-Runde zeigt nach Start 4 Antwortoptionen", docG.querySelectorAll(".tempo-opt").length === 4);
   check("Tempo-Runde zeigt laufenden Timer", docG.querySelector(".tempo-timer").textContent === "60s");
+}
+
+// --- Uebungen: Datenstruktur ---
+{
+  check("Ein Luekentext pro Abschnitt", G.SECTION_CLOZE.length === G.UNIT1_SECTIONS.length);
+  G.SECTION_CLOZE.forEach((text, idx) => {
+    const blanks = (text.match(/\{[^}]+\}/g) || []);
+    check(`Abschnitt ${idx + 1}: Luekentext hat mindestens 5 Luecken`, blanks.length >= 5);
+    check(`Abschnitt ${idx + 1}: Luekentext ist Fliesstext ohne rohe Klammer-Reste`, !/[{}]/.test(text.replace(/\{[^}]+\}/g, "")));
+  });
+}
+
+// --- Uebungen: Navigation ueber Kachel und Menue (kein Modal mehr) ---
+{
+  const { win: winE, doc: docE } = freshDom();
+  const GE = winE.__game;
+  click(winE, docE.getElementById("exercisesTile"));
+  check("'Übungen'-Kachel fuehrt direkt zur Uebungen-Uebersicht (kein Modal)", GE.currentView() === "exercises" && !GE.isModalOpen());
+  const exCards = Array.from(docE.querySelectorAll("#exerciseList .sec-card"));
+  check("Uebungen-Uebersicht zeigt 9 Karten", exCards.length === 9);
+
+  click(winE, exCards[0]);
+  check("Klick auf Abschnitts-Karte oeffnet die Uebungs-Ansicht", GE.currentView() === "exerciseplay");
+  check("Luekentext-Panel zeigt Eingabefelder", docE.querySelectorAll(".blank-input").length >= 5);
+
+  click(winE, docE.getElementById("exercisePlayBackBtn"));
+  check("Zurueck aus der Uebungs-Ansicht fuehrt zur Uebungen-Uebersicht", GE.currentView() === "exercises");
+  click(winE, docE.getElementById("exercisesBackBtn"));
+  check("Zurueck aus der Uebungen-Uebersicht fuehrt zum Startbildschirm", GE.currentView() === "start");
+}
+
+// --- Luekentext: Pruefen faerbt Felder gruen/rot, leere Felder bleiben neutral ---
+{
+  const { win: winC, doc: docC } = freshDom();
+  const GC = winC.__game;
+  GC.openExercise(0);
+  const panel = docC.getElementById("exClozePanel");
+  const blanks = Array.from(panel.querySelectorAll(".blank-input"));
+  check("Luekentext zeigt Eingabefelder fuer jede Luecke", blanks.length >= 5);
+  blanks[0].value = blanks[0].dataset.answer.toUpperCase();
+  blanks[1].value = "definitiv falsch";
+  // blanks[2] bleibt leer
+  click(winC, panel.querySelector(".cloze-check"));
+  check("Richtig ausgefuellte Luecke wird gruen markiert", blanks[0].classList.contains("correct"));
+  check("Falsch ausgefuellte Luecke wird rot markiert", blanks[1].classList.contains("wrong"));
+  check("Leere Luecke bleibt neutral (weder gruen noch rot)", !blanks[2].classList.contains("correct") && !blanks[2].classList.contains("wrong"));
+  check("Ergebnis-Anzeige zaehlt richtige Luecken", panel.querySelector(".cloze-result").textContent === "1 von " + blanks.length + " richtig");
+
+  click(winC, panel.querySelector(".cloze-reset"));
+  check("Zuruecksetzen leert alle Felder", blanks.every(b => b.value === "" && !b.classList.contains("correct") && !b.classList.contains("wrong")));
 }
 
 // --- Export ---

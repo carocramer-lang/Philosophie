@@ -372,6 +372,32 @@
     background:var(--gold); color:#241505; border:none; font-weight:700; cursor:pointer; font-size:1rem;
   }
 
+  /* ---- Uebungen: Luekentext ---- */
+  .cloze-card{
+    background:var(--card); border:1px solid var(--border); border-radius:16px; padding:22px;
+  }
+  .cloze-passage{
+    font-size:15.5px; line-height:1.9; color:var(--ink-2); margin:0;
+  }
+  .blank-input{
+    background:var(--card-2); border:1px solid var(--border-strong); border-radius:8px;
+    padding:3px 8px; margin:0 2px; font:inherit; font-size:14.5px; color:var(--ink-0);
+    text-align:center;
+  }
+  .blank-input:focus-visible{ outline:2px solid var(--focus); outline-offset:1px; }
+  .blank-input.correct{ background:rgba(74,222,128,.18); border-color:#4ade80; color:#4ade80; }
+  .blank-input.wrong{ background:rgba(248,113,113,.18); border-color:#f87171; color:#f87171; }
+  .cloze-actions{ display:flex; align-items:center; gap:12px; margin-top:20px; flex-wrap:wrap; }
+  .cloze-check{
+    padding:10px 22px; border-radius:12px; background:var(--gold); color:#241505;
+    border:none; font-weight:700; cursor:pointer; font-size:.95rem;
+  }
+  .cloze-reset{
+    padding:10px 20px; border-radius:12px; background:var(--card-2); color:var(--ink-0);
+    border:1px solid var(--border-strong); font-weight:600; cursor:pointer; font-size:.9rem;
+  }
+  .cloze-result{ font-weight:700; color:var(--gold-dark); font-size:.92rem; }
+
   .unit-toast{
     display:flex; align-items:center; gap:8px; padding:11px 15px; border-radius:12px;
     background:rgba(127,209,193,.14); border:1px solid rgba(127,209,193,.4); color:var(--teal);
@@ -659,6 +685,36 @@
       <p class="page-sub" id="gamePlaySub"></p>
     </div>
     <div id="gamePlayBody"></div>
+  </div>
+</div>
+
+<!-- Uebungen: Uebersicht -->
+<div class="page view" id="viewExercises" data-view="exercises">
+  <div class="wrap">
+    <div class="subhead">
+      <button class="back" id="exercisesBackBtn" aria-label="Zurück zum Startbildschirm">←</button>
+      <span class="crumb">Vokabel-Adventure</span>
+    </div>
+    <div>
+      <h1 class="page-title">Übungen</h1>
+      <p class="page-sub">Lückentext — für jeden Abschnitt aus Teil 1. Hör- und Schreibübung folgen.</p>
+    </div>
+    <div class="sec-list" id="exerciseList"></div>
+  </div>
+</div>
+
+<!-- Uebungen: ein Abschnitt (Lueckentext) -->
+<div class="page view" id="viewExercisePlay" data-view="exerciseplay">
+  <div class="wrap">
+    <div class="subhead">
+      <button class="back" id="exercisePlayBackBtn" aria-label="Zurück zur Übungen-Übersicht">←</button>
+      <span class="crumb">Vokabel-Adventure · Übungen</span>
+    </div>
+    <div>
+      <h1 class="page-title" id="exercisePlayTitle"></h1>
+      <p class="page-sub" id="exercisePlaySub"></p>
+    </div>
+    <div id="exClozePanel"></div>
   </div>
 </div>
 
@@ -1044,6 +1100,20 @@
     ] },
   ];
 
+  // Ein selbst verfasster Lueckentext pro Abschnitt (Fliesstext, Blanks als {Loesung}),
+  // baut auf den vorhandenen Vokabeln des jeweiligen Abschnitts auf.
+  var SECTION_CLOZE = [
+    'Aujourd\'hui, la classe organise {une sortie} au bord de la mer. Le matin, {il pleut} un peu, mais {la météo} annonce que {il fait beau} l\'après-midi. Bientôt, {le soleil} brille et {le vent} devient très fort. Les élèves montent dans {un bateau} pour {visiter} une petite île. Ils regardent {l\'eau} bleue de la mer. {Tout le monde} est content, et {une équipe} de huit élèves prépare un pique-nique sur la plage.',
+    'Pendant {les vacances}, ma famille et moi, nous visitons {une ville} au bord de {la mer}. Il y a aussi {une montagne} et {une colline} avec un vieux {château}. Le matin, je fais {un stage} de voile. L\'après-midi, nous allons à {la plage}. Le soir, mes parents veulent me {montrer} {la vieille ville}, et nous mangeons dans {un restaurant} typique.',
+    'Ce {bâtiment} est très {moderne} et il y a une belle {vue} sur la ville. Après {la visite}, nous mangeons {une glace}. Il y a {un escalier}, mais aussi {un ascenseur} pour monter. Le guide raconte une histoire {drôle} à {un touriste} avant {le départ}. Nous trouvons la visite très {intéressante}.',
+    'Au parc marin, il y a {un grand} bassin avec {un dauphin} {noir}. L\'entrée est {gratuite} pour les enfants. {Un moniteur} nous explique comment les dauphins savent {nager}. Le spectacle est {joli}, mais {un peu} {long}. Après, tout le monde est {fatigué}, mais {content}, et nous regardons {une fois} de plus un petit poisson {rouge}.',
+    'Dans notre {rue}, il y a {une maison} {blanche} avec un grand {palmier} devant. {À côté de} la maison, il y a un jardin {vert}. {Sous} l\'arbre, mon petit frère raconte {une blague}, mais personne ne rit ! {À droite de} la maison, il y a un parc, et {à gauche de} l\'entrée, il y a un café. C\'est vraiment {un bon} quartier {près de} {la ville}.',
+    'Pendant {une semaine}, nous visitons {un village} près de {la montagne}. On aime {la nature} : {la forêt}, {les rochers} et {la plage} juste à côté. C\'est {une découverte} incroyable, très {branchée} en ce moment, avec beaucoup de {loisirs} pour les jeunes. Ensuite, nous allons dans {une capitale}, dans {un arrondissement} connu pour son vieux {pont}, et nous laissons {la voiture} à {un parc}.',
+    'Mon {cousin} habite à Paris et il est très {parisien} dans son cœur. {Chaque} année, {des milliers de} touristes visitent {la cathédrale} Notre-Dame. La Tour Eiffel est {un symbole} et {un monument} très {célèbre}. {En haut}, il ne faut pas {bouger} trop vite. Pour se déplacer, {les transports} parisiens sont pratiques, même si {le sommet} de Montmartre est {loin}. Je suis {content} de visiter Paris, où {tout} est {différent}.',
+    'Pour {aller chercher} mon cousin à la gare, je pars {à pied}. Je prends {un chemin} qui va {tout droit}, puis je dois {traverser} une grande rue. Ensuite, je {tourne} à gauche et je {continue} encore un peu. « {Merci beaucoup} ! » dit mon cousin quand il me voit. Après, nous faisons {une promenade} en ville. Le soir, je veux {lire} {une liste} de restaurants sur {un site}.',
+    'Après {les vacances}, c\'est {la rentrée} ! Je suis maintenant en {sixième}. J\'aime beaucoup {la science}, mais mon {premier} {cours} du matin est {l\'E.P.S.} dans {un gymnase}. À la récréation, mes amis et moi restons dans {la cour} pour avoir {une conversation}. Ensuite, nous allons dans {une salle de cours} pour {écrire} un texte. À midi, on prend {un repas} à la cantine — j\'aime {beaucoup} ça ! Quand {la fin} des cours arrive, je suis content, mais fatigué, et {le second} cours de la journée est déjà {fini}. Le soir, je dois {retourner} à la maison.',
+  ];
+
   function pad(n){ return n < 10 ? "0" + n : "" + n; }
   function todayStr(d){ d = d || new Date(); return d.getFullYear() + "-" + pad(d.getMonth()+1) + "-" + pad(d.getDate()); }
   function yesterdayStr(todayIso){
@@ -1396,6 +1466,7 @@
     if (name === "unit") renderUnitView();
     else if (name === "merkliste") renderMerklisteView();
     else if (name === "games") renderGameList();
+    else if (name === "exercises") renderExercisesList();
     if (name !== "start") { try { window.scrollTo(0, 0); } catch(e) {} }
   }
 
@@ -1942,6 +2013,84 @@
     return wrap;
   }
 
+  // ---- Uebungen: Luekentext ----
+  function normalize(s){ return String(s).trim().toLowerCase().replace(/\s+/g, " "); }
+
+  function renderExercisesList(){
+    var list = $("exerciseList");
+    list.innerHTML = "";
+    UNIT1_SECTIONS.forEach(function(sec, idx){
+      var card = el("button", { className: "sec-card", type: "button" }, [
+        el("span", { className: "sec-num", text: String(idx + 1) }),
+        el("span", { className: "sec-info" }, [
+          el("div", { className: "sec-name", text: sec.name })
+        ]),
+        el("span", { className: "game-type-chip", text: "Lückentext" })
+      ]);
+      card.addEventListener("click", function(){ openExercise(idx); });
+      list.appendChild(card);
+    });
+  }
+  $("exercisesBackBtn").addEventListener("click", function(){ showView("start"); });
+  $("exercisePlayBackBtn").addEventListener("click", function(){ showView("exercises"); });
+
+  function openExercise(idx){
+    var sec = UNIT1_SECTIONS[idx];
+    if (!sec) return;
+    $("exercisePlayTitle").textContent = sec.name;
+    $("exercisePlaySub").textContent = "Teil 1 · Abschnitt " + (idx + 1) + " von " + UNIT1_SECTIONS.length;
+    var panel = $("exClozePanel");
+    panel.innerHTML = "";
+    panel.appendChild(buildClozePassage(SECTION_CLOZE[idx]));
+    showView("exerciseplay");
+  }
+
+  // Fliesstext mit {Loesung}-Luecken direkt im Text. Ein Pruefen-Button faerbt
+  // jedes Feld gruen/rot (Gross-/Kleinschreibung egal), leere Felder bleiben neutral.
+  function buildClozePassage(text){
+    var wrap = el("div", { className: "cloze-card" });
+    var passage = el("p", { className: "cloze-passage" });
+    var actions = el("div", { className: "cloze-actions" });
+    var checkBtn = el("button", { className: "cloze-check", type: "button", text: "Prüfen" });
+    var resetBtn = el("button", { className: "cloze-reset", type: "button", text: "Zurücksetzen" });
+    var result = el("span", { className: "cloze-result" });
+    actions.appendChild(checkBtn); actions.appendChild(resetBtn); actions.appendChild(result);
+    wrap.appendChild(passage); wrap.appendChild(actions);
+
+    var inputs = [];
+    var re = /\{([^}]+)\}/g, lastIndex = 0, m;
+    while ((m = re.exec(text))) {
+      if (m.index > lastIndex) passage.appendChild(document.createTextNode(text.slice(lastIndex, m.index)));
+      var answer = m[1];
+      var input = el("input", { className: "blank-input", type: "text", autocomplete: "off", spellcheck: "false", "aria-label": "Lücke" });
+      input.dataset.answer = answer;
+      input.style.width = Math.max(56, answer.length * 10) + "px";
+      input.addEventListener("input", function(){ this.classList.remove("correct", "wrong"); });
+      inputs.push(input);
+      passage.appendChild(input);
+      lastIndex = re.lastIndex;
+    }
+    if (lastIndex < text.length) passage.appendChild(document.createTextNode(text.slice(lastIndex)));
+
+    checkBtn.addEventListener("click", function(){
+      var right = 0;
+      inputs.forEach(function(inp){
+        var ok = normalize(inp.value) === normalize(inp.dataset.answer);
+        inp.classList.toggle("correct", ok);
+        inp.classList.toggle("wrong", !ok && inp.value.trim() !== "");
+        if (ok) right++;
+      });
+      result.textContent = right + " von " + inputs.length + " richtig";
+    });
+    resetBtn.addEventListener("click", function(){
+      inputs.forEach(function(inp){ inp.value = ""; inp.classList.remove("correct", "wrong"); });
+      result.textContent = "";
+      if (inputs[0]) inputs[0].focus();
+    });
+
+    return wrap;
+  }
+
   // ---- Drawer ----
   var navDrawer = $("navDrawer");
   var menuBtn = $("menuBtn");
@@ -1969,7 +2118,7 @@
     switch (key) {
       case "continue": showView("unit"); break;
       case "chapters": openChaptersModal(); break;
-      case "exercises": comingSoonModal("Übungen", "Hör- und Schreibübungen sind noch nicht freigeschaltet."); break;
+      case "exercises": showView("exercises"); break;
       case "games": showView("games"); break;
       case "wordlist": showView("merkliste"); break;
       case "options": openOptionsModal(); break;
@@ -2038,6 +2187,8 @@
     openSection: openSection,
     openGame: openGame,
     SECTION_GAMES: SECTION_GAMES,
+    openExercise: openExercise,
+    SECTION_CLOZE: SECTION_CLOZE,
     currentView: function(){ return currentView; },
     isDrawerOpen: function(){ return navDrawer.classList.contains("open"); },
     isModalOpen: function(){ return modalLayer.classList.contains("open"); }
