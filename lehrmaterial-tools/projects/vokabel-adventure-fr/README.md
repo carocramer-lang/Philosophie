@@ -1,9 +1,10 @@
 # Vokabel-Adventure Français
 
-Vokabellernspiel zu Découvertes (Französisch, Jahrgang 8). Single-File-HTML,
-kein Build-Schritt — gleiche Architektur und Optik wie `vokabel-adventure`
-(Englisch), aber eigenständiges Projekt: eigener localStorage-Key, kein
-Duell-Feature, keine Schulname-/Logo-Anzeige.
+Vokabellernspiel zu Découvertes (Französisch, Jahrgang 8). In der App selbst
+heißt das Tool „Aventure de vocabulaire“ (statt „Vokabel-Adventure“ wie im
+Englisch-Tool). Single-File-HTML, kein Build-Schritt — gleiche Architektur
+und Optik wie `vokabel-adventure` (Englisch), aber eigenständiges Projekt:
+eigener localStorage-Key, kein Duell-Feature, keine Schulname-/Logo-Anzeige.
 
 ## Aufbau
 - `index.html` ist das komplette Tool in sechs Ansichten (ein `showView()`-Router
