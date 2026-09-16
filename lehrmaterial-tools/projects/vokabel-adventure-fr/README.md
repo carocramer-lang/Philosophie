@@ -23,8 +23,10 @@ Duell-Feature, keine Schulname-/Logo-Anzeige.
     plus die eigentliche Spiel-Ansicht.
   - **Übungen**: eine Übersicht mit einem Lückentext pro Abschnitt (siehe
     unten); Hör- und Schreibübung folgen noch.
-- `hero.svg` ist ein **Platzhalter-Titelbild** (stilisierter Eiffelturm) bis
-  das endgültige Marianne-Motiv fertig ist.
+- `hero.jpg` ist das Titelbild: Marianne mit phrygischer Mütze und
+  Trikolore-Schärpe vor dem nächtlichen Eiffelturm, gestaltet über den
+  Design-Skill (Claude Design Canvas) im selben Illustrationsstil wie das
+  Ghost-Maskottchen des Englisch-Tools.
 - `test.js` prüft Startzustand, Streak-Logik, Menü/Modal-Interaktion, die
   komplette Teil-1-Lernstrecke (Abschnitte, Karteikarten, Übersicht,
   Merkliste inkl. Wiederholung und Meisterschafts-Entfernung), Spiele,
@@ -120,9 +122,6 @@ echter französischer Aussprache sind in Recherche (siehe unten).
   komplett unabhängig vom Englisch-Tool nutzbar.
 
 ## Umfang dieser Version / offene Punkte
-- **Titelbild**: aktuell nur Platzhalter (`hero.svg`, stilisierter
-  Eiffelturm). Das endgültige Marianne-Motiv wird über den Design-Skill
-  gestaltet.
 - **Hör-/Schreibübung mit echter französischer Aussprache**: in Recherche —
   die Web Speech API liefert nur synthetische Stimmen, eine Alternative mit
   echten Muttersprachler-Aufnahmen wird geprüft.
@@ -139,5 +138,4 @@ Aus dem Repo-Wurzelverzeichnis: `npm test`. Oder direkt:
 `node projects/vokabel-adventure-fr/test.js`.
 
 ## Deploy
-`index.html` und `hero.svg` (bzw. das finale Titelbild) gemeinsam im
-gleichen Ordner hochladen.
+`index.html` und `hero.jpg` gemeinsam im gleichen Ordner hochladen.
