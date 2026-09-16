@@ -468,8 +468,8 @@
   .ov-table tr{ border-top:1px solid rgba(255,255,255,.07); }
   .ov-table tr:first-child{ border-top:none; }
   .ov-table td{ padding:10px 6px; font-size:13.5px; vertical-align:top; }
-  .ov-table td.fr{ color:var(--ink-1); font-weight:500; width:44%; }
-  .ov-table td.de{ color:var(--ink-6); }
+  .ov-table td.de{ color:var(--ink-1); font-weight:500; width:44%; }
+  .ov-table td.fr{ color:var(--ink-6); }
   .ov-table td.mark{ width:34px; text-align:right; }
   .ov-star{
     width:26px; height:26px; border-radius:8px; border:1px solid var(--border-strong); background:var(--card-2);
@@ -490,8 +490,8 @@
     background:var(--card); border:1px solid var(--border);
   }
   .mk-info{ flex:1; min-width:0; }
-  .mk-fr{ font-size:14px; font-weight:500; color:var(--ink-1); }
-  .mk-de{ font-size:12.5px; color:var(--ink-7); }
+  .mk-de{ font-size:14px; font-weight:500; color:var(--ink-1); }
+  .mk-fr{ font-size:12.5px; color:var(--ink-7); }
   .mk-progress{ display:flex; gap:3px; flex:none; }
   .mk-progress .dot{ width:7px; height:7px; border-radius:50%; background:rgba(255,255,255,.16); }
   .mk-progress .dot.on{ background:var(--teal); }
@@ -1583,9 +1583,9 @@
       if (index < 0) index = words.length - 1;
       var w = words[index];
       front.querySelector(".fc-tag").textContent = w.section || opts.tag || "";
-      front.querySelector(".fc-word").textContent = w.fr;
+      front.querySelector(".fc-word").textContent = w.de;
       back.querySelector(".fc-tag").textContent = w.section || opts.tag || "";
-      back.querySelector(".fc-word").textContent = w.de;
+      back.querySelector(".fc-word").textContent = w.fr;
       progress.textContent = (index + 1) + " / " + words.length;
       trackFill.style.width = Math.round((index + 1) / words.length * 100) + "%";
       setFlipped(false);
@@ -1636,18 +1636,18 @@
         render();
         if (opts.onChange) opts.onChange();
       });
-      var frCell = el("td", { className: "fr" }, [
-        document.createTextNode(w.fr)
+      var deCell = el("td", { className: "de" }, [
+        document.createTextNode(w.de)
       ]);
       if (known) {
-        frCell.appendChild(el("span", { className: "ov-known-badge", title: "Schon als gekonnt markiert" }, [
+        deCell.appendChild(el("span", { className: "ov-known-badge", title: "Schon als gekonnt markiert" }, [
           document.createTextNode("✓"),
           el("span", { className: "sr-only", text: " – schon als gekonnt markiert" })
         ]));
       }
       var tr = el("tr", { className: known ? "ov-row-known" : "" }, [
-        frCell,
-        el("td", { className: "de", text: w.de }),
+        deCell,
+        el("td", { className: "fr", text: w.fr }),
         el("td", { className: "mark" }, [star])
       ]);
       table.appendChild(tr);
@@ -1734,8 +1734,8 @@
       }(m.fr));
       list.appendChild(el("div", { className: "mk-row" }, [
         el("div", { className: "mk-info" }, [
-          el("div", { className: "mk-fr", text: m.fr }),
-          el("div", { className: "mk-de", text: m.de + (m.section ? " · " + m.section : "") })
+          el("div", { className: "mk-de", text: m.de }),
+          el("div", { className: "mk-fr", text: m.fr + (m.section ? " · " + m.section : "") })
         ]),
         dots,
         removeBtn
@@ -1971,15 +1971,15 @@
 
     function nextQuestion(){
       current = items[Math.floor(Math.random() * items.length)];
-      word.textContent = current.fr;
-      var distractors = shuffle(items.filter(function(w){ return w.fr !== current.fr; })).slice(0, 3).map(function(w){ return w.de; });
-      var options = shuffle(distractors.concat([current.de]));
+      word.textContent = current.de;
+      var distractors = shuffle(items.filter(function(w){ return w.fr !== current.fr; })).slice(0, 3).map(function(w){ return w.fr; });
+      var options = shuffle(distractors.concat([current.fr]));
       grid.innerHTML = "";
       options.forEach(function(opt){
         var btn = el("button", { className: "tempo-opt", type: "button", text: opt });
         btn.addEventListener("click", function(){
           if (!running) return;
-          if (opt === current.de) { btn.classList.add("correct"); score++; progress.textContent = "Punkte: " + score; }
+          if (opt === current.fr) { btn.classList.add("correct"); score++; progress.textContent = "Punkte: " + score; }
           else btn.classList.add("wrong");
           setTimeout(nextQuestion, 250);
         });

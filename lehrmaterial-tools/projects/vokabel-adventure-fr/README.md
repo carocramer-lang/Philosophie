@@ -69,12 +69,18 @@ Abschnitten von je genau 20 Wörtern, fortlaufend benannt „Abschnitt 1“–
 „Abschnitt 9“ (keine thematischen Titel, da die Quelle keine liefert).
 
 ## Lern- und Merklisten-Logik
-Identisch zum Englisch-Tool (`vokabel-adventure`): Karteikarte umdrehen per
-Klick/Leertaste, „Kann ich schon“/„Muss ich üben“ steuern Merkliste und
-Meisterschaft (2× erfolgreiche Wiederholung → Wort verschwindet von der
-Merkliste, bleibt aber im Abschnitt mit dauerhaftem Gekonnt-Häkchen stehen),
-Stern in der Übersicht schaltet die Merkliste direkt um, Abschnitts-Abzeichen
-sind reine Belohnung ohne Gate. Details siehe README von `vokabel-adventure`.
+Anders als im Englisch-Tool: **Karteikarten-Vorderseite, Übersicht-Spalte 1
+und Merkliste zeigen zuerst das deutsche Wort**, die französische Übersetzung
+folgt (Kartenrückseite bzw. zweite Spalte) — auf Wunsch umgekehrt, damit SuS
+von der Muttersprache zur Fremdsprache abgefragt werden statt umgekehrt.
+
+Ansonsten identisch zum Englisch-Tool (`vokabel-adventure`): Karteikarte
+umdrehen per Klick/Leertaste, „Kann ich schon“/„Muss ich üben“ steuern
+Merkliste und Meisterschaft (2× erfolgreiche Wiederholung → Wort verschwindet
+von der Merkliste, bleibt aber im Abschnitt mit dauerhaftem Gekonnt-Häkchen
+stehen), Stern in der Übersicht schaltet die Merkliste direkt um,
+Abschnitts-Abzeichen sind reine Belohnung ohne Gate. Details siehe README
+von `vokabel-adventure`.
 
 ## Spiele
 Ein Spiel pro Abschnitt (`SECTION_GAMES`, 1:1 zu `UNIT1_SECTIONS`), Typ
@@ -96,8 +102,14 @@ jeweiligen Abschnitts.
   erlaubt. Wortpool: einzelne Substantive (ohne Artikel) plus einzelne
   Adjektive/Verben des Abschnitts ohne Leerzeichen.
 - **Tempo-Runde** (Abschnitte 1, 4, 8): 60-Sekunden-Sprint durch alle 20
-  Wörter des Abschnitts, Multiple-Choice-Bedeutung wählen (4 Optionen),
-  Punktezähler läuft mit, am Ende Endstand mit Neustart-Option.
+  Wörter des Abschnitts — das deutsche Wort erscheint, die französische
+  Übersetzung per Multiple-Choice wählen (4 Optionen), Punktezähler läuft
+  mit, am Ende Endstand mit Neustart-Option.
+
+Galgenmännchen fragt ohnehin schon von Deutsch (Hinweis) nach Französisch
+(zu erratendes Wort); Artikel-Sortieren bleibt unverändert rein
+französisch, da es das grammatische Geschlecht trainiert, nicht die
+Übersetzung.
 
 Erreichbar über „Spiele“ im Hauptmenü → Abschnitt auswählen. Fortschritt in
 den Spielen selbst wird aktuell nicht gespeichert (kein Einfluss auf

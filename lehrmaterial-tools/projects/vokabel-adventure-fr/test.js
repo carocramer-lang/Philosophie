@@ -91,7 +91,7 @@ check("Erste Karte zeigt 0 / 20 Woerter", sectionCards[0].querySelector(".sec-me
 // --- Abschnitt oeffnen: Karteikarten ---
 click(win, sectionCards[0]);
 check("Abschnitts-Ansicht aktiv", G.currentView() === "section");
-check("Karteikarte zeigt erstes Wort", doc.querySelector(".fc-front .fc-word").textContent === G.UNIT1_SECTIONS[0].words[0].fr);
+check("Karteikarte zeigt erstes Wort (Deutsch vorne)", doc.querySelector(".fc-front .fc-word").textContent === G.UNIT1_SECTIONS[0].words[0].de);
 check("Karteikarte startet nicht umgedreht", !doc.querySelector(".flashcard").classList.contains("flipped"));
 click(win, doc.querySelector(".flashcard"));
 check("Klick auf Karte dreht sie um", doc.querySelector(".flashcard").classList.contains("flipped"));
@@ -119,6 +119,9 @@ const ovRows = Array.from(doc.querySelectorAll("#secOverviewPanel .ov-table tr")
 check("'Kann ich schon'-Wort bekommt Gekonnt-Häkchen in der Übersicht", ovRows[1].classList.contains("ov-row-known") && !!ovRows[1].querySelector(".ov-known-badge"));
 check("'Muss ich üben'-Wort bekommt KEIN Gekonnt-Häkchen", !ovRows[0].classList.contains("ov-row-known") && !ovRows[0].querySelector(".ov-known-badge"));
 check("Nicht bewertetes Wort bekommt KEIN Gekonnt-Häkchen", !ovRows[3].classList.contains("ov-row-known"));
+check("Übersicht zeigt zuerst die deutsche Spalte", ovRows[0].firstElementChild.classList.contains("de"));
+check("Erste Zelle enthaelt das deutsche Wort", ovRows[0].querySelector("td.de").textContent.indexOf(G.UNIT1_SECTIONS[0].words[0].de) === 0);
+check("Zweite Zelle enthaelt das franzoesische Wort", ovRows[0].querySelector("td.fr").textContent === G.UNIT1_SECTIONS[0].words[0].fr);
 click(win, ovStars[2]);
 const thirdWordFr = G.UNIT1_SECTIONS[0].words[2].fr;
 check("Stern-Klick fuegt Wort zur Merkliste hinzu", G.state.merkliste.some(m => m.fr === thirdWordFr));
@@ -142,6 +145,12 @@ check("Merkliste-Kachel zeigt 2 Wörter", doc.getElementById("wordlistSub").text
 click(win, doc.getElementById("wordlistTile"));
 check("Merkliste-Kachel fuehrt direkt zur Merkliste (kein Modal)", G.currentView() === "merkliste" && !G.isModalOpen());
 check("Merkliste zeigt 2 Eintraege", doc.querySelectorAll("#mkListWrap .mk-row").length === 2);
+{
+  const firstRow = doc.querySelector("#mkListWrap .mk-row");
+  const firstEntry = G.state.merkliste[0];
+  check("Merkliste zeigt zuerst das deutsche Wort", firstRow.querySelector(".mk-de").textContent === firstEntry.de);
+  check("Merkliste zeigt danach das franzoesische Wort", firstRow.querySelector(".mk-fr").textContent.indexOf(firstEntry.fr) === 0);
+}
 
 // manuelles Entfernen durch die/den SuS
 const mkRemoveButtons = Array.from(doc.querySelectorAll(".mk-remove"));
@@ -286,6 +295,11 @@ check("Merkliste-Liste zeigt jetzt 0 Eintraege", doc.querySelectorAll("#mkListWr
   click(winG, docG.querySelector(".tempo-start"));
   check("Tempo-Runde zeigt nach Start 4 Antwortoptionen", docG.querySelectorAll(".tempo-opt").length === 4);
   check("Tempo-Runde zeigt laufenden Timer", docG.querySelector(".tempo-timer").textContent === "60s");
+  const tempoWord = docG.querySelector(".tempo-word").textContent;
+  const tempoItem = GG.SECTION_GAMES[0].items.find(it => it.de === tempoWord);
+  check("Tempo-Runde zeigt das deutsche Wort", !!tempoItem);
+  const tempoOpts = Array.from(docG.querySelectorAll(".tempo-opt")).map(b => b.textContent);
+  check("Antwortoptionen sind franzoesische Woerter", tempoOpts.includes(tempoItem.fr));
 }
 
 // --- Uebungen: Datenstruktur ---
