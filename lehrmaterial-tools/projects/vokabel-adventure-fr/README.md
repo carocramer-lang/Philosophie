@@ -6,11 +6,12 @@ kein Build-Schritt — gleiche Architektur und Optik wie `vokabel-adventure`
 Duell-Feature, keine Schulname-/Logo-Anzeige.
 
 ## Aufbau
-- `index.html` ist das komplette Tool in vier Ansichten (ein `showView()`-Router
+- `index.html` ist das komplette Tool in sechs Ansichten (ein `showView()`-Router
   blendet die passende `.view` ein, kein Reload):
   - **Startbildschirm**: Fortschrittsanzeige, Tagesserie (Streak), drei Kacheln
-    (Kapitel, Übungen, Merkliste — kein Duell), Menü, Optionen, Erfolge, Hilfe,
-    geräte-lokale Lehrkraft-Ansicht. Kein Schullogo/-name (auf Wunsch entfernt).
+    (Kapitel, Übungen, Merkliste — kein Duell), Menü (inkl. „Spiele“), Optionen,
+    Erfolge, Hilfe, geräte-lokale Lehrkraft-Ansicht. Kein Schullogo/-name (auf
+    Wunsch entfernt).
   - **Unit-Ansicht**: die 9 Abschnitte von Teil 1 mit Fortschrittsbalken und
     Abschnitts-Abzeichen (reine Belohnung, kein Gate — wie im Englisch-Tool).
   - **Abschnitts-Ansicht**: Karteikarten (Flip-Karte, „Kann ich schon“ /
@@ -18,14 +19,16 @@ Duell-Feature, keine Schulname-/Logo-Anzeige.
     umschaltbar, beide zeigen dieselben Wörter.
   - **Merkliste**: alle gemerkten/noch zu übenden Wörter, manuell entfernbar,
     plus „Merkliste wiederholen“ — identische Logik zum Englisch-Tool.
+  - **Spiele**: eine Übersicht mit einem Spiel pro Abschnitt (siehe unten),
+    plus die eigentliche Spiel-Ansicht.
   - „Übungen“ ist aktuell nur ein Platzhalter-Hinweis (noch nicht gebaut).
 - `hero.svg` ist ein **Platzhalter-Titelbild** (stilisierter Eiffelturm) bis
   das endgültige Marianne-Motiv fertig ist.
 - `test.js` prüft Startzustand, Streak-Logik, Menü/Modal-Interaktion, die
   komplette Teil-1-Lernstrecke (Abschnitte, Karteikarten, Übersicht,
-  Merkliste inkl. Wiederholung und Meisterschafts-Entfernung), Abschnitts-
-  Abzeichen, Export und Zurücksetzen via jsdom — sowie explizit, dass keine
-  Duell-Kachel/-Menüpunkt und kein Schullogo mehr existieren.
+  Merkliste inkl. Wiederholung und Meisterschafts-Entfernung), Spiele,
+  Abschnitts-Abzeichen, Export und Zurücksetzen via jsdom — sowie explizit,
+  dass keine Duell-Kachel/-Menüpunkt und kein Schullogo mehr existieren.
 
 ## Vokabelquelle
 `Vokabeln_Franzoesisch_Deutsch.pdf` — eine durchgehende Französisch-Deutsch-
@@ -68,6 +71,33 @@ Merkliste, bleibt aber im Abschnitt mit dauerhaftem Gekonnt-Häkchen stehen),
 Stern in der Übersicht schaltet die Merkliste direkt um, Abschnitts-Abzeichen
 sind reine Belohnung ohne Gate. Details siehe README von `vokabel-adventure`.
 
+## Spiele
+Ein Spiel pro Abschnitt (`SECTION_GAMES`, 1:1 zu `UNIT1_SECTIONS`), Typ
+wechselt bewusst durch: Tempo-Runde → Artikel-Sortieren → Galgenmännchen →
+Tempo-Runde → … (nie zweimal derselbe Typ direkt hintereinander, jeder Typ
+kommt 3× vor). Alle Inhalte kommen aus den vorhandenen Vokabeln des
+jeweiligen Abschnitts.
+
+- **Artikel-Sortieren „le/la“** (Abschnitte 2, 5, 7): ein französisches
+  Substantiv (ohne Artikel) erscheint, per Klick in den „le“- oder „la“-Korb
+  einsortieren. Richtig färbt den Korb grün, falsch rot mit sofortiger
+  Anzeige der Lösung. Trainiert gezielt das grammatische Geschlecht — anders
+  als beim Englisch-Tool eine französisch-spezifische Übung. Pro Abschnitt
+  alle Substantive mit eindeutigem „le“/„la“ bzw. „un“/„une“ (6–12 je nach
+  Abschnitt).
+- **Galgenmännchen** (Abschnitte 3, 6, 9): ein einzelnes französisches Wort
+  Buchstabe für Buchstabe erraten (inkl. Akzentbuchstaben é/è/ê/à/â/ç/û/î/ï/
+  ô/œ als Tasten), deutsche Bedeutung als Dauer-Hinweis, 6 Fehlversuche
+  erlaubt. Wortpool: einzelne Substantive (ohne Artikel) plus einzelne
+  Adjektive/Verben des Abschnitts ohne Leerzeichen.
+- **Tempo-Runde** (Abschnitte 1, 4, 8): 60-Sekunden-Sprint durch alle 20
+  Wörter des Abschnitts, Multiple-Choice-Bedeutung wählen (4 Optionen),
+  Punktezähler läuft mit, am Ende Endstand mit Neustart-Option.
+
+Erreichbar über „Spiele“ im Hauptmenü → Abschnitt auswählen. Fortschritt in
+den Spielen selbst wird aktuell nicht gespeichert (kein Einfluss auf
+Karteikarten/Übersicht/Merkliste) — reines Zusatzangebot zum Üben.
+
 ## Unterschiede zum Englisch-Tool (auf Wunsch)
 - Kein Duell-Feature (Kachel, Menüpunkt, Modal komplett entfernt).
 - Kein Schullogo, kein Schulname im Header/Footer.
@@ -78,9 +108,6 @@ sind reine Belohnung ohne Gate. Details siehe README von `vokabel-adventure`.
 ## Umfang dieser Version / offene Punkte
 - **Titelbild**: aktuell nur Platzhalter (`hero.svg`, stilisierter
   Eiffelturm). Das endgültige Marianne-Motiv folgt über den Design-Skill.
-- **Spiele**: noch nicht gebaut. Drei Konzept-Prototypen (Artikel-Sortieren
-  le/la, Galgenmännchen, Tempo-Runde) wurden als Demo gezeigt — welche(s)
-  übernommen wird, ist noch offen.
 - **Übungen** (Hör-/Schreibübung, Lückentext): noch nicht gebaut.
 - **Teile 2–4** (ca. 485 weitere Wörter): noch nicht gebaut, folgen
   schrittweise wie Teil 1.

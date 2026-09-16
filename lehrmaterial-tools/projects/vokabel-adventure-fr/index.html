@@ -303,6 +303,75 @@
   .page.motion-off .sec-badge.pop .sec-badge-glow,
   .page.motion-off .sec-badge.pop .sec-badge-spark{ animation:none; }
 
+  /* ---- Spiele ---- */
+  .game-type-chip{
+    font-size:11px; font-weight:600; padding:3px 9px; border-radius:999px; flex:none;
+    background:var(--card-2); color:var(--ink-6); border:1px solid var(--border);
+  }
+  .game-type-chip.lela{ color:var(--teal); border-color:rgba(127,209,193,.4); }
+  .game-type-chip.hangman{ color:var(--pink); border-color:rgba(224,137,154,.4); }
+  .game-type-chip.tempo{ color:var(--gold); border-color:rgba(244,201,93,.4); }
+
+  .game-card{
+    background:var(--card); border:1px solid var(--border); border-radius:16px;
+    padding:20px; text-align:center;
+  }
+  .game-progress{ font-size:12.5px; color:var(--ink-8); text-align:center; margin-bottom:8px; }
+  .game-score{ font-size:13px; font-weight:600; color:var(--gold-dark); text-align:center; margin-top:10px; }
+  .game-feedback{ min-height:22px; text-align:center; font-weight:600; font-size:14px; margin:12px 0 2px; }
+  .game-feedback.good{ color:#4ade80; }
+  .game-feedback.bad{ color:#f87171; }
+  .game-next{
+    display:block; margin:16px auto 0; padding:10px 22px; border-radius:12px;
+    border:1px solid var(--border-strong); background:var(--card-2); color:var(--ink-0);
+    font-weight:600; cursor:pointer;
+  }
+  .game-restart{
+    display:block; margin:14px auto 0; padding:11px 24px; border-radius:12px;
+    background:var(--gold); color:#241505; border:none; font-weight:700; cursor:pointer;
+  }
+
+  /* Artikel-Sortieren (le/la) */
+  .lela-word{ font-size:1.7rem; font-weight:800; margin:6px 0 4px; }
+  .lela-hint{ color:var(--ink-8); font-size:.85rem; margin-bottom:16px; }
+  .lela-bins{ display:flex; gap:12px; margin-top:6px; }
+  .lela-bin{
+    flex:1; border:2px dashed var(--border-strong); border-radius:14px; padding:16px 8px;
+    text-align:center; font-weight:800; font-size:1.15rem; color:var(--ink-4);
+    min-height:60px; display:flex; align-items:center; justify-content:center; cursor:pointer;
+  }
+  .lela-bin.pulse-good{ border-color:#4ade80; color:#4ade80; }
+  .lela-bin.pulse-bad{ border-color:#f87171; color:#f87171; }
+
+  /* Galgenmaennchen */
+  .hang-hint{ color:var(--ink-8); font-size:.85rem; margin-bottom:6px; }
+  .hang-word{ font-size:1.5rem; letter-spacing:.3em; font-weight:800; text-align:center; margin:8px 0 4px; font-family:monospace; }
+  .hang-status{ text-align:center; color:var(--ink-8); font-size:.85rem; margin-bottom:14px; }
+  .hang-keys{ display:flex; flex-wrap:wrap; gap:6px; justify-content:center; }
+  .hang-key{
+    width:34px; height:34px; border-radius:8px; border:1px solid var(--border-strong);
+    background:var(--card-2); color:var(--ink-0); font-weight:700; cursor:pointer; font-size:.88rem;
+  }
+  .hang-key:disabled{ opacity:.3; }
+  .hang-key.used-right{ background:#4ade80; border-color:#4ade80; color:#062617; }
+  .hang-key.used-wrong{ background:#f87171; border-color:#f87171; color:#3a0b0b; }
+
+  /* Tempo-Runde */
+  .tempo-timer{ text-align:center; font-size:1.6rem; font-weight:800; color:var(--gold-dark); margin-bottom:4px; }
+  .tempo-timer.low{ color:#f87171; }
+  .tempo-word{ font-size:1.6rem; font-weight:800; margin:10px 0 16px; text-align:center; }
+  .tempo-grid{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .tempo-opt{
+    padding:12px 10px; border-radius:12px; border:1px solid var(--border-strong);
+    background:var(--card-2); color:var(--ink-0); font-weight:600; cursor:pointer; font-size:.95rem;
+  }
+  .tempo-opt.correct{ background:#4ade80; border-color:#4ade80; color:#062617; }
+  .tempo-opt.wrong{ background:#f87171; border-color:#f87171; color:#3a0b0b; }
+  .tempo-start{
+    display:block; margin:8px auto 0; padding:12px 26px; border-radius:12px;
+    background:var(--gold); color:#241505; border:none; font-weight:700; cursor:pointer; font-size:1rem;
+  }
+
   .unit-toast{
     display:flex; align-items:center; gap:8px; padding:11px 15px; border-radius:12px;
     background:rgba(127,209,193,.14); border:1px solid rgba(127,209,193,.4); color:var(--teal);
@@ -431,6 +500,7 @@
         <button class="drawer-item" data-nav="continue">Weiterspielen</button>
         <button class="drawer-item" data-nav="chapters">Kapitel</button>
         <button class="drawer-item" data-nav="exercises">Übungen</button>
+        <button class="drawer-item" data-nav="games">Spiele</button>
         <button class="drawer-item" data-nav="wordlist">Merkliste</button>
         <button class="drawer-item" data-nav="options">Optionen</button>
         <button class="drawer-item" data-nav="achievements">Erfolge</button>
@@ -559,6 +629,36 @@
 
     <div id="mkListWrap"></div>
     <div data-mode-panel="mkreview" id="mkReviewPanel"></div>
+  </div>
+</div>
+
+<!-- Spiele: Uebersicht -->
+<div class="page view" id="viewGames" data-view="games">
+  <div class="wrap">
+    <div class="subhead">
+      <button class="back" id="gamesBackBtn" aria-label="Zurück zum Startbildschirm">←</button>
+      <span class="crumb">Vokabel-Adventure</span>
+    </div>
+    <div>
+      <h1 class="page-title">Spiele</h1>
+      <p class="page-sub">Ein Spiel pro Abschnitt aus Teil 1 — mal Artikel-Sortieren, mal Galgenmännchen, mal Tempo-Runde.</p>
+    </div>
+    <div class="sec-list" id="gameList"></div>
+  </div>
+</div>
+
+<!-- Spiele: einzelnes Spiel -->
+<div class="page view" id="viewGamePlay" data-view="gameplay">
+  <div class="wrap">
+    <div class="subhead">
+      <button class="back" id="gamePlayBackBtn" aria-label="Zurück zur Spiele-Übersicht">←</button>
+      <span class="crumb">Vokabel-Adventure · Spiele</span>
+    </div>
+    <div>
+      <h1 class="page-title" id="gamePlayTitle"></h1>
+      <p class="page-sub" id="gamePlaySub"></p>
+    </div>
+    <div id="gamePlayBody"></div>
   </div>
 </div>
 
@@ -799,6 +899,150 @@
     for (var i = 0; i < UNIT1_WORDS.length; i++) if (UNIT1_WORDS[i].fr === en) return UNIT1_WORDS[i];
     return null;
   }
+
+  // Ein Spiel pro Abschnitt, Typ wechselt (le/la-Sortieren -> Galgenmaennchen ->
+  // Tempo-Runde -> ...), nie zweimal derselbe Typ direkt hintereinander. Inhalte
+  // kommen aus den vorhandenen Vokabeln des jeweiligen Abschnitts.
+  var SECTION_GAMES = [
+    { type: "tempo", items: [
+      { fr: 'une sortie', de: 'ein Ausgang; ein Ausflug' },
+      { fr: 'un bateau / des bateaux', de: 'ein Boot / Boote; ein Schiff / Schiffe' },
+      { fr: 'visiter qc', de: 'etw. besichtigen' },
+      { fr: 'le temps', de: 'das Wetter (auch: die Zeit)' },
+      { fr: 'Il fait quel temps ?', de: 'Wie ist das Wetter?' },
+      { fr: 'Il fait beau.', de: 'Es ist schönes Wetter.' },
+      { fr: 'le soleil', de: 'die Sonne' },
+      { fr: 'Il pleut.', de: 'Es regnet.' },
+      { fr: 'la météo', de: 'die Wettervorhersage' },
+      { fr: 'le vent', de: 'der Wind' },
+      { fr: 'comprendre qc', de: 'etw. verstehen' },
+      { fr: 'faire un tour', de: 'eine Tour machen' },
+      { fr: 'retrouver qn', de: 'jdn. treffen' },
+      { fr: 'monter', de: 'hinaufgehen; einsteigen' },
+      { fr: 'le premier / la première', de: 'der erste / die erste' },
+      { fr: 'On y va !', de: 'Auf geht\'s!' },
+      { fr: 'une équipe', de: 'eine Mannschaft' },
+      { fr: 'l\'eau (f.)', de: 'das Wasser' },
+      { fr: 'un exercice', de: 'eine Übung' },
+      { fr: 'tout le monde', de: 'alle, jeder' },
+    ] },
+    { type: "lela", items: [
+      { fr: 'ville', art: 'la', de: 'eine Stadt' },
+      { fr: 'mer', art: 'la', de: 'das Meer' },
+      { fr: 'Méditerranée', art: 'la', de: 'das Mittelmeer' },
+      { fr: 'montagne', art: 'la', de: 'ein Gebirge' },
+      { fr: 'stage', art: 'le', de: 'ein Praktikum; ein Kurs' },
+      { fr: 'sauvetage', art: 'le', de: 'eine Rettung; eine Rettungsaktion' },
+      { fr: 'information', art: 'la', de: 'eine Information' },
+      { fr: 'endroit', art: 'le', de: 'ein Ort' },
+      { fr: 'plage', art: 'la', de: 'ein Strand' },
+      { fr: 'spécialité', art: 'la', de: 'eine Besonderheit; eine Spezialität' },
+      { fr: 'colline', art: 'la', de: 'ein Hügel' },
+      { fr: 'restaurant', art: 'le', de: 'ein Restaurant' },
+    ] },
+    { type: "hangman", items: [
+      { fr: 'bâtiment', de: 'ein Bauwerk; ein Gebäude' },
+      { fr: 'moderne', de: 'modern' },
+      { fr: 'glace', de: 'ein Eis' },
+      { fr: 'sauter', de: 'springen' },
+      { fr: 'pied', de: 'ein Fuß' },
+      { fr: 'visite', de: 'ein Besuch' },
+      { fr: 'escalier', de: 'eine Treppe' },
+      { fr: 'ascenseur', de: 'ein Aufzug; ein Fahrstuhl' },
+      { fr: 'drôle', de: 'lustig' },
+      { fr: 'vue', de: 'eine Aussicht' },
+      { fr: 'départ', de: 'die Abfahrt; der Aufbruch' },
+    ] },
+    { type: "tempo", items: [
+      { fr: 'grand / grande', de: 'groß' },
+      { fr: 'joli / jolie', de: 'hübsch' },
+      { fr: 'petit / petite', de: 'klein' },
+      { fr: 'content / contente', de: 'zufrieden; froh' },
+      { fr: 'gratuit / gratuite', de: 'kostenlos' },
+      { fr: 'bleu / bleue', de: 'blau' },
+      { fr: 'la grande bleue', de: 'das Mittelmeer (wörtl. die große Blaue)' },
+      { fr: 'voir qc', de: 'etw. sehen' },
+      { fr: 'un dauphin', de: 'ein Delfin' },
+      { fr: 'un peu', de: 'ein wenig' },
+      { fr: 'long / longue', de: 'lang' },
+      { fr: 'un moniteur / une monitrice', de: 'ein Betreuer / eine Betreuerin' },
+      { fr: 'noir / noire', de: 'schwarz' },
+      { fr: 'rouge / rouge', de: 'rot' },
+      { fr: 'expliquer qc à qn', de: 'jdm. etw. erklären' },
+      { fr: 'nager', de: 'schwimmen' },
+      { fr: 'un retour', de: 'eine Rückkehr; Rückfahrt' },
+      { fr: 'un jeune / une jeune', de: 'ein Jugendlicher / eine Jugendliche' },
+      { fr: 'fatigué / fatiguée', de: 'müde' },
+      { fr: 'une fois', de: 'ein Mal; einmal' },
+    ] },
+    { type: "lela", items: [
+      { fr: 'palmier', art: 'le', de: 'eine Palme' },
+      { fr: 'blague', art: 'la', de: 'ein Scherz; ein Witz' },
+      { fr: 'couleur', art: 'la', de: 'eine Farbe' },
+      { fr: 'ville', art: 'la', de: 'die Stadt' },
+      { fr: 'rue', art: 'la', de: 'eine Straße' },
+      { fr: 'maison', art: 'la', de: 'ein Haus' },
+    ] },
+    { type: "hangman", items: [
+      { fr: 'parc', de: 'ein Park' },
+      { fr: 'village', de: 'ein Dorf' },
+      { fr: 'nature', de: 'die Natur' },
+      { fr: 'montagne', de: 'der Berg; das Gebirge' },
+      { fr: 'forêt', de: 'der Wald' },
+      { fr: 'plage', de: 'der Strand' },
+      { fr: 'semaine', de: 'eine Woche' },
+      { fr: 'arrêt', de: 'ein Halt; eine Haltestelle' },
+      { fr: 'découverte', de: 'eine Entdeckung' },
+      { fr: 'capitale', de: 'eine Hauptstadt' },
+      { fr: 'arrondissement', de: 'ein Stadtbezirk' },
+      { fr: 'pont', de: 'eine Brücke' },
+      { fr: 'voiture', de: 'ein Auto' },
+    ] },
+    { type: "lela", items: [
+      { fr: 'cathédrale', art: 'la', de: 'eine Kathedrale' },
+      { fr: 'sommet', art: 'le', de: 'ein Gipfel' },
+      { fr: 'église', art: 'la', de: 'eine Kirche' },
+      { fr: 'ligne', art: 'la', de: 'eine Linie' },
+      { fr: 'symbole', art: 'le', de: 'ein Symbol' },
+      { fr: 'monument', art: 'le', de: 'ein Denkmal; ein Monument' },
+    ] },
+    { type: "tempo", items: [
+      { fr: 'aller chercher qn', de: 'jdn. abholen' },
+      { fr: 'à pied', de: 'zu Fuß' },
+      { fr: 'un chemin', de: 'ein Weg' },
+      { fr: 'tout droit', de: 'geradeaus' },
+      { fr: 'traverser qc', de: 'etwas überqueren' },
+      { fr: 'tourner', de: 'drehen; abbiegen' },
+      { fr: 'continuer', de: 'weitermachen; fortfahren' },
+      { fr: 'Pardon, monsieur/madame, je cherche…', de: 'Pardon…, ich suche…' },
+      { fr: 'Pardon, …, où est ?', de: 'Pardon…, wo ist…?' },
+      { fr: 'Pardon, pour aller à …, s\'il vous plaît ?', de: 'Pardon…, wie komme ich zu…?' },
+      { fr: 'Tu vas / Vous allez tout droit.', de: 'Du gehst / Sie gehen geradeaus.' },
+      { fr: 'À la rue …, tourne/tournez à gauche.', de: 'Biege/Biegen Sie an der rue … links ab.' },
+      { fr: 'Au café, tourne/tournez à droite.', de: 'Biege/Biegen Sie am Café rechts ab.' },
+      { fr: 'Traverse/Traversez le carrefour / la rue.', de: 'Überquere/Überqueren Sie die Kreuzung / die Straße.' },
+      { fr: 'Merci beaucoup, monsieur/madame.', de: 'Vielen Dank.' },
+      { fr: 'un site (= Website)', de: 'eine Website' },
+      { fr: 'un site (= Lage/Ort)', de: 'eine Lage; ein Standort; eine Gegend' },
+      { fr: 'lire qc', de: 'etw. lesen' },
+      { fr: 'une promenade', de: 'ein Spaziergang; ein Ausflug' },
+      { fr: 'une liste', de: 'eine Liste' },
+    ] },
+    { type: "hangman", items: [
+      { fr: 'science', de: 'die Wissenschaft' },
+      { fr: 'fin', de: 'das Ende' },
+      { fr: 'salle', de: 'ein Saal, ein Raum' },
+      { fr: 'cour', de: 'der Hof' },
+      { fr: 'cours', de: 'eine Unterrichtsstunde' },
+      { fr: 'beaucoup', de: 'viel' },
+      { fr: 'rentrée', de: 'der Schuljahresbeginn' },
+      { fr: 'retourner', de: 'zurückkehren' },
+      { fr: 'gymnase', de: 'eine Turnhalle' },
+      { fr: 'repas', de: 'ein Essen; eine Mahlzeit' },
+      { fr: 'conversation', de: 'ein Gespräch; eine Unterhaltung' },
+      { fr: 'sixième', de: 'die sechste Klasse' },
+    ] },
+  ];
 
   function pad(n){ return n < 10 ? "0" + n : "" + n; }
   function todayStr(d){ d = d || new Date(); return d.getFullYear() + "-" + pad(d.getMonth()+1) + "-" + pad(d.getDate()); }
@@ -1151,6 +1395,7 @@
     views.forEach(function(v){ v.classList.toggle("active", v.getAttribute("data-view") === name); });
     if (name === "unit") renderUnitView();
     else if (name === "merkliste") renderMerklisteView();
+    else if (name === "games") renderGameList();
     if (name !== "start") { try { window.scrollTo(0, 0); } catch(e) {} }
   }
 
@@ -1451,6 +1696,252 @@
     }));
   });
 
+  // ---- Spiele ----
+  function shuffle(arr){
+    var a = arr.slice();
+    for (var i = a.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = a[i]; a[i] = a[j]; a[j] = t;
+    }
+    return a;
+  }
+
+  function renderGameList(){
+    var list = $("gameList");
+    list.innerHTML = "";
+    SECTION_GAMES.forEach(function(game, idx){
+      var sec = UNIT1_SECTIONS[idx];
+      var chipText = game.type === "lela" ? "Artikel-Sortieren" : game.type === "hangman" ? "Galgenmännchen" : "Tempo-Runde";
+      var card = el("button", { className: "sec-card", type: "button" }, [
+        el("span", { className: "sec-num", text: String(idx + 1) }),
+        el("span", { className: "sec-info" }, [
+          el("div", { className: "sec-name", text: sec.name })
+        ]),
+        el("span", { className: "game-type-chip " + game.type, text: chipText })
+      ]);
+      card.addEventListener("click", function(){ openGame(idx); });
+      list.appendChild(card);
+    });
+  }
+  $("gamesBackBtn").addEventListener("click", function(){ showView("start"); });
+  $("gamePlayBackBtn").addEventListener("click", function(){ showView("games"); });
+
+  function openGame(idx){
+    var sec = UNIT1_SECTIONS[idx];
+    var game = SECTION_GAMES[idx];
+    if (!sec || !game) return;
+    $("gamePlayTitle").textContent = sec.name;
+    $("gamePlaySub").textContent = "Teil 1 · Abschnitt " + (idx + 1) + " von " + UNIT1_SECTIONS.length;
+    var body = $("gamePlayBody");
+    body.innerHTML = "";
+    if (game.type === "lela") body.appendChild(buildLeLaGame(game.items));
+    else if (game.type === "hangman") body.appendChild(buildHangmanGame(game.items));
+    else body.appendChild(buildTempoGame(game.items));
+    showView("gameplay");
+  }
+
+  // ---- Artikel-Sortierspiel (le/la) ----
+  function buildLeLaGame(items){
+    var pool = shuffle(items);
+    var idx = 0, score = 0;
+    var wrap = el("div", { className: "game-card" });
+    var progress = el("div", { className: "game-progress" });
+    var word = el("div", { className: "lela-word" });
+    var hint = el("div", { className: "lela-hint" });
+    var bins = el("div", { className: "lela-bins" });
+    var binLe = el("div", { className: "lela-bin", text: "le" });
+    var binLa = el("div", { className: "lela-bin", text: "la" });
+    bins.appendChild(binLe); bins.appendChild(binLa);
+    var feedback = el("div", { className: "game-feedback" });
+    var scoreEl = el("div", { className: "game-score" });
+    wrap.appendChild(progress); wrap.appendChild(word); wrap.appendChild(hint);
+    wrap.appendChild(bins); wrap.appendChild(feedback); wrap.appendChild(scoreEl);
+
+    function render(){
+      if (idx >= pool.length) {
+        word.textContent = ""; hint.textContent = ""; bins.style.display = "none";
+        feedback.className = "game-feedback good";
+        feedback.textContent = "Fertig! " + score + " / " + pool.length + " richtig.";
+        var restart = el("button", { className: "game-restart", type: "button", text: "Nochmal" });
+        restart.addEventListener("click", function(){ pool = shuffle(items); idx = 0; score = 0; bins.style.display = "flex"; feedback.className = "game-feedback"; feedback.textContent = ""; render(); });
+        wrap.appendChild(restart);
+        return;
+      }
+      progress.textContent = (idx + 1) + " / " + pool.length;
+      word.textContent = pool[idx].fr;
+      hint.textContent = pool[idx].de;
+      feedback.className = "game-feedback"; feedback.textContent = "";
+      binLe.classList.remove("pulse-good", "pulse-bad");
+      binLa.classList.remove("pulse-good", "pulse-bad");
+    }
+
+    function choose(art){
+      var item = pool[idx];
+      var bin = art === "le" ? binLe : binLa;
+      if (art === item.art) {
+        bin.classList.add("pulse-good");
+        feedback.className = "game-feedback good";
+        feedback.textContent = "✓ " + item.art + " " + item.fr;
+        score++;
+      } else {
+        bin.classList.add("pulse-bad");
+        feedback.className = "game-feedback bad";
+        feedback.textContent = "✗ richtig war: " + item.art + " " + item.fr;
+      }
+      scoreEl.textContent = "Richtig: " + score + " / " + (idx + 1);
+      idx++;
+      setTimeout(render, 700);
+    }
+
+    binLe.addEventListener("click", function(){ choose("le"); });
+    binLa.addEventListener("click", function(){ choose("la"); });
+    render();
+    return wrap;
+  }
+
+  // ---- Galgenmaennchen ----
+  function buildHangmanGame(items){
+    var pool = shuffle(items);
+    var idx = 0;
+    var LETTERS = "abcdefghijklmnopqrstuvwxyzéèêàâçûîïôœ".split("");
+    var MAX_WRONG = 6;
+    var wrap = el("div", { className: "game-card" });
+    var progress = el("div", { className: "game-progress" });
+    var hintLine = el("div", { className: "hang-hint" });
+    var wordDisplay = el("div", { className: "hang-word" });
+    var status = el("div", { className: "hang-status" });
+    var keys = el("div", { className: "hang-keys" });
+    var feedback = el("div", { className: "game-feedback" });
+    wrap.appendChild(progress); wrap.appendChild(hintLine); wrap.appendChild(wordDisplay);
+    wrap.appendChild(status); wrap.appendChild(keys); wrap.appendChild(feedback);
+
+    var guessed, wrongCount, finished;
+
+    function renderKeys(){
+      keys.innerHTML = "";
+      LETTERS.forEach(function(l){
+        var k = el("button", { className: "hang-key", type: "button", text: l });
+        k.addEventListener("click", function(){ guess(l, k); });
+        keys.appendChild(k);
+      });
+    }
+    function renderWord(item){
+      wordDisplay.textContent = item.fr.split("").map(function(ch){ return guessed.indexOf(ch) !== -1 ? ch : "_"; }).join(" ");
+    }
+    function start(){
+      if (idx >= pool.length) {
+        progress.textContent = ""; hintLine.textContent = ""; wordDisplay.textContent = ""; status.textContent = ""; keys.innerHTML = "";
+        feedback.className = "game-feedback good";
+        feedback.textContent = "Alle Wörter durch!";
+        var restart = el("button", { className: "game-restart", type: "button", text: "Nochmal" });
+        restart.addEventListener("click", function(){ pool = shuffle(items); idx = 0; start(); });
+        wrap.appendChild(restart);
+        return;
+      }
+      var item = pool[idx];
+      guessed = []; wrongCount = 0; finished = false;
+      progress.textContent = (idx + 1) + " / " + pool.length;
+      hintLine.textContent = "Hinweis: " + item.de;
+      status.textContent = "Fehlversuche: 0 / " + MAX_WRONG;
+      feedback.className = "game-feedback"; feedback.textContent = "";
+      renderKeys();
+      renderWord(item);
+    }
+    function guess(letter, btn){
+      if (finished) return;
+      var item = pool[idx];
+      btn.disabled = true;
+      if (item.fr.indexOf(letter) !== -1) {
+        guessed.push(letter);
+        btn.classList.add("used-right");
+        renderWord(item);
+        if (item.fr.split("").every(function(ch){ return guessed.indexOf(ch) !== -1; })) {
+          finished = true;
+          feedback.className = "game-feedback good";
+          feedback.textContent = "✓ Geschafft: " + item.fr;
+          nextButton();
+        }
+      } else {
+        wrongCount++;
+        btn.classList.add("used-wrong");
+        status.textContent = "Fehlversuche: " + wrongCount + " / " + MAX_WRONG;
+        if (wrongCount >= MAX_WRONG) {
+          finished = true;
+          wordDisplay.textContent = item.fr.split("").join(" ");
+          feedback.className = "game-feedback bad";
+          feedback.textContent = "✗ Verloren — es war: " + item.fr;
+          nextButton();
+        }
+      }
+    }
+    function nextButton(){
+      Array.prototype.forEach.call(keys.querySelectorAll(".hang-key"), function(k){ k.disabled = true; });
+      var nextBtn = el("button", { className: "game-next", type: "button", text: "Weiter ›" });
+      nextBtn.addEventListener("click", function(){ idx++; start(); });
+      wrap.appendChild(nextBtn);
+    }
+    start();
+    return wrap;
+  }
+
+  // ---- Tempo-Runde ----
+  function buildTempoGame(items){
+    var TIME = 60;
+    var timeLeft = TIME, score = 0, running = false, timerId = null, current = null;
+    var wrap = el("div", { className: "game-card" });
+    var timer = el("div", { className: "tempo-timer", text: TIME + "s" });
+    var progress = el("div", { className: "game-score", text: "Punkte: 0" });
+    var word = el("div", { className: "tempo-word" });
+    var grid = el("div", { className: "tempo-grid" });
+    var feedback = el("div", { className: "game-feedback" });
+    var startBtn = el("button", { className: "tempo-start", type: "button", text: "Start" });
+    wrap.appendChild(timer); wrap.appendChild(progress); wrap.appendChild(word);
+    wrap.appendChild(grid); wrap.appendChild(feedback); wrap.appendChild(startBtn);
+
+    function nextQuestion(){
+      current = items[Math.floor(Math.random() * items.length)];
+      word.textContent = current.fr;
+      var distractors = shuffle(items.filter(function(w){ return w.fr !== current.fr; })).slice(0, 3).map(function(w){ return w.de; });
+      var options = shuffle(distractors.concat([current.de]));
+      grid.innerHTML = "";
+      options.forEach(function(opt){
+        var btn = el("button", { className: "tempo-opt", type: "button", text: opt });
+        btn.addEventListener("click", function(){
+          if (!running) return;
+          if (opt === current.de) { btn.classList.add("correct"); score++; progress.textContent = "Punkte: " + score; }
+          else btn.classList.add("wrong");
+          setTimeout(nextQuestion, 250);
+        });
+        grid.appendChild(btn);
+      });
+      feedback.textContent = "";
+    }
+    function tick(){
+      timeLeft--;
+      timer.textContent = timeLeft + "s";
+      timer.classList.toggle("low", timeLeft <= 10);
+      if (timeLeft <= 0) endRound();
+    }
+    function endRound(){
+      running = false;
+      clearInterval(timerId);
+      grid.innerHTML = ""; word.textContent = "";
+      feedback.className = "game-feedback good";
+      feedback.textContent = "Zeit um! Endstand: " + score + " Punkte.";
+      startBtn.textContent = "Nochmal spielen";
+      startBtn.style.display = "block";
+    }
+    startBtn.addEventListener("click", function(){
+      running = true; timeLeft = TIME; score = 0;
+      timer.textContent = TIME + "s"; timer.classList.remove("low");
+      progress.textContent = "Punkte: 0"; feedback.textContent = "";
+      startBtn.style.display = "none";
+      nextQuestion();
+      timerId = setInterval(tick, 1000);
+    });
+    return wrap;
+  }
+
   // ---- Drawer ----
   var navDrawer = $("navDrawer");
   var menuBtn = $("menuBtn");
@@ -1479,6 +1970,7 @@
       case "continue": showView("unit"); break;
       case "chapters": openChaptersModal(); break;
       case "exercises": comingSoonModal("Übungen", "Hör- und Schreibübungen sind noch nicht freigeschaltet."); break;
+      case "games": showView("games"); break;
       case "wordlist": showView("merkliste"); break;
       case "options": openOptionsModal(); break;
       case "achievements": openAchievementsModal(); break;
@@ -1544,6 +2036,8 @@
     closeDrawer: closeDrawer,
     showView: showView,
     openSection: openSection,
+    openGame: openGame,
+    SECTION_GAMES: SECTION_GAMES,
     currentView: function(){ return currentView; },
     isDrawerOpen: function(){ return navDrawer.classList.contains("open"); },
     isModalOpen: function(){ return modalLayer.classList.contains("open"); }

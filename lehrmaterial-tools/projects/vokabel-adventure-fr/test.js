@@ -212,6 +212,71 @@ check("Merkliste-Liste zeigt jetzt 0 Eintraege", doc.querySelectorAll("#mkListWr
   check("Stern ist nach Meisterschaft wieder aus (nicht mehr auf Merkliste)", !!row && !row.querySelector(".ov-star").classList.contains("on"));
 }
 
+// --- Spiele: Datenstruktur ---
+{
+  check("Ein Spiel pro Abschnitt", G.SECTION_GAMES.length === G.UNIT1_SECTIONS.length);
+  const types = G.SECTION_GAMES.map(g => g.type);
+  check("Alle Spieltypen sind lela/hangman/tempo", types.every(t => ["lela", "hangman", "tempo"].includes(t)));
+  check("Nie zweimal derselbe Spieltyp direkt hintereinander", types.every((t, i) => i === 0 || t !== types[i - 1]));
+  check("Alle drei Spieltypen kommen vor", new Set(types).size === 3);
+  check("Jeder Typ kommt 3x vor", ["lela", "hangman", "tempo"].every(t => types.filter(x => x === t).length === 3));
+
+  G.SECTION_GAMES.forEach((game, idx) => {
+    if (game.type === "lela") {
+      check(`Artikel-Sortieren Abschnitt ${idx + 1}: mind. 6 Woerter`, game.items.length >= 6);
+      check(`Artikel-Sortieren Abschnitt ${idx + 1}: jedes Item hat le/la`, game.items.every(it => it.art === "le" || it.art === "la"));
+    } else if (game.type === "hangman") {
+      check(`Galgenmaennchen Abschnitt ${idx + 1}: mind. 6 Woerter`, game.items.length >= 6);
+      check(`Galgenmaennchen Abschnitt ${idx + 1}: keine Leerzeichen in den Woertern`, game.items.every(it => !/\s/.test(it.fr)));
+    } else {
+      check(`Tempo-Runde Abschnitt ${idx + 1}: alle 20 Woerter des Abschnitts`, game.items.length === 20);
+    }
+  });
+}
+
+// --- Spiele-Uebersicht: Navigation und Kachel pro Abschnitt ---
+{
+  const { win: winG, doc: docG } = freshDom();
+  const GG = winG.__game;
+  GG.showView("games");
+  const gameCards = Array.from(docG.querySelectorAll("#gameList .sec-card"));
+  check("Spiele-Uebersicht zeigt 9 Karten", gameCards.length === 9);
+  check("Erste Karte zeigt Tempo-Runde-Chip", !!gameCards[0].querySelector(".game-type-chip.tempo"));
+  check("Zweite Karte zeigt Artikel-Sortieren-Chip", !!gameCards[1].querySelector(".game-type-chip.lela"));
+  check("Dritte Karte zeigt Galgenmaennchen-Chip", !!gameCards[2].querySelector(".game-type-chip.hangman"));
+
+  // --- Artikel-Sortieren: richtige und falsche Zuordnung ---
+  click(winG, gameCards[1]);
+  check("Klick auf Karte oeffnet die Spiel-Ansicht", GG.currentView() === "gameplay");
+  const lelaWord = docG.querySelector(".lela-word").textContent;
+  const lelaItem = GG.SECTION_GAMES[1].items.find(it => it.fr === lelaWord);
+  const bins = Array.from(docG.querySelectorAll(".lela-bin"));
+  const correctBin = lelaItem.art === "le" ? bins[0] : bins[1];
+  click(winG, correctBin);
+  check("Richtige le/la-Wahl faerbt den Korb gruen", correctBin.classList.contains("pulse-good"));
+  check("Punktestand zaehlt 1/1", docG.querySelector(".game-score").textContent === "Richtig: 1 / 1");
+
+  // --- Galgenmaennchen: richtiger und falscher Buchstabe ---
+  click(winG, docG.getElementById("gamePlayBackBtn"));
+  const gameCards2 = Array.from(docG.querySelectorAll("#gameList .sec-card"));
+  click(winG, gameCards2[2]);
+  const hangHint = docG.querySelector(".hang-hint").textContent.replace("Hinweis: ", "");
+  const hangItem = GG.SECTION_GAMES[2].items.find(it => it.de === hangHint);
+  const firstLetter = hangItem.fr[0];
+  const keyBtn = Array.from(docG.querySelectorAll(".hang-key")).find(k => k.textContent === firstLetter);
+  click(winG, keyBtn);
+  check("Richtiger Buchstabe wird aufgedeckt", docG.querySelector(".hang-word").textContent.replace(/\s/g, "").startsWith(firstLetter));
+  check("Richtiger Buchstabe markiert den Button gruen", keyBtn.classList.contains("used-right"));
+
+  // --- Tempo-Runde: Start startet Timer und zeigt Multiple-Choice ---
+  click(winG, docG.getElementById("gamePlayBackBtn"));
+  const gameCards3 = Array.from(docG.querySelectorAll("#gameList .sec-card"));
+  click(winG, gameCards3[0]);
+  click(winG, docG.querySelector(".tempo-start"));
+  check("Tempo-Runde zeigt nach Start 4 Antwortoptionen", docG.querySelectorAll(".tempo-opt").length === 4);
+  check("Tempo-Runde zeigt laufenden Timer", docG.querySelector(".tempo-timer").textContent === "60s");
+}
+
 // --- Export ---
 const exported = JSON.parse(G.exportProgressData());
 check("Export enthaelt Streak", exported.streakCount === 1);
