@@ -1,0 +1,1554 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Vokabel-Adventure — Startbildschirm</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --bg-0:#0b1729; --bg-1:#12253d; --bg-2:#1c3352;
+    --ink-0:#e8eef7; --ink-1:#f0f5fb; --ink-2:#eaf1fa; --ink-3:#dfe9f6;
+    --ink-4:#cfdcec; --ink-5:#c9d8ea; --ink-6:#bccde2; --ink-7:#a9bed6;
+    --ink-8:#93aac6; --ink-9:#7f96b3;
+    --gold:#f4c95d; --gold-hover:#ffe3a3; --gold-deep:#e79a2f; --gold-dark:#f0a63e;
+    --teal:#7fd1c1; --blue:#8fb6e8; --pink:#e0899a;
+    --card:rgba(255,255,255,.06); --card-2:rgba(255,255,255,.07);
+    --border:rgba(255,255,255,.13); --border-strong:rgba(255,255,255,.16);
+    --focus:#8fd3ff;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--bg-0)}
+  body{font-family:Outfit,system-ui,-apple-system,sans-serif;color:var(--ink-0)}
+  h1{margin:0}
+  button{font:inherit;color:inherit}
+  a{color:var(--gold)}
+  a:hover{color:var(--gold-hover)}
+  a:focus-visible,button:focus-visible,[tabindex]:focus-visible{
+    outline:3px solid var(--focus); outline-offset:2px; border-radius:6px;
+  }
+
+  .page{
+    min-height:100vh;
+    background:radial-gradient(120% 80% at 50% 0%, var(--bg-2) 0%, var(--bg-1) 45%, var(--bg-0) 100%);
+    display:flex; justify-content:center;
+    padding:22px 16px 18px;
+  }
+  @media (min-width:560px){ .page{ padding:28px 22px 22px; } }
+  .wrap{ width:100%; max-width:1180px; display:flex; flex-direction:column; gap:20px; }
+  @media (min-width:560px){ .wrap{ gap:22px; } }
+
+  /* header */
+  .topbar{ display:flex; align-items:flex-start; justify-content:space-between; gap:14px; flex-wrap:wrap; }
+  .brand{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+  .icon-btn{
+    width:44px; height:44px; border-radius:13px; background:var(--card-2);
+    border:1px solid var(--border-strong); display:flex; flex-direction:column;
+    align-items:center; justify-content:center; gap:4px; cursor:pointer;
+    padding:0; transition:background .18s ease;
+  }
+  .icon-btn:hover{ background:rgba(255,255,255,.14); }
+  .icon-btn .bar{ width:18px; height:2px; background:var(--ink-3); border-radius:2px; }
+  .logo-badge{
+    height:46px; display:flex; align-items:center; padding:7px 13px; border-radius:12px;
+    background:#fff; box-shadow:0 6px 18px rgba(0,0,0,.28);
+  }
+  .logo-badge img{ display:block; height:32px; width:auto; }
+  .logo-fallback{ font-family:Fredoka,sans-serif; font-weight:600; font-size:14px; color:#12253d; white-space:nowrap; }
+  .class-label{ font-size:14px; font-weight:500; color:var(--ink-4); }
+
+  .pill-row{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+  .pill{
+    display:flex; align-items:center; gap:9px; padding:9px 14px; border-radius:999px;
+    background:var(--card); border:1px solid var(--border); font-size:13px; color:var(--ink-5);
+    cursor:pointer; transition:background .18s ease;
+  }
+  .pill:hover{ background:rgba(255,255,255,.12); }
+  .pill .dot{ width:8px; height:8px; flex:none; }
+  .dot-diamond{ border-radius:2px; transform:rotate(45deg); background:var(--teal); }
+  .dot-circle{ border-radius:50%; background:var(--gold); }
+
+  /* nav drawer */
+  .drawer{
+    position:fixed; inset:0; z-index:40; display:flex; visibility:hidden;
+  }
+  .drawer.open{ visibility:visible; }
+  .drawer-scrim{
+    position:absolute; inset:0; background:rgba(6,12,22,.6); opacity:0; transition:opacity .18s ease;
+  }
+  .drawer.open .drawer-scrim{ opacity:1; }
+  .drawer-panel{
+    position:relative; width:min(300px,84vw); height:100%; background:var(--bg-1);
+    border-right:1px solid var(--border); padding:18px; display:flex; flex-direction:column; gap:6px;
+    transform:translateX(-100%); transition:transform .2s ease;
+  }
+  .drawer.open .drawer-panel{ transform:translateX(0); }
+  .drawer h2{ font-family:Fredoka,sans-serif; font-size:18px; margin:0 0 8px; color:var(--ink-1); }
+  .drawer-item{
+    display:block; width:100%; text-align:left; background:none; border:none; cursor:pointer;
+    padding:11px 12px; border-radius:10px; color:var(--ink-3); font-size:14.5px;
+  }
+  .drawer-item:hover{ background:rgba(255,255,255,.08); }
+  .drawer-close{
+    position:absolute; top:14px; right:-46px; width:36px; height:36px; border-radius:10px;
+    background:rgba(255,255,255,.1); border:1px solid var(--border); color:var(--ink-2);
+    cursor:pointer; display:none;
+  }
+
+  /* title */
+  .titleblock{ text-align:center; display:flex; flex-direction:column; align-items:center; gap:10px; }
+  .titleblock h1{
+    font-family:Fredoka,sans-serif; font-weight:600; font-size:clamp(28px,7vw,58px);
+    line-height:1.04; letter-spacing:-.01em; color:#fff;
+  }
+  .title-meta{ display:flex; align-items:center; gap:12px; flex-wrap:wrap; justify-content:center; }
+  .badge-book{
+    padding:5px 13px; border-radius:999px; background:rgba(244,201,93,.14);
+    border:1px solid rgba(244,201,93,.35); color:var(--gold); font-size:13px;
+    letter-spacing:.06em; text-transform:uppercase; font-weight:500;
+  }
+  .title-sub{ font-size:15px; color:var(--ink-7); font-weight:300; }
+
+  /* main grid */
+  .main-grid{ display:grid; grid-template-columns:1fr; gap:24px; align-items:stretch; }
+  @media (min-width:760px){
+    .main-grid{ grid-template-columns:minmax(0,1.55fr) minmax(280px,1fr); }
+  }
+
+  .hero{
+    position:relative; border-radius:22px; overflow:hidden; border:1px solid var(--border-strong);
+    box-shadow:0 26px 60px rgba(0,0,0,.45); min-height:260px;
+  }
+  @media (min-width:760px){ .hero{ border-radius:26px; min-height:340px; } }
+  .hero img{
+    display:block; width:100%; height:100%; object-fit:cover; object-position:center 42%;
+    animation:floaty 7s ease-in-out infinite;
+  }
+  @media (prefers-reduced-motion:reduce){ .hero img{ animation:none; } }
+  .page.motion-off .hero img{ animation:none; }
+  @keyframes floaty{ 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-10px); } }
+  .hero-scrim{
+    position:absolute; inset:0;
+    background:linear-gradient(to top, rgba(9,20,34,.92) 0%, rgba(9,20,34,.25) 34%, rgba(9,20,34,0) 62%);
+  }
+  .hero-foot{
+    position:absolute; left:16px; right:16px; bottom:16px; display:flex; align-items:flex-end;
+    justify-content:space-between; gap:14px; flex-wrap:wrap;
+  }
+  .hero-progress{ display:flex; flex-direction:column; gap:7px; min-width:180px; flex:1; }
+  .hero-progress-labels{ display:flex; justify-content:space-between; align-items:baseline; font-size:13px; color:var(--ink-6); gap:10px; }
+  .hero-progress-labels strong{ font-weight:500; color:var(--ink-2); }
+  .bar-track{ height:7px; border-radius:99px; background:rgba(255,255,255,.16); overflow:hidden; }
+  .bar-fill{ height:100%; border-radius:99px; background:linear-gradient(90deg,var(--gold),var(--gold-dark)); transition:width .3s ease; }
+  .streak-badge{
+    padding:6px 11px; border-radius:9px; background:rgba(255,255,255,.12); border:1px solid var(--border-strong);
+    font-size:12px; color:var(--ink-3); display:flex; align-items:center; gap:7px; white-space:nowrap;
+  }
+  .streak-badge .dot{ width:8px; height:8px; border-radius:50%; background:var(--gold-dark); display:block; flex:none; }
+
+  .side{ display:flex; flex-direction:column; gap:12px; }
+  .cta{
+    position:relative; border-radius:20px; padding:22px 54px 22px 22px; text-align:left;
+    background:linear-gradient(160deg,#f6cf68,var(--gold-deep)); color:#1b1205; cursor:pointer;
+    box-shadow:0 16px 34px rgba(231,154,47,.3); display:flex; flex-direction:column; gap:4px;
+    border:none; width:100%; transition:box-shadow .18s ease, transform .18s ease;
+  }
+  @media (min-width:760px){ .cta{ border-radius:22px; padding:24px 58px 24px 22px; flex:1.25; justify-content:center; } }
+  .cta:hover{ box-shadow:0 22px 44px rgba(231,154,47,.42); transform:translateY(-2px); }
+  .cta-title{ font-family:Fredoka,sans-serif; font-size:26px; font-weight:600; line-height:1.05; }
+  @media (min-width:760px){ .cta-title{ font-size:30px; } }
+  .cta-sub{ font-size:14px; opacity:.72; }
+  .cta-arrow{
+    position:absolute; right:20px; top:50%; margin-top:-13px; width:0; height:0;
+    border-left:20px solid rgba(27,18,5,.75); border-top:13px solid transparent; border-bottom:13px solid transparent;
+  }
+
+  .tile-grid{ display:grid; grid-template-columns:1fr 1fr; gap:10px; flex:1; }
+  .tile-wide{ grid-column:1 / -1; }
+  @media (min-width:760px){ .tile-grid{ gap:12px; } }
+  .tile{
+    border-radius:16px; padding:14px 13px; background:var(--card); border:1px solid var(--border);
+    cursor:pointer; display:flex; flex-direction:column; justify-content:space-between; gap:12px;
+    text-align:left; color:inherit; transition:background .18s ease, transform .18s ease;
+  }
+  @media (min-width:760px){ .tile{ border-radius:18px; padding:16px 15px; gap:14px; } }
+  .tile:hover{ background:rgba(255,255,255,.11); transform:translateY(-2px); }
+  .tile-title{ font-size:15.5px; font-weight:500; color:var(--ink-1); }
+  @media (min-width:760px){ .tile-title{ font-size:16px; } }
+  .tile-sub{ font-size:12px; color:var(--ink-8); }
+  .tile-icon-rect{ width:26px; height:20px; border-radius:5px; border:2px solid var(--teal); }
+  .tile-icon-bars{ display:flex; flex-direction:column; gap:4px; }
+  .tile-icon-bars span{ height:3px; background:var(--blue); border-radius:2px; display:block; }
+  .tile-icon-bars span:nth-child(1){ width:26px; } .tile-icon-bars span:nth-child(2){ width:20px; } .tile-icon-bars span:nth-child(3){ width:24px; }
+  .tile-icon-circle{ width:22px; height:22px; border-radius:50%; border:2px solid var(--gold); }
+  .tile-icon-diamond{ width:22px; height:22px; transform:rotate(45deg); border:2px solid var(--pink); border-radius:4px; }
+
+  /* footer */
+  .footbar{
+    margin-top:auto; padding-top:6px; display:flex; align-items:center; justify-content:flex-end;
+    gap:14px; border-top:1px solid rgba(255,255,255,.09); font-size:12.5px; color:var(--ink-9); flex-wrap:wrap;
+  }
+  .footlinks{ display:flex; gap:16px; }
+  .footlinks button{ background:none; border:none; padding:2px 0; cursor:pointer; color:var(--ink-9); }
+  .footlinks button:hover{ color:var(--ink-4); }
+
+  /* modal */
+  .modal-layer{ position:fixed; inset:0; z-index:50; display:none; align-items:center; justify-content:center; padding:18px; }
+  .modal-layer.open{ display:flex; }
+  .modal-scrim{ position:absolute; inset:0; background:rgba(6,12,22,.68); }
+  .modal{
+    position:relative; width:min(440px,100%); max-height:82vh; overflow:auto; background:var(--bg-1);
+    border:1px solid var(--border-strong); border-radius:18px; padding:22px; display:flex; flex-direction:column; gap:14px;
+    box-shadow:0 30px 70px rgba(0,0,0,.5);
+  }
+  .modal h2{ font-family:Fredoka,sans-serif; font-size:20px; margin:0; color:#fff; }
+  .modal p{ margin:0; font-size:14.5px; line-height:1.55; color:var(--ink-5); }
+  .modal-close{
+    position:absolute; top:14px; right:14px; width:32px; height:32px; border-radius:9px;
+    background:rgba(255,255,255,.08); border:1px solid var(--border); color:var(--ink-2); cursor:pointer;
+  }
+  .modal-close:hover{ background:rgba(255,255,255,.16); }
+  .field-row{ display:flex; align-items:center; justify-content:space-between; gap:12px; padding:10px 0; border-top:1px solid rgba(255,255,255,.08); }
+  .field-row:first-of-type{ border-top:none; }
+  .field-row label{ font-size:14px; color:var(--ink-4); }
+  .btn-line{
+    display:inline-flex; align-items:center; gap:8px; padding:10px 14px; border-radius:10px;
+    background:rgba(244,201,93,.14); border:1px solid rgba(244,201,93,.35); color:var(--gold);
+    cursor:pointer; font-size:13.5px; align-self:flex-start;
+  }
+  .btn-line:hover{ background:rgba(244,201,93,.22); }
+  .btn-line.danger{ background:rgba(224,137,154,.14); border-color:rgba(224,137,154,.4); color:#f0aebb; }
+  .btn-line.danger:hover{ background:rgba(224,137,154,.22); }
+  .achv-list{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:8px; }
+  .achv{ display:flex; align-items:center; gap:10px; padding:9px 10px; border-radius:10px; background:rgba(255,255,255,.04); }
+  .achv.locked{ opacity:.45; }
+  .achv-dot{ width:9px; height:9px; border-radius:50%; background:var(--gold); flex:none; }
+  .achv.locked .achv-dot{ background:var(--ink-9); }
+  .stat-table{ width:100%; border-collapse:collapse; font-size:13.5px; }
+  .stat-table td{ padding:7px 0; border-top:1px solid rgba(255,255,255,.08); color:var(--ink-5); }
+  .stat-table tr:first-child td{ border-top:none; }
+  .stat-table td:last-child{ text-align:right; color:var(--ink-2); font-weight:500; }
+  .switch{
+    position:relative; width:40px; height:22px; border-radius:99px; background:rgba(255,255,255,.16);
+    border:1px solid var(--border); cursor:pointer; flex:none; padding:0;
+  }
+  .switch .knob{ position:absolute; top:2px; left:2px; width:16px; height:16px; border-radius:50%; background:var(--ink-3); transition:left .16s ease; }
+  .switch[aria-checked="true"]{ background:rgba(244,201,93,.4); border-color:rgba(244,201,93,.6); }
+  .switch[aria-checked="true"] .knob{ left:20px; background:var(--gold); }
+
+  .sr-only{ position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; }
+
+  /* ---- additional views (Unit, Section, Merkliste) ---- */
+  .view{ display:none; }
+  .view.active{ display:flex; }
+
+  .subhead{ display:flex; align-items:center; gap:10px; }
+  .subhead .back{
+    width:36px; height:36px; border-radius:10px; background:var(--card-2); border:1px solid var(--border-strong);
+    display:flex; align-items:center; justify-content:center; color:var(--ink-3); cursor:pointer; padding:0; flex:none;
+  }
+  .subhead .back:hover{ background:rgba(255,255,255,.14); }
+  .subhead .crumb{ font-size:13px; color:var(--ink-7); }
+  .view h1.page-title{
+    font-family:Fredoka,sans-serif; font-weight:600; font-size:clamp(24px,4.5vw,34px);
+    letter-spacing:-.01em; color:#fff; margin:2px 0 0;
+  }
+  .view .page-sub{ font-size:14px; color:var(--ink-7); font-weight:300; margin:4px 0 0; }
+
+  .sec-list{ display:flex; flex-direction:column; gap:10px; }
+  .sec-card{
+    display:flex; align-items:center; gap:14px; padding:14px 16px; border-radius:16px;
+    background:var(--card); border:1px solid var(--border); cursor:pointer; text-align:left;
+    color:inherit; width:100%; transition:background .18s ease;
+  }
+  .sec-card:hover{ background:rgba(255,255,255,.11); }
+  .sec-card.done{ border-color:rgba(127,209,193,.4); }
+  .sec-num{
+    width:34px; height:34px; border-radius:10px; background:rgba(255,255,255,.08); flex:none;
+    display:flex; align-items:center; justify-content:center; font-family:Fredoka,sans-serif; font-size:14px; color:var(--ink-4);
+  }
+  .sec-card.done .sec-num{ background:rgba(127,209,193,.18); color:var(--teal); }
+  .sec-info{ flex:1; min-width:0; }
+  .sec-name{ font-size:14.5px; font-weight:500; color:var(--ink-1); }
+  .sec-meta{ font-size:12px; color:var(--ink-8); margin-top:2px; }
+  .sec-bar-track{ height:5px; border-radius:99px; background:rgba(255,255,255,.12); overflow:hidden; margin-top:7px; }
+  .sec-bar-fill{ height:100%; border-radius:99px; background:linear-gradient(90deg,var(--gold),var(--gold-dark)); }
+
+  /* Abschnitts-Abzeichen: erscheint nur, wenn ein Abschnitt fertig geuebt ist (reine Belohnung, kein Gate) */
+  .sec-badge{ position:relative; width:34px; height:34px; flex:none; }
+  .sec-badge-seal{
+    position:absolute; inset:0;
+    clip-path:polygon(50.00% 0.00%, 59.35% 9.05%, 71.69% 4.95%, 76.19% 17.16%, 89.09% 18.83%, 87.84% 31.78%, 98.75% 38.87%, 92.00% 50.00%, 98.75% 61.13%, 87.84% 68.22%, 89.09% 81.17%, 76.19% 82.84%, 71.69% 95.05%, 59.35% 90.95%, 50.00% 100.00%, 40.65% 90.95%, 28.31% 95.05%, 23.81% 82.84%, 10.91% 81.17%, 12.16% 68.22%, 1.25% 61.13%, 8.00% 50.00%, 1.25% 38.87%, 12.16% 31.78%, 10.91% 18.83%, 23.81% 17.16%, 28.31% 4.95%, 40.65% 9.05%);
+    background:linear-gradient(155deg, var(--gold-hover), var(--gold-deep));
+    display:flex; align-items:center; justify-content:center;
+  }
+  .sec-badge-seal svg{ width:16px; height:16px; stroke:#1b1205; }
+  .sec-badge.pop .sec-badge-seal{ animation:secBadgePop .6s cubic-bezier(.34,1.56,.64,1) both; }
+  .sec-badge.pop .sec-badge-glow{ animation:secBadgeGlow .7s ease-out both; }
+  @keyframes secBadgePop{ 0%{transform:scale(0)} 35%{transform:scale(1.35)} 60%{transform:scale(.92)} 100%{transform:scale(1)} }
+  .sec-badge-glow{
+    position:absolute; inset:-8px; border-radius:50%; pointer-events:none; opacity:0;
+    background:radial-gradient(circle, rgba(244,201,93,.55) 0%, rgba(244,201,93,0) 70%);
+  }
+  @keyframes secBadgeGlow{ 0%{opacity:0;transform:scale(.6)} 40%{opacity:1;transform:scale(1.35)} 100%{opacity:0;transform:scale(1.8)} }
+  .sec-badge-spark{ position:absolute; left:50%; top:50%; width:4px; height:4px; border-radius:50%; background:var(--gold); opacity:0; pointer-events:none; }
+  .sec-badge.pop .sec-badge-spark{ animation:secSparkOut .6s ease-out both; }
+  @keyframes secSparkOut{ 0%{opacity:1; transform:translate(-50%,-50%) rotate(var(--a)) translateY(0) scale(1);} 100%{opacity:0; transform:translate(-50%,-50%) rotate(var(--a)) translateY(-26px) scale(.3);} }
+  @media (prefers-reduced-motion:reduce){
+    .sec-badge.pop .sec-badge-seal, .sec-badge.pop .sec-badge-glow, .sec-badge.pop .sec-badge-spark{ animation:none; }
+  }
+  .page.motion-off .sec-badge.pop .sec-badge-seal,
+  .page.motion-off .sec-badge.pop .sec-badge-glow,
+  .page.motion-off .sec-badge.pop .sec-badge-spark{ animation:none; }
+
+  .unit-toast{
+    display:flex; align-items:center; gap:8px; padding:11px 15px; border-radius:12px;
+    background:rgba(127,209,193,.14); border:1px solid rgba(127,209,193,.4); color:var(--teal);
+    font-size:13.5px; opacity:0; transform:translateY(-6px); transition:opacity .3s ease, transform .3s ease;
+    pointer-events:none;
+  }
+  .unit-toast.show{ opacity:1; transform:translateY(0); }
+
+  /* mode switch (section view) */
+  .modeswitch{ display:inline-flex; gap:4px; padding:4px; border-radius:14px; background:var(--card); border:1px solid var(--border); align-self:flex-start; }
+  .modeswitch button{
+    border:none; background:none; padding:9px 16px; border-radius:11px; font-size:13.5px; color:var(--ink-6);
+    cursor:pointer;
+  }
+  .modeswitch button.active{ background:linear-gradient(160deg,#f6cf68,var(--gold-deep)); color:#1b1205; font-weight:500; }
+  [data-mode-panel]{ display:none; }
+  [data-mode-panel].active{ display:block; }
+
+  /* flashcards */
+  .fc-wrap{ display:flex; flex-direction:column; align-items:center; gap:16px; }
+  .fc-progress{ font-size:13px; color:var(--ink-8); font-variant-numeric:tabular-nums; }
+  .fc-track{ width:100%; max-width:360px; height:5px; border-radius:99px; background:rgba(255,255,255,.12); overflow:hidden; }
+  .fc-track-fill{ height:100%; background:linear-gradient(90deg,var(--gold),var(--gold-dark)); border-radius:99px; transition:width .25s ease; }
+  .flashcard{ width:100%; max-width:360px; height:210px; cursor:pointer; perspective:1200px; -webkit-perspective:1200px; }
+  .flashcard-inner{
+    position:relative; width:100%; height:100%; transition:transform .45s cubic-bezier(.2,.8,.2,1);
+    transform-style:preserve-3d; -webkit-transform-style:preserve-3d;
+  }
+  .flashcard.flipped .flashcard-inner{ transform:rotateY(180deg); }
+  @media (prefers-reduced-motion:reduce){ .flashcard-inner{ transition:none; } }
+  .page.motion-off .flashcard-inner{ transition:none; }
+  .fc-face{
+    position:absolute; inset:0; backface-visibility:hidden; -webkit-backface-visibility:hidden;
+    border-radius:20px; border:1px solid var(--border-strong); box-shadow:0 22px 50px rgba(0,0,0,.4);
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; padding:22px; text-align:center;
+  }
+  .fc-front{ background:linear-gradient(160deg,#213b5e,#152640); }
+  .fc-back{ background:linear-gradient(160deg,#f6cf68,var(--gold-deep)); color:#1b1205; transform:rotateY(180deg); }
+  .fc-tag{ font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-8); }
+  .fc-back .fc-tag{ color:rgba(27,18,5,.6); }
+  .fc-word{ font-family:Fredoka,sans-serif; font-weight:600; font-size:24px; line-height:1.2; }
+  .fc-hint{ font-size:11.5px; color:var(--ink-9); }
+  .fc-back .fc-hint{ color:rgba(27,18,5,.55); }
+  .fc-controls{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; justify-content:center; }
+  .fc-nav{
+    width:38px; height:38px; border-radius:11px; background:var(--card-2); border:1px solid var(--border-strong);
+    color:var(--ink-3); cursor:pointer; display:flex; align-items:center; justify-content:center; flex:none;
+  }
+  .fc-nav:hover{ background:rgba(255,255,255,.14); }
+  .fc-assess{ display:flex; gap:10px; }
+  .fc-assess button{
+    padding:10px 16px; border-radius:11px; border:1px solid var(--border-strong); cursor:pointer; font-size:13px;
+    display:flex; align-items:center; gap:8px; background:var(--card-2); color:var(--ink-3);
+  }
+  .fc-assess .know{ border-color:rgba(127,209,193,.4); }
+  .fc-assess .know:hover{ background:rgba(127,209,193,.16); }
+  .fc-assess .practice{ border-color:rgba(224,137,154,.4); }
+  .fc-assess .practice:hover{ background:rgba(224,137,154,.16); }
+  .fc-assess .dot{ width:8px; height:8px; border-radius:50%; }
+  .fc-assess .know .dot{ background:var(--teal); }
+  .fc-assess .practice .dot{ background:var(--pink); }
+  .fc-empty{ font-size:14px; color:var(--ink-7); text-align:center; padding:30px 0; }
+
+  /* overview */
+  .ov-toolbar{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:space-between; }
+  .ov-count{ font-size:12.5px; color:var(--ink-8); white-space:nowrap; }
+  .ov-table{ width:100%; border-collapse:collapse; margin-top:6px; }
+  .ov-table tr{ border-top:1px solid rgba(255,255,255,.07); }
+  .ov-table tr:first-child{ border-top:none; }
+  .ov-table td{ padding:10px 6px; font-size:13.5px; vertical-align:top; }
+  .ov-table td.fr{ color:var(--ink-1); font-weight:500; width:44%; }
+  .ov-table td.de{ color:var(--ink-6); }
+  .ov-table td.mark{ width:34px; text-align:right; }
+  .ov-star{
+    width:26px; height:26px; border-radius:8px; border:1px solid var(--border-strong); background:var(--card-2);
+    cursor:pointer; color:var(--ink-8); display:inline-flex; align-items:center; justify-content:center; padding:0;
+  }
+  .ov-star.on{ background:rgba(244,201,93,.18); border-color:rgba(244,201,93,.5); color:var(--gold); }
+  .ov-row-known{ background:rgba(127,209,193,.06); }
+  .ov-known-badge{
+    display:inline-flex; align-items:center; justify-content:center; width:16px; height:16px; margin-left:7px;
+    border-radius:50%; background:rgba(127,209,193,.18); color:var(--teal); font-size:10px; line-height:1; flex:none;
+  }
+
+  /* merkliste */
+  .mk-toolbar{ display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+  .mk-list{ display:flex; flex-direction:column; gap:8px; }
+  .mk-row{
+    display:flex; align-items:center; gap:12px; padding:11px 13px; border-radius:13px;
+    background:var(--card); border:1px solid var(--border);
+  }
+  .mk-info{ flex:1; min-width:0; }
+  .mk-fr{ font-size:14px; font-weight:500; color:var(--ink-1); }
+  .mk-de{ font-size:12.5px; color:var(--ink-7); }
+  .mk-progress{ display:flex; gap:3px; flex:none; }
+  .mk-progress .dot{ width:7px; height:7px; border-radius:50%; background:rgba(255,255,255,.16); }
+  .mk-progress .dot.on{ background:var(--teal); }
+  .mk-remove{
+    width:30px; height:30px; border-radius:9px; background:var(--card-2); border:1px solid var(--border-strong);
+    color:var(--ink-8); cursor:pointer; flex:none; display:flex; align-items:center; justify-content:center; padding:0;
+  }
+  .mk-remove:hover{ background:rgba(224,137,154,.16); border-color:rgba(224,137,154,.4); color:#f0aebb; }
+</style>
+</head>
+<body>
+<div class="page view active" id="page" data-view="start">
+  <div class="wrap">
+
+    <header class="topbar">
+      <div class="brand">
+        <button class="icon-btn" id="menuBtn" aria-haspopup="true" aria-expanded="false" aria-controls="navDrawer" aria-label="Menü öffnen">
+          <span class="bar"></span><span class="bar"></span><span class="bar"></span>
+        </button>
+        <span class="class-label">Französisch · Jahrgang 8</span>
+      </div>
+      <div class="pill-row">
+        <button class="pill" id="optionsBtn"><span class="dot dot-diamond"></span>Optionen</button>
+        <button class="pill" id="achievementsBtn"><span class="dot dot-circle"></span>Erfolge</button>
+      </div>
+    </header>
+
+    <nav class="drawer" id="navDrawer" aria-label="Hauptmenü">
+      <div class="drawer-scrim" data-close-drawer></div>
+      <div class="drawer-panel">
+        <h2>Vokabel-Adventure</h2>
+        <button class="drawer-item" data-nav="continue">Weiterspielen</button>
+        <button class="drawer-item" data-nav="chapters">Kapitel</button>
+        <button class="drawer-item" data-nav="exercises">Übungen</button>
+        <button class="drawer-item" data-nav="wordlist">Merkliste</button>
+        <button class="drawer-item" data-nav="options">Optionen</button>
+        <button class="drawer-item" data-nav="achievements">Erfolge</button>
+        <button class="drawer-item" data-nav="help">Hilfe</button>
+        <button class="drawer-item" data-nav="teacher">Lehrkraft-Ansicht</button>
+      </div>
+    </nav>
+
+    <main>
+      <div class="titleblock">
+        <h1>Vokabel-Adventure</h1>
+        <div class="title-meta">
+          <span class="badge-book">Découvertes</span>
+          <span class="title-sub">Autour de la France</span>
+        </div>
+      </div>
+
+      <div class="main-grid" style="margin-top:24px">
+        <section class="hero" aria-label="Fortschritt aktueller Teil">
+          <img src="hero.svg" alt="Platzhalter-Titelbild mit stilisiertem Eiffelturm — das endgültige Marianne-Motiv folgt" />
+          <div class="hero-scrim"></div>
+          <div class="hero-foot">
+            <div class="hero-progress">
+              <div class="hero-progress-labels">
+                <strong id="unitLabel">Teil 1</strong>
+                <span id="wordsLabel">0 / 100 Vokabeln</span>
+              </div>
+              <div class="bar-track">
+                <div class="bar-fill" id="progressBar" role="progressbar" aria-labelledby="unitLabel" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" style="width:0%"></div>
+              </div>
+            </div>
+            <div class="streak-badge">
+              <span class="dot"></span><span id="streakLabel">0 Tage in Folge</span>
+            </div>
+          </div>
+        </section>
+
+        <div class="side">
+          <button class="cta" id="continueBtn">
+            <span class="cta-title" id="ctaTitle">Loslegen</span>
+            <span class="cta-sub" id="ctaSub">Teil 1 · Bereit zum Start</span>
+            <span class="cta-arrow" aria-hidden="true"></span>
+          </button>
+
+          <div class="tile-grid">
+            <button class="tile" id="chaptersTile">
+              <span class="tile-icon-rect"></span>
+              <span><span class="tile-title">Kapitel</span><br><span class="tile-sub" id="chaptersSub">4 Teile</span></span>
+            </button>
+            <button class="tile" id="exercisesTile">
+              <span class="tile-icon-bars"><span></span><span></span><span></span></span>
+              <span><span class="tile-title">Übungen</span><br><span class="tile-sub">Hören · Schreiben</span></span>
+            </button>
+            <button class="tile tile-wide" id="wordlistTile">
+              <span class="tile-icon-circle"></span>
+              <span><span class="tile-title">Merkliste</span><br><span class="tile-sub" id="wordlistSub">0 Wörter</span></span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <footer class="footbar">
+      <div class="footlinks">
+        <button id="helpBtn">Hilfe</button>
+        <button id="teacherBtn">Lehrkraft-Ansicht</button>
+      </div>
+    </footer>
+  </div>
+</div>
+
+<!-- Unit-Ansicht: Liste der Abschnitte -->
+<div class="page view" id="viewUnit" data-view="unit">
+  <div class="wrap">
+    <div class="subhead">
+      <button class="back" id="unitBackBtn" aria-label="Zurück zum Startbildschirm">←</button>
+      <span class="crumb">Vokabel-Adventure · Teil 1</span>
+    </div>
+    <div>
+      <h1 class="page-title">Wörter 1–180</h1>
+      <p class="page-sub" id="unitProgressSub"></p>
+    </div>
+    <div class="unit-toast" id="unitToast" role="status" aria-live="polite"></div>
+    <div class="sec-list" id="sectionList"></div>
+  </div>
+</div>
+
+<!-- Abschnitts-Ansicht: Karteikarten + Übersicht kombiniert -->
+<div class="page view" id="viewSection" data-view="section">
+  <div class="wrap">
+    <div class="subhead">
+      <button class="back" id="sectionBackBtn" aria-label="Zurück zur Unit-Übersicht">←</button>
+      <span class="crumb">Vokabel-Adventure · Teil 1</span>
+    </div>
+    <div>
+      <h1 class="page-title" id="sectionTitle"></h1>
+      <p class="page-sub" id="sectionSub"></p>
+    </div>
+
+    <div class="modeswitch" role="tablist" aria-label="Ansicht wählen">
+      <button type="button" data-secmode="flash" class="active" role="tab" aria-selected="true">🎴 Karteikarten</button>
+      <button type="button" data-secmode="overview" role="tab" aria-selected="false">📋 Übersicht</button>
+    </div>
+
+    <div data-mode-panel="flash" class="active" id="secFlashPanel"></div>
+    <div data-mode-panel="overview" id="secOverviewPanel"></div>
+  </div>
+</div>
+
+<!-- Merkliste -->
+<div class="page view" id="viewMerkliste" data-view="merkliste">
+  <div class="wrap">
+    <div class="subhead">
+      <button class="back" id="mkBackBtn" aria-label="Zurück zum Startbildschirm">←</button>
+      <span class="crumb">Vokabel-Adventure</span>
+    </div>
+    <div>
+      <h1 class="page-title">Merkliste</h1>
+      <p class="page-sub">Wörter, die du dir extra merken willst — von der Sterne-Markierung oder aus „Muss ich üben“. Nach 2× erfolgreicher Wiederholung verschwindet ein Wort automatisch.</p>
+    </div>
+
+    <div class="mk-toolbar">
+      <span class="ov-count" id="mkCount"></span>
+      <button class="btn-line" id="mkReviewBtn" type="button">🔁 Merkliste wiederholen</button>
+    </div>
+
+    <div id="mkListWrap"></div>
+    <div data-mode-panel="mkreview" id="mkReviewPanel"></div>
+  </div>
+</div>
+
+<div class="modal-layer" id="modalLayer">
+  <div class="modal-scrim" data-close-modal></div>
+  <div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <button class="modal-close" id="modalCloseBtn" aria-label="Schließen" data-close-modal>✕</button>
+    <h2 id="modalTitle"></h2>
+    <div id="modalBody"></div>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var STORAGE_KEY = "vokabel_adventure_fr_v1";
+  // Découvertes-Vokabelliste ohne eigene Kapitelnamen: fortlaufend in vier
+  // Teile von je ca. 165-180 Woertern gegliedert, statt Buchkapiteln.
+  var UNITS = [
+    { number: 1, name: "Wörter 1–180" },
+    { number: 2, name: "Wörter 181–ca. 340" },
+    { number: 3, name: "Wörter ca. 341–ca. 500" },
+    { number: 4, name: "Wörter ca. 501–665" }
+  ];
+  function unitByNumber(n){
+    for (var i = 0; i < UNITS.length; i++) if (UNITS[i].number === n) return UNITS[i];
+    return null;
+  }
+  // Erste 180 Woerter aus Vokabeln_Franzoesisch_Deutsch.pdf (Decouvertes, Klasse 8),
+  // fortlaufend in Abschnitten von 20 Woertern, PDF liefert keine eigenen Kapitelnamen.
+  var UNIT1_SECTIONS = [
+    { name: 'Abschnitt 1', words: [
+      { fr: 'une sortie', de: 'ein Ausgang; ein Ausflug' },
+      { fr: 'un bateau / des bateaux', de: 'ein Boot / Boote; ein Schiff / Schiffe' },
+      { fr: 'visiter qc', de: 'etw. besichtigen' },
+      { fr: 'le temps', de: 'das Wetter (auch: die Zeit)' },
+      { fr: 'Il fait quel temps ?', de: 'Wie ist das Wetter?' },
+      { fr: 'Il fait beau.', de: 'Es ist schönes Wetter.' },
+      { fr: 'le soleil', de: 'die Sonne' },
+      { fr: 'Il pleut.', de: 'Es regnet.' },
+      { fr: 'la météo', de: 'die Wettervorhersage' },
+      { fr: 'le vent', de: 'der Wind' },
+      { fr: 'comprendre qc', de: 'etw. verstehen' },
+      { fr: 'faire un tour', de: 'eine Tour machen' },
+      { fr: 'retrouver qn', de: 'jdn. treffen' },
+      { fr: 'monter', de: 'hinaufgehen; einsteigen' },
+      { fr: 'le premier / la première', de: 'der erste / die erste' },
+      { fr: 'On y va !', de: 'Auf geht\'s!' },
+      { fr: 'une équipe', de: 'eine Mannschaft' },
+      { fr: 'l\'eau (f.)', de: 'das Wasser' },
+      { fr: 'un exercice', de: 'eine Übung' },
+      { fr: 'tout le monde', de: 'alle, jeder' },
+    ] },
+    { name: 'Abschnitt 2', words: [
+      { fr: 'une ville', de: 'eine Stadt' },
+      { fr: 'entre', de: 'zwischen' },
+      { fr: 'la mer', de: 'das Meer' },
+      { fr: 'la Méditerranée', de: 'das Mittelmeer' },
+      { fr: 'une montagne', de: 'ein Gebirge' },
+      { fr: 'contacter qn', de: 'mit jdm. in Verbindung treten; jdn. kontaktieren' },
+      { fr: 'les vacances (f.pl.)', de: 'der Urlaub; die Ferien' },
+      { fr: 'passer qc', de: 'etwas verbringen' },
+      { fr: 'un stage', de: 'ein Praktikum; ein Kurs' },
+      { fr: 'un sauvetage', de: 'eine Rettung; eine Rettungsaktion' },
+      { fr: 'une information', de: 'eine Information' },
+      { fr: 'un endroit', de: 'ein Ort' },
+      { fr: 'une plage', de: 'ein Strand' },
+      { fr: 'une spécialité', de: 'eine Besonderheit; eine Spezialität' },
+      { fr: 'la vieille ville', de: 'die Altstadt' },
+      { fr: 'une colline', de: 'ein Hügel' },
+      { fr: 'un château / des châteaux', de: 'ein Schloss / Schlösser' },
+      { fr: 'un restaurant', de: 'ein Restaurant' },
+      { fr: 'montrer qc à qn', de: 'jdm. etw. zeigen' },
+      { fr: 'passer', de: 'vorbeigehen; vorübergehen' },
+    ] },
+    { name: 'Abschnitt 3', words: [
+      { fr: 'un bâtiment', de: 'ein Bauwerk; ein Gebäude' },
+      { fr: 'moderne', de: 'modern' },
+      { fr: 'une glace', de: 'ein Eis' },
+      { fr: 'demander qc à qn', de: 'jdn. etw. fragen; jdn. um etwas bitten' },
+      { fr: 'donner qc à qn', de: 'jdm. etw. geben' },
+      { fr: 'sauter', de: 'springen' },
+      { fr: 'poser qc', de: 'etw. legen; etw. stellen; etw. setzen' },
+      { fr: 'un pied', de: 'ein Fuß' },
+      { fr: 'aider qn', de: 'jdm. helfen' },
+      { fr: 'avoir mal', de: 'Schmerzen haben' },
+      { fr: 'proposer qc à qn', de: 'jdm. etw. vorschlagen' },
+      { fr: 'une visite', de: 'ein Besuch' },
+      { fr: 'rigoler (fam.)', de: 'lachen (ugs.)' },
+      { fr: 'un escalier', de: 'eine Treppe' },
+      { fr: 'un ascenseur', de: 'ein Aufzug; ein Fahrstuhl' },
+      { fr: 'drôle', de: 'lustig' },
+      { fr: 'une vue', de: 'eine Aussicht' },
+      { fr: 'un touriste / une touriste', de: 'ein Tourist / eine Touristin' },
+      { fr: 'le départ', de: 'die Abfahrt; der Aufbruch' },
+      { fr: 'intéressant / intéressante', de: 'interessant' },
+    ] },
+    { name: 'Abschnitt 4', words: [
+      { fr: 'grand / grande', de: 'groß' },
+      { fr: 'joli / jolie', de: 'hübsch' },
+      { fr: 'petit / petite', de: 'klein' },
+      { fr: 'content / contente', de: 'zufrieden; froh' },
+      { fr: 'gratuit / gratuite', de: 'kostenlos' },
+      { fr: 'bleu / bleue', de: 'blau' },
+      { fr: 'la grande bleue', de: 'das Mittelmeer (wörtl. die große Blaue)' },
+      { fr: 'voir qc', de: 'etw. sehen' },
+      { fr: 'un dauphin', de: 'ein Delfin' },
+      { fr: 'un peu', de: 'ein wenig' },
+      { fr: 'long / longue', de: 'lang' },
+      { fr: 'un moniteur / une monitrice', de: 'ein Betreuer / eine Betreuerin' },
+      { fr: 'noir / noire', de: 'schwarz' },
+      { fr: 'rouge / rouge', de: 'rot' },
+      { fr: 'expliquer qc à qn', de: 'jdm. etw. erklären' },
+      { fr: 'nager', de: 'schwimmen' },
+      { fr: 'un retour', de: 'eine Rückkehr; Rückfahrt' },
+      { fr: 'un jeune / une jeune', de: 'ein Jugendlicher / eine Jugendliche' },
+      { fr: 'fatigué / fatiguée', de: 'müde' },
+      { fr: 'une fois', de: 'ein Mal; einmal' },
+    ] },
+    { name: 'Abschnitt 5', words: [
+      { fr: 'bon / bonne', de: 'gut' },
+      { fr: 'un palmier', de: 'eine Palme' },
+      { fr: 'près de qn / qc', de: 'nahe bei jdm. / etw.; neben jdm. / etw.' },
+      { fr: 'une blague', de: 'ein Scherz; ein Witz' },
+      { fr: 'une couleur', de: 'eine Farbe' },
+      { fr: 'gris / grise', de: 'grau' },
+      { fr: 'jaune / jaune', de: 'gelb' },
+      { fr: 'blanc / blanche', de: 'weiß' },
+      { fr: 'vert / verte', de: 'grün' },
+      { fr: 'sous', de: 'unter' },
+      { fr: 'à côté de', de: 'neben' },
+      { fr: 'à droite de', de: 'rechts von' },
+      { fr: 'à gauche de', de: 'links von' },
+      { fr: 'à côté du parc', de: 'neben dem Park' },
+      { fr: 'près de la librairie', de: 'nahe bei der Buchhandlung' },
+      { fr: 'à gauche de l\'entrée', de: 'links vom Eingang' },
+      { fr: 'à droite des toilettes', de: 'rechts von den Toiletten' },
+      { fr: 'la ville', de: 'die Stadt' },
+      { fr: 'une rue', de: 'eine Straße' },
+      { fr: 'une maison', de: 'ein Haus' },
+    ] },
+    { name: 'Abschnitt 6', words: [
+      { fr: 'un parc', de: 'ein Park' },
+      { fr: 'un village', de: 'ein Dorf' },
+      { fr: 'la nature', de: 'die Natur' },
+      { fr: 'la montagne', de: 'der Berg; das Gebirge' },
+      { fr: 'les rochers', de: 'die Felsen' },
+      { fr: 'la forêt', de: 'der Wald' },
+      { fr: 'la plage', de: 'der Strand' },
+      { fr: 'une semaine', de: 'eine Woche' },
+      { fr: 'un arrêt', de: 'ein Halt; eine Haltestelle' },
+      { fr: 'à gauche', de: 'links' },
+      { fr: 'à droite', de: 'rechts' },
+      { fr: 'une découverte', de: 'eine Entdeckung' },
+      { fr: 'branché / branchée (fam.)', de: '"in" (ugs.); "angesagt" (ugs.)' },
+      { fr: 'les loisirs (m.)', de: 'die Freizeit; die Freizeitbeschäftigung' },
+      { fr: 'beaucoup de', de: 'viel(e) (von etwas)' },
+      { fr: 'ne … pas de', de: 'kein / keine' },
+      { fr: 'une capitale', de: 'eine Hauptstadt' },
+      { fr: 'un arrondissement', de: 'ein Stadtbezirk' },
+      { fr: 'un pont', de: 'eine Brücke' },
+      { fr: 'une voiture', de: 'ein Auto' },
+    ] },
+    { name: 'Abschnitt 7', words: [
+      { fr: 'un feu / des feux', de: 'ein Feuer / Feuer' },
+      { fr: 'célèbre / célèbre', de: 'berühmt' },
+      { fr: 'une cathédrale', de: 'eine Kathedrale' },
+      { fr: 'différent / différente', de: 'verschieden; unterschiedlich' },
+      { fr: 'des milliers de', de: 'tausende von' },
+      { fr: 'un sommet', de: 'ein Gipfel' },
+      { fr: 'une église', de: 'eine Kirche' },
+      { fr: 'chaque', de: 'jeder; jede; jedes' },
+      { fr: 'une ligne', de: 'eine Linie' },
+      { fr: 'parisien / parisienne', de: 'Pariser (Adj.)' },
+      { fr: 'un symbole', de: 'ein Symbol' },
+      { fr: 'un monument', de: 'ein Denkmal; ein Monument' },
+      { fr: 'en haut', de: 'oben; nach oben' },
+      { fr: 'bouger', de: 'sich bewegen' },
+      { fr: 'un Parisien / une Parisienne', de: 'ein Pariser / eine Pariserin' },
+      { fr: 'les transports (m.pl.)', de: 'das Verkehrswesen' },
+      { fr: 'loin', de: 'weit (Adv.)' },
+      { fr: 'un cousin / une cousine', de: 'ein Cousin / eine Cousine' },
+      { fr: 'être content(e) de faire qc', de: 'froh sein, etw. zu tun' },
+      { fr: 'tout', de: 'alles' },
+    ] },
+    { name: 'Abschnitt 8', words: [
+      { fr: 'aller chercher qn', de: 'jdn. abholen' },
+      { fr: 'à pied', de: 'zu Fuß' },
+      { fr: 'un chemin', de: 'ein Weg' },
+      { fr: 'tout droit', de: 'geradeaus' },
+      { fr: 'traverser qc', de: 'etwas überqueren' },
+      { fr: 'tourner', de: 'drehen; abbiegen' },
+      { fr: 'continuer', de: 'weitermachen; fortfahren' },
+      { fr: 'Pardon, monsieur/madame, je cherche…', de: 'Pardon…, ich suche…' },
+      { fr: 'Pardon, …, où est ?', de: 'Pardon…, wo ist…?' },
+      { fr: 'Pardon, pour aller à …, s\'il vous plaît ?', de: 'Pardon…, wie komme ich zu…?' },
+      { fr: 'Tu vas / Vous allez tout droit.', de: 'Du gehst / Sie gehen geradeaus.' },
+      { fr: 'À la rue …, tourne/tournez à gauche.', de: 'Biege/Biegen Sie an der rue … links ab.' },
+      { fr: 'Au café, tourne/tournez à droite.', de: 'Biege/Biegen Sie am Café rechts ab.' },
+      { fr: 'Traverse/Traversez le carrefour / la rue.', de: 'Überquere/Überqueren Sie die Kreuzung / die Straße.' },
+      { fr: 'Merci beaucoup, monsieur/madame.', de: 'Vielen Dank.' },
+      { fr: 'un site (= Website)', de: 'eine Website' },
+      { fr: 'un site (= Lage/Ort)', de: 'eine Lage; ein Standort; eine Gegend' },
+      { fr: 'lire qc', de: 'etw. lesen' },
+      { fr: 'une promenade', de: 'ein Spaziergang; ein Ausflug' },
+      { fr: 'une liste', de: 'eine Liste' },
+    ] },
+    { name: 'Abschnitt 9', words: [
+      { fr: 'écrire qc', de: 'etw. schreiben' },
+      { fr: 'la science', de: 'die Wissenschaft' },
+      { fr: 'les vacances', de: 'die Ferien' },
+      { fr: 'la fin', de: 'das Ende' },
+      { fr: 'une salle', de: 'ein Saal, ein Raum' },
+      { fr: 'la cour', de: 'der Hof' },
+      { fr: 'un cours', de: 'eine Unterrichtsstunde' },
+      { fr: 'beaucoup', de: 'viel' },
+      { fr: 'la rentrée', de: 'der Schuljahresbeginn' },
+      { fr: 'fini / finie', de: 'beendet; zu Ende' },
+      { fr: 'retourner', de: 'zurückkehren' },
+      { fr: 'une salle de cours', de: 'ein Klassenraum' },
+      { fr: 'l\'E.P.S.', de: 'Sport (als Schulfach)' },
+      { fr: 'un gymnase', de: 'eine Turnhalle' },
+      { fr: 'un repas', de: 'ein Essen; eine Mahlzeit' },
+      { fr: 'une conversation', de: 'ein Gespräch; eine Unterhaltung' },
+      { fr: 'la sixième', de: 'die sechste Klasse' },
+      { fr: 'le 1er / la 1re — premier/première', de: 'der/die/das Erste' },
+      { fr: 'le 2nd / la 2nde — second/seconde', de: 'der/die/das Zweite' },
+      { fr: 'le/la 2e — deuxième', de: 'der/die/das Zweite' },
+    ] },
+  ];
+
+  var UNIT1_WORDS = [];
+  UNIT1_SECTIONS.forEach(function(sec){
+    sec.words.forEach(function(w){ UNIT1_WORDS.push({ fr: w.fr, de: w.de, section: sec.name }); });
+  });
+  function wordBySection(sectionIndex){ return UNIT1_SECTIONS[sectionIndex] ? UNIT1_SECTIONS[sectionIndex].words : []; }
+  function findWord(en){
+    for (var i = 0; i < UNIT1_WORDS.length; i++) if (UNIT1_WORDS[i].fr === en) return UNIT1_WORDS[i];
+    return null;
+  }
+
+  function pad(n){ return n < 10 ? "0" + n : "" + n; }
+  function todayStr(d){ d = d || new Date(); return d.getFullYear() + "-" + pad(d.getMonth()+1) + "-" + pad(d.getDate()); }
+  function yesterdayStr(todayIso){
+    var d = new Date(todayIso + "T00:00:00");
+    d.setDate(d.getDate() - 1);
+    return todayStr(d);
+  }
+
+  function defaultState(){
+    return {
+      v: 1,
+      unitNumber: 1,
+      unitName: UNITS[0].name,
+      wordAssessments: {}, // "fr" -> "know" | "practice", ueber alle Vokabeln
+      merkliste: [], // [{ en, de, section, reviewCount, addedAt }]
+      badgesSeen: [], // Namen der Abschnitte, deren Abzeichen-Animation schon gezeigt wurde
+      streakCount: 0,
+      lastVisitDate: null,
+      reducedMotion: null
+    };
+  }
+
+  function loadState(){
+    var raw;
+    try { raw = localStorage.getItem(STORAGE_KEY); } catch(e) { raw = null; }
+    if (!raw) return defaultState();
+    try {
+      var parsed = JSON.parse(raw);
+      var d = defaultState();
+      for (var k in d) { if (parsed[k] !== undefined) d[k] = parsed[k]; }
+      return d;
+    } catch(e) { return defaultState(); }
+  }
+
+  function saveState(state){
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch(e) {}
+  }
+
+  // reine Funktion, damit sie ohne echtes Datum testbar ist
+  function computeStreak(prevCount, prevDateIso, todayIso){
+    if (prevDateIso === todayIso) return { count: prevCount || 1, date: todayIso };
+    if (prevDateIso === yesterdayStr(todayIso)) return { count: (prevCount || 0) + 1, date: todayIso };
+    return { count: 1, date: todayIso };
+  }
+
+  function applyDailyVisit(state){
+    var today = todayStr();
+    var result = computeStreak(state.streakCount, state.lastVisitDate, today);
+    state.streakCount = result.count;
+    state.lastVisitDate = result.date;
+    return state;
+  }
+
+  var MASTERY_REPEATS = 2; // so oft muss ein Merkliste-Wort erfolgreich wiederholt werden
+
+  function knownWordCount(state){
+    var n = 0;
+    for (var en in state.wordAssessments) if (state.wordAssessments[en] === "know") n++;
+    return n;
+  }
+
+  function sectionAssessedCount(state, section){
+    var n = 0;
+    section.words.forEach(function(w){ if (state.wordAssessments[w.fr] !== undefined) n++; });
+    return n;
+  }
+
+  function sectionDoneCount(state){
+    var n = 0;
+    UNIT1_SECTIONS.forEach(function(sec){
+      if (sectionAssessedCount(state, sec) === sec.words.length) n++;
+    });
+    return n;
+  }
+
+  function merklisteIndex(state, en){
+    for (var i = 0; i < state.merkliste.length; i++) if (state.merkliste[i].fr === en) return i;
+    return -1;
+  }
+
+  function addToMerkliste(state, word, sectionName){
+    if (merklisteIndex(state, word.fr) !== -1) return;
+    state.merkliste.push({ fr: word.fr, de: word.de, section: sectionName || word.section || "", reviewCount: 0, addedAt: todayStr() });
+  }
+
+  function removeFromMerkliste(state, en){
+    var idx = merklisteIndex(state, en);
+    if (idx !== -1) state.merkliste.splice(idx, 1);
+  }
+
+  // Zentrale Bewertungslogik fuer Karteikarten: bei "practice" landet das Wort
+  // (neu) auf der Merkliste, bei "know" zaehlt eine erfolgreiche Wiederholung
+  // fuer ein Merkliste-Wort - nach MASTERY_REPEATS Erfolgen faellt es automatisch
+  // wieder herunter.
+  function assessWord(state, word, outcome, sectionName){
+    state.wordAssessments[word.fr] = outcome;
+    var idx = merklisteIndex(state, word.fr);
+    if (outcome === "practice") {
+      if (idx === -1) addToMerkliste(state, word, sectionName || word.section);
+      else state.merkliste[idx].reviewCount = 0;
+    } else if (outcome === "know" && idx !== -1) {
+      state.merkliste[idx].reviewCount++;
+      if (state.merkliste[idx].reviewCount >= MASTERY_REPEATS) removeFromMerkliste(state, word.fr);
+    }
+  }
+
+  function computeAchievements(state){
+    return [
+      { id: "first-visit", label: "Erster Besuch", unlocked: state.streakCount >= 1 },
+      { id: "streak-3", label: "3 Tage in Folge", unlocked: state.streakCount >= 3 },
+      { id: "streak-7", label: "7 Tage in Folge", unlocked: state.streakCount >= 7 },
+      { id: "words-10", label: "Erste 10 Vokabeln gelernt", unlocked: knownWordCount(state) >= 10 },
+      { id: "section-1", label: "Ersten Abschnitt geschafft", unlocked: sectionDoneCount(state) >= 1 },
+      { id: "wordlist-5", label: "5 Wörter auf der Merkliste", unlocked: state.merkliste.length >= 5 }
+    ];
+  }
+
+  var state = loadState();
+  applyDailyVisit(state);
+  saveState(state);
+
+  // ---- Rendering ----
+  var $ = function(id){ return document.getElementById(id); };
+
+  function render(){
+    var unitLabel = state.unitName ? ("Teil " + state.unitNumber + " · " + state.unitName) : ("Teil " + state.unitNumber);
+    $("unitLabel").textContent = unitLabel;
+    var wordsLearned = knownWordCount(state);
+    var wordsTotal = UNIT1_WORDS.length;
+    $("wordsLabel").textContent = wordsLearned + " / " + wordsTotal + " Vokabeln";
+    var pct = wordsTotal > 0 ? Math.round(wordsLearned / wordsTotal * 100) : 0;
+    $("progressBar").style.width = pct + "%";
+    $("progressBar").setAttribute("aria-valuenow", String(pct));
+
+    var streakText = state.streakCount + " " + (state.streakCount === 1 ? "Tag" : "Tage") + " in Folge";
+    $("streakLabel").textContent = streakText;
+
+    var doneSections = sectionDoneCount(state);
+    var started = wordsLearned > 0 || doneSections > 0;
+    $("ctaTitle").textContent = started ? "Weiterspielen" : "Loslegen";
+    $("ctaSub").textContent = started
+      ? ("Teil " + state.unitNumber + " · Abschnitt " + doneSections + " von " + UNIT1_SECTIONS.length)
+      : ("Teil " + state.unitNumber + " · Bereit zum Start");
+
+    $("chaptersSub").textContent = UNITS.length + " Teile";
+    $("wordlistSub").textContent = state.merkliste.length + " " + (state.merkliste.length === 1 ? "Wort" : "Wörter");
+
+    var page = $("page");
+    var reduce = state.reducedMotion === true || (state.reducedMotion === null && window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+    page.classList.toggle("motion-off", !!reduce);
+  }
+
+  // ---- Modal ----
+  var modalLayer = $("modalLayer");
+  var lastFocused = null;
+
+  function openModal(title, bodyNode){
+    $("modalTitle").textContent = title;
+    var body = $("modalBody");
+    body.innerHTML = "";
+    body.appendChild(bodyNode);
+    lastFocused = document.activeElement;
+    modalLayer.classList.add("open");
+    $("modalCloseBtn").focus();
+    document.addEventListener("keydown", onModalKeydown, true);
+  }
+
+  function closeModal(){
+    modalLayer.classList.remove("open");
+    document.removeEventListener("keydown", onModalKeydown, true);
+    if (lastFocused && typeof lastFocused.focus === "function") lastFocused.focus();
+  }
+
+  function onModalKeydown(e){
+    if (e.key === "Escape") { closeModal(); return; }
+    if (e.key !== "Tab") return;
+    var focusable = $("modal").querySelectorAll("button, [href], input, select, textarea, [tabindex]:not([tabindex='-1'])");
+    if (!focusable.length) return;
+    var first = focusable[0], last = focusable[focusable.length - 1];
+    if (e.shiftKey && document.activeElement === first) { last.focus(); e.preventDefault(); }
+    else if (!e.shiftKey && document.activeElement === last) { first.focus(); e.preventDefault(); }
+  }
+
+  Array.prototype.forEach.call(document.querySelectorAll("[data-close-modal]"), function(el){
+    el.addEventListener("click", closeModal);
+  });
+
+  function el(tag, props, children){
+    var e = document.createElement(tag);
+    if (props) for (var k in props) {
+      if (k === "className") e.className = props[k];
+      else if (k === "text") e.textContent = props[k];
+      else e.setAttribute(k, props[k]);
+    }
+    (children || []).forEach(function(c){ e.appendChild(c); });
+    return e;
+  }
+
+  function comingSoonModal(title, text){
+    var body = el("div", null, [
+      el("p", { text: text })
+    ]);
+    openModal(title, body);
+  }
+
+  // ---- Kapitel ----
+  function openChaptersModal(){
+    var body = document.createElement("div");
+    body.appendChild(el("p", { text: "Découvertes-Vokabeln in vier Teilen. Die PDF-Liste liefert keine eigenen Kapitelnamen, deshalb sind die Teile fortlaufend nummeriert. Wir arbeiten Teil für Teil — Teil 1 ist startklar." }));
+    var list = el("ul", { className: "achv-list" });
+    UNITS.forEach(function(u){
+      var ready = u.number === 1;
+      var label = "Teil " + u.number + " · " + u.name;
+      if (ready) {
+        var btn = el("button", { className: "achv", style: "width:100%;border:none;cursor:pointer;text-align:left;font:inherit;color:inherit" }, [
+          el("span", { className: "achv-dot" }),
+          el("span", { text: label + " →" })
+        ]);
+        btn.addEventListener("click", function(){ closeModal(); showView("unit"); });
+        list.appendChild(el("li", null, [btn]));
+      } else {
+        list.appendChild(el("li", { className: "achv locked" }, [
+          el("span", { className: "achv-dot" }),
+          el("span", { text: label + " — folgt später" })
+        ]));
+      }
+    });
+    body.appendChild(list);
+    openModal("Kapitel", body);
+  }
+
+  // ---- Optionen ----
+  function openOptionsModal(){
+    var body = document.createElement("div");
+
+    var row1 = el("div", { className: "field-row" }, [
+      el("label", { text: "Bewegungseffekte reduzieren", id: "reduceMotionLabel" }),
+    ]);
+    var sw = el("button", {
+      className: "switch",
+      role: "switch",
+      "aria-checked": String(state.reducedMotion === true),
+      "aria-labelledby": "reduceMotionLabel"
+    }, [ el("span", { className: "knob" }) ]);
+    sw.addEventListener("click", function(){
+      state.reducedMotion = state.reducedMotion === true ? false : true;
+      saveState(state);
+      render();
+      sw.setAttribute("aria-checked", String(state.reducedMotion === true));
+    });
+    row1.appendChild(sw);
+    body.appendChild(row1);
+
+    var exportBtn = el("button", { className: "btn-line", type: "button", text: "⤓ Fortschritt exportieren (.json)" });
+    exportBtn.style.marginTop = "14px";
+    exportBtn.addEventListener("click", downloadExport);
+    body.appendChild(exportBtn);
+
+    var resetBtn = el("button", { className: "btn-line danger", type: "button", text: "Fortschritt zurücksetzen" });
+    resetBtn.style.marginTop = "10px";
+    resetBtn.addEventListener("click", function(){
+      var ok = window.confirm("Fortschritt auf diesem Gerät wirklich zurücksetzen? Das kann nicht rückgängig gemacht werden.");
+      if (!ok) return;
+      Object.assign(state, defaultState());
+      applyDailyVisit(state);
+      saveState(state);
+      render();
+      closeModal();
+    });
+    body.appendChild(resetBtn);
+
+    openModal("Optionen", body);
+  }
+
+  function exportProgressData(){
+    return JSON.stringify({
+      exportiertAm: new Date().toISOString(),
+      unit: state.unitNumber,
+      unitName: state.unitName || null,
+      wordsLearned: knownWordCount(state),
+      wordsTotal: UNIT1_WORDS.length,
+      abschnitteFertig: sectionDoneCount(state),
+      abschnitteGesamt: UNIT1_SECTIONS.length,
+      streakCount: state.streakCount,
+      merkliste: state.merkliste
+    }, null, 2);
+  }
+
+  function downloadExport(){
+    var json = exportProgressData();
+    var blob = new Blob([json], { type: "application/json" });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a");
+    a.href = url;
+    a.download = "vokabel-adventure-fortschritt_" + todayStr() + ".json";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
+  }
+
+  // ---- Erfolge ----
+  function openAchievementsModal(){
+    var achievements = computeAchievements(state);
+    var list = el("ul", { className: "achv-list" });
+    achievements.forEach(function(a){
+      list.appendChild(el("li", { className: "achv" + (a.unlocked ? "" : " locked") }, [
+        el("span", { className: "achv-dot" }),
+        el("span", { text: a.label })
+      ]));
+    });
+    openModal("Erfolge", list);
+  }
+
+  // ---- Hilfe ----
+  function openHelpModal(){
+    var body = document.createElement("div");
+    body.appendChild(el("p", { text: "In „Kapitel“ lernst du die Vokabeln von Teil 1, abschnittsweise mit Karteikarten oder als Übersicht. Karteikarte umdrehen: tippen oder Leertaste. „Muss ich üben“ und der Stern in der Übersicht legen ein Wort auf deine Merkliste — dort wiederholst du es, bis du es zweimal hintereinander sicher kannst." }));
+    body.appendChild(el("p", { text: "Dein Fortschritt wird nur auf diesem Gerät in diesem Browser gespeichert. Sichere ihn bei Bedarf über „Optionen → Fortschritt exportieren“, bevor du den Cache leerst oder das Gerät wechselst." }));
+    body.appendChild(el("p", { text: "Hör- und Schreibübungen sowie weitere Spiele folgen im nächsten Ausbauschritt." }));
+    openModal("Hilfe", body);
+  }
+
+  // ---- Lehrkraft-Ansicht ----
+  function openTeacherModal(){
+    var rows = [
+      ["Teil", state.unitNumber + (state.unitName ? " · " + state.unitName : "")],
+      ["Gelernte Vokabeln", knownWordCount(state) + " / " + UNIT1_WORDS.length],
+      ["Abschnitte fertig", sectionDoneCount(state) + " von " + UNIT1_SECTIONS.length],
+      ["Serie (Tage in Folge)", String(state.streakCount)],
+      ["Merkliste", String(state.merkliste.length) + " Wörter"],
+      ["Letzter Besuch", state.lastVisitDate || "—"]
+    ];
+    var table = el("table", { className: "stat-table" });
+    rows.forEach(function(r){
+      table.appendChild(el("tr", null, [ el("td", { text: r[0] }), el("td", { text: r[1] }) ]));
+    });
+    var body = document.createElement("div");
+    body.appendChild(el("p", { text: "Lokaler Stand dieses Geräts. Es gibt keine geräteübergreifende Übersicht — Fortschritt lebt ausschließlich im Browser der Schülerin bzw. des Schülers." }));
+    body.appendChild(table);
+    openModal("Lehrkraft-Ansicht", body);
+  }
+
+  // ---- View-Router ----
+  var views = Array.prototype.slice.call(document.querySelectorAll(".view"));
+  var currentView = "start";
+  function showView(name){
+    currentView = name;
+    views.forEach(function(v){ v.classList.toggle("active", v.getAttribute("data-view") === name); });
+    if (name === "unit") renderUnitView();
+    else if (name === "merkliste") renderMerklisteView();
+    if (name !== "start") { try { window.scrollTo(0, 0); } catch(e) {} }
+  }
+
+  // ---- Unit-Ansicht ----
+  var CHECK_ICON_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"></path></svg>';
+
+  function buildSectionBadge(sec, animate){
+    var badge = el("div", { className: "sec-badge" + (animate ? " pop" : ""), "aria-hidden": "true" });
+    var glow = el("div", { className: "sec-badge-glow" });
+    var seal = document.createElement("div");
+    seal.className = "sec-badge-seal";
+    seal.innerHTML = CHECK_ICON_SVG;
+    badge.appendChild(glow);
+    badge.appendChild(seal);
+    if (animate) {
+      for (var i = 0; i < 6; i++) {
+        var spark = el("span", { className: "sec-badge-spark" });
+        spark.style.setProperty("--a", (i * 60) + "deg");
+        badge.appendChild(spark);
+      }
+    }
+    return badge;
+  }
+
+  var unitToastTimer = null;
+  function showUnitToast(text){
+    var toast = $("unitToast");
+    toast.textContent = "✨ " + text;
+    clearTimeout(unitToastTimer);
+    toast.classList.add("show");
+    unitToastTimer = setTimeout(function(){ toast.classList.remove("show"); }, 3200);
+  }
+
+  function renderUnitView(){
+    $("unitProgressSub").textContent = knownWordCount(state) + " / " + UNIT1_WORDS.length + " Vokabeln gelernt · " +
+      sectionDoneCount(state) + " von " + UNIT1_SECTIONS.length + " Abschnitten fertig";
+    var list = $("sectionList");
+    list.innerHTML = "";
+    var freshlyEarned = [];
+    UNIT1_SECTIONS.forEach(function(sec, idx){
+      var done = sectionAssessedCount(state, sec);
+      var total = sec.words.length;
+      var isDone = done === total;
+      var alreadySeen = state.badgesSeen.indexOf(sec.name) !== -1;
+      var justEarned = isDone && !alreadySeen;
+      if (justEarned) freshlyEarned.push(sec.name);
+
+      var infoChildren = [
+        el("div", { className: "sec-name", text: sec.name }),
+        el("div", { className: "sec-meta", text: done + " / " + total + " Wörter geübt" }),
+        el("div", { className: "sec-bar-track" }, [
+          el("div", { className: "sec-bar-fill", style: "width:" + Math.round(done / total * 100) + "%" })
+        ])
+      ];
+      var cardChildren = [
+        el("span", { className: "sec-num", text: String(idx + 1) }),
+        el("span", { className: "sec-info" }, infoChildren)
+      ];
+      if (isDone) cardChildren.push(buildSectionBadge(sec, justEarned));
+
+      var card = el("button", { className: "sec-card" + (isDone ? " done" : ""), type: "button" }, cardChildren);
+      card.addEventListener("click", function(){ openSection(idx); });
+      list.appendChild(card);
+    });
+    if (freshlyEarned.length) {
+      freshlyEarned.forEach(function(name){ state.badgesSeen.push(name); });
+      saveState(state);
+      showUnitToast("Geschafft: Unit " + state.unitNumber + " · " + freshlyEarned[freshlyEarned.length - 1] + "!");
+    }
+  }
+  $("unitBackBtn").addEventListener("click", function(){ showView("start"); });
+
+  // ---- Karteikarten-Baustein (wiederverwendbar fuer Abschnitt + Merkliste-Wiederholung) ----
+  // words: [{en, de, section?}]  onAssess(word, outcome) wird nach jeder Bewertung gerufen.
+  function buildFlashcards(words, opts){
+    opts = opts || {};
+    var wrap = el("div", { className: "fc-wrap" });
+    if (!words.length) {
+      wrap.appendChild(el("div", { className: "fc-empty", text: opts.emptyText || "Keine Karten." }));
+      return wrap;
+    }
+    var progress = el("div", { className: "fc-progress" });
+    var track = el("div", { className: "fc-track" }, [ el("div", { className: "fc-track-fill" }) ]);
+    var trackFill = track.firstChild;
+
+    var card = el("div", { className: "flashcard", tabindex: "0", role: "button", "aria-label": "Karte umdrehen" });
+    var inner = el("div", { className: "flashcard-inner" });
+    var front = el("div", { className: "fc-face fc-front" }, [
+      el("span", { className: "fc-tag" }), el("span", { className: "fc-word" }), el("span", { className: "fc-hint", text: "Tippen oder Leertaste zum Umdrehen" })
+    ]);
+    var back = el("div", { className: "fc-face fc-back" }, [
+      el("span", { className: "fc-tag" }), el("span", { className: "fc-word" })
+    ]);
+    inner.appendChild(front); inner.appendChild(back);
+    card.appendChild(inner);
+
+    var controls = el("div", { className: "fc-controls" });
+    var prevBtn = el("button", { className: "fc-nav", type: "button", "aria-label": "Vorherige Karte", text: "‹" });
+    var nextBtn = el("button", { className: "fc-nav", type: "button", "aria-label": "Nächste Karte", text: "›" });
+    var assessRow = el("div", { className: "fc-assess" });
+    var knowBtn = el("button", { className: "know", type: "button" }, [ el("span", { className: "dot" }), el("span", { text: "Kann ich schon" }) ]);
+    var practiceBtn = el("button", { className: "practice", type: "button" }, [ el("span", { className: "dot" }), el("span", { text: "Muss ich üben" }) ]);
+    assessRow.appendChild(knowBtn); assessRow.appendChild(practiceBtn);
+    controls.appendChild(prevBtn); controls.appendChild(assessRow); controls.appendChild(nextBtn);
+
+    wrap.appendChild(progress); wrap.appendChild(track); wrap.appendChild(card); wrap.appendChild(controls);
+
+    var index = 0, flipped = false;
+
+    function setFlipped(v){ flipped = v; card.classList.toggle("flipped", flipped); }
+
+    function renderCard(){
+      if (index >= words.length) index = 0;
+      if (index < 0) index = words.length - 1;
+      var w = words[index];
+      front.querySelector(".fc-tag").textContent = w.section || opts.tag || "";
+      front.querySelector(".fc-word").textContent = w.fr;
+      back.querySelector(".fc-tag").textContent = w.section || opts.tag || "";
+      back.querySelector(".fc-word").textContent = w.de;
+      progress.textContent = (index + 1) + " / " + words.length;
+      trackFill.style.width = Math.round((index + 1) / words.length * 100) + "%";
+      setFlipped(false);
+    }
+
+    function next(){ index++; renderCard(); }
+    function prev(){ index--; renderCard(); }
+
+    card.addEventListener("click", function(){ setFlipped(!flipped); });
+    card.addEventListener("keydown", function(e){
+      if (e.key === " " || e.key === "Enter") { e.preventDefault(); setFlipped(!flipped); }
+      else if (e.key === "ArrowRight") next();
+      else if (e.key === "ArrowLeft") prev();
+    });
+    prevBtn.addEventListener("click", prev);
+    nextBtn.addEventListener("click", next);
+    knowBtn.addEventListener("click", function(){
+      var w = words[index];
+      if (opts.onAssess) opts.onAssess(w, "know");
+      next();
+    });
+    practiceBtn.addEventListener("click", function(){
+      var w = words[index];
+      if (opts.onAssess) opts.onAssess(w, "practice");
+      next();
+    });
+
+    renderCard();
+    return wrap;
+  }
+
+  // ---- Übersicht-Baustein (wiederverwendbar) ----
+  function buildOverview(words, opts){
+    opts = opts || {};
+    var wrap = document.createElement("div");
+    var table = el("table", { className: "ov-table" });
+    words.forEach(function(w){
+      var starred = merklisteIndex(state, w.fr) !== -1;
+      var known = state.wordAssessments[w.fr] === "know";
+      var star = el("button", { className: "ov-star" + (starred ? " on" : ""), type: "button", "aria-pressed": String(starred), "aria-label": "Auf Merkliste" }, [document.createTextNode("★")]);
+      star.addEventListener("click", function(){
+        if (merklisteIndex(state, w.fr) !== -1) removeFromMerkliste(state, w.fr);
+        else addToMerkliste(state, w, w.section || opts.tag);
+        saveState(state);
+        star.classList.toggle("on");
+        var nowOn = star.classList.contains("on");
+        star.setAttribute("aria-pressed", String(nowOn));
+        render();
+        if (opts.onChange) opts.onChange();
+      });
+      var frCell = el("td", { className: "fr" }, [
+        document.createTextNode(w.fr)
+      ]);
+      if (known) {
+        frCell.appendChild(el("span", { className: "ov-known-badge", title: "Schon als gekonnt markiert" }, [
+          document.createTextNode("✓"),
+          el("span", { className: "sr-only", text: " – schon als gekonnt markiert" })
+        ]));
+      }
+      var tr = el("tr", { className: known ? "ov-row-known" : "" }, [
+        frCell,
+        el("td", { className: "de", text: w.de }),
+        el("td", { className: "mark" }, [star])
+      ]);
+      table.appendChild(tr);
+    });
+    wrap.appendChild(table);
+    return wrap;
+  }
+
+  // ---- Abschnitts-Ansicht ----
+  var currentSectionIndex = 0;
+  function openSection(idx){
+    currentSectionIndex = idx;
+    showView("section");
+    renderSectionView();
+  }
+  function renderSectionView(){
+    var sec = UNIT1_SECTIONS[currentSectionIndex];
+    if (!sec) return;
+    $("sectionTitle").textContent = sec.name;
+    $("sectionSub").textContent = sec.words.length + " Wörter · Teil 1, Abschnitt " + (currentSectionIndex + 1) + " von " + UNIT1_SECTIONS.length;
+
+    var words = sec.words.map(function(w){ return { fr: w.fr, de: w.de, section: sec.name }; });
+
+    var flashPanel = $("secFlashPanel");
+    flashPanel.innerHTML = "";
+    flashPanel.appendChild(buildFlashcards(words, {
+      tag: sec.name,
+      onAssess: function(w, outcome){
+        assessWord(state, w, outcome, sec.name);
+        saveState(state);
+        render();
+        renderOverviewPanel();
+        renderUnitViewIfVisible();
+      }
+    }));
+
+    renderOverviewPanel();
+
+    function renderOverviewPanel(){
+      var ovPanel = $("secOverviewPanel");
+      ovPanel.innerHTML = "";
+      ovPanel.appendChild(buildOverview(words, { tag: sec.name }));
+    }
+  }
+  function renderUnitViewIfVisible(){ if (currentView === "unit") renderUnitView(); }
+
+  $("sectionBackBtn").addEventListener("click", function(){ showView("unit"); });
+  Array.prototype.forEach.call(document.querySelectorAll("[data-secmode]"), function(btn){
+    btn.addEventListener("click", function(){
+      var mode = btn.getAttribute("data-secmode");
+      Array.prototype.forEach.call(document.querySelectorAll("[data-secmode]"), function(b){
+        b.classList.remove("active"); b.setAttribute("aria-selected", "false");
+      });
+      btn.classList.add("active"); btn.setAttribute("aria-selected", "true");
+      Array.prototype.forEach.call(document.querySelectorAll("#viewSection [data-mode-panel]"), function(p){
+        p.classList.toggle("active", p.getAttribute("data-mode-panel") === mode);
+      });
+    });
+  });
+
+  // ---- Merkliste-Ansicht ----
+  function renderMerklisteList(){
+    $("mkCount").textContent = state.merkliste.length + " " + (state.merkliste.length === 1 ? "Wort" : "Wörter");
+    var wrap = $("mkListWrap");
+    wrap.innerHTML = "";
+    if (!state.merkliste.length) {
+      wrap.appendChild(el("div", { className: "fc-empty", text: "Deine Merkliste ist leer. Wörter landen hier über den Stern in der Übersicht oder über „Muss ich üben“ bei den Karteikarten." }));
+      return;
+    }
+    var list = el("div", { className: "mk-list" });
+    state.merkliste.forEach(function(m){
+      var dots = el("div", { className: "mk-progress" });
+      for (var i = 0; i < MASTERY_REPEATS; i++) {
+        dots.appendChild(el("span", { className: "dot" + (i < m.reviewCount ? " on" : "") }));
+      }
+      var removeBtn = el("button", { className: "mk-remove", type: "button", "aria-label": "Von Merkliste entfernen", text: "✕" });
+      removeBtn.addEventListener("click", function(en){
+        return function(){
+          removeFromMerkliste(state, en);
+          saveState(state);
+          render();
+          renderMerklisteList();
+        };
+      }(m.fr));
+      list.appendChild(el("div", { className: "mk-row" }, [
+        el("div", { className: "mk-info" }, [
+          el("div", { className: "mk-fr", text: m.fr }),
+          el("div", { className: "mk-de", text: m.de + (m.section ? " · " + m.section : "") })
+        ]),
+        dots,
+        removeBtn
+      ]));
+    });
+    wrap.appendChild(list);
+  }
+  function renderMerklisteView(){
+    renderMerklisteList();
+    $("mkReviewPanel").innerHTML = "";
+    $("mkReviewPanel").classList.remove("active");
+  }
+  $("mkBackBtn").addEventListener("click", function(){ showView("start"); });
+  $("mkReviewBtn").addEventListener("click", function(){
+    var panel = $("mkReviewPanel");
+    if (!state.merkliste.length) { renderMerklisteView(); return; }
+    var words = state.merkliste.map(function(m){ return { fr: m.fr, de: m.de, section: m.section }; });
+    panel.innerHTML = "";
+    panel.classList.add("active");
+    panel.appendChild(buildFlashcards(words, {
+      emptyText: "Merkliste ist leer.",
+      onAssess: function(w, outcome){
+        var word = findWord(w.fr) || w;
+        assessWord(state, word, outcome, w.section);
+        saveState(state);
+        render();
+        renderMerklisteList();
+      }
+    }));
+  });
+
+  // ---- Drawer ----
+  var navDrawer = $("navDrawer");
+  var menuBtn = $("menuBtn");
+
+  function openDrawer(){
+    navDrawer.classList.add("open");
+    menuBtn.setAttribute("aria-expanded", "true");
+  }
+  function closeDrawer(){
+    navDrawer.classList.remove("open");
+    menuBtn.setAttribute("aria-expanded", "false");
+  }
+  menuBtn.addEventListener("click", function(){
+    navDrawer.classList.contains("open") ? closeDrawer() : openDrawer();
+  });
+  Array.prototype.forEach.call(document.querySelectorAll("[data-close-drawer]"), function(elm){
+    elm.addEventListener("click", closeDrawer);
+  });
+  document.addEventListener("keydown", function(e){
+    if (e.key === "Escape" && navDrawer.classList.contains("open")) closeDrawer();
+  });
+
+  function handleNav(key){
+    closeDrawer();
+    switch (key) {
+      case "continue": showView("unit"); break;
+      case "chapters": openChaptersModal(); break;
+      case "exercises": comingSoonModal("Übungen", "Hör- und Schreibübungen sind noch nicht freigeschaltet."); break;
+      case "wordlist": showView("merkliste"); break;
+      case "options": openOptionsModal(); break;
+      case "achievements": openAchievementsModal(); break;
+      case "help": openHelpModal(); break;
+      case "teacher": openTeacherModal(); break;
+    }
+  }
+
+  Array.prototype.forEach.call(document.querySelectorAll("[data-nav]"), function(btn){
+    btn.addEventListener("click", function(){ handleNav(btn.getAttribute("data-nav")); });
+  });
+  $("continueBtn").addEventListener("click", function(){ handleNav("continue"); });
+  $("chaptersTile").addEventListener("click", function(){ handleNav("chapters"); });
+  $("exercisesTile").addEventListener("click", function(){ handleNav("exercises"); });
+  $("wordlistTile").addEventListener("click", function(){ handleNav("wordlist"); });
+  $("optionsBtn").addEventListener("click", function(){ handleNav("options"); });
+  $("achievementsBtn").addEventListener("click", function(){ handleNav("achievements"); });
+  $("helpBtn").addEventListener("click", function(){ handleNav("help"); });
+  $("teacherBtn").addEventListener("click", function(){ handleNav("teacher"); });
+
+  render();
+
+  window.__game = {
+    STORAGE_KEY: STORAGE_KEY,
+    UNITS: UNITS,
+    UNIT1_SECTIONS: UNIT1_SECTIONS,
+    UNIT1_WORDS: UNIT1_WORDS,
+    MASTERY_REPEATS: MASTERY_REPEATS,
+    state: state,
+    render: render,
+    computeStreak: computeStreak,
+    computeAchievements: computeAchievements,
+    knownWordCount: function(){ return knownWordCount(state); },
+    sectionDoneCount: function(){ return sectionDoneCount(state); },
+    sectionAssessedCount: function(idx){ return sectionAssessedCount(state, UNIT1_SECTIONS[idx]); },
+    assessWord: function(en, outcome){
+      var w = findWord(en); if (!w) return;
+      assessWord(state, w, outcome, w.section);
+      saveState(state); render();
+    },
+    toggleMerkliste: function(en){
+      var w = findWord(en); if (!w) return;
+      if (merklisteIndex(state, en) !== -1) removeFromMerkliste(state, en);
+      else addToMerkliste(state, w, w.section);
+      saveState(state); render();
+    },
+    completeSection: function(idx){
+      var sec = UNIT1_SECTIONS[idx]; if (!sec) return;
+      sec.words.forEach(function(w){ state.wordAssessments[w.fr] = "know"; });
+      saveState(state);
+    },
+    resetProgress: function(){
+      Object.assign(state, defaultState());
+      applyDailyVisit(state);
+      saveState(state);
+      render();
+    },
+    exportProgressData: exportProgressData,
+    openModal: openModal,
+    closeModal: closeModal,
+    handleNav: handleNav,
+    openDrawer: openDrawer,
+    closeDrawer: closeDrawer,
+    showView: showView,
+    openSection: openSection,
+    currentView: function(){ return currentView; },
+    isDrawerOpen: function(){ return navDrawer.classList.contains("open"); },
+    isModalOpen: function(){ return modalLayer.classList.contains("open"); }
+  };
+})();
+</script>
+</body>
+</html>
