@@ -1694,9 +1694,9 @@
       if (index < 0) index = words.length - 1;
       var w = words[index];
       front.querySelector(".fc-tag").textContent = w.section || opts.tag || "";
-      front.querySelector(".fc-word").textContent = w.en;
+      front.querySelector(".fc-word").textContent = w.de;
       back.querySelector(".fc-tag").textContent = w.section || opts.tag || "";
-      back.querySelector(".fc-word").textContent = w.de;
+      back.querySelector(".fc-word").textContent = w.en;
       progress.textContent = (index + 1) + " / " + words.length;
       trackFill.style.width = Math.round((index + 1) / words.length * 100) + "%";
       setFlipped(false);

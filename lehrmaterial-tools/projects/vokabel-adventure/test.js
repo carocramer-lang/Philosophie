@@ -83,10 +83,11 @@ check("Erste Karte zeigt 0 / 19 Woerter", sectionCards[0].querySelector(".sec-me
 // --- Abschnitt oeffnen: Karteikarten ---
 click(win, sectionCards[0]);
 check("Abschnitts-Ansicht aktiv", G.currentView() === "section");
-check("Karteikarte zeigt erstes Wort", doc.querySelector(".fc-front .fc-word").textContent === G.UNIT1_SECTIONS[0].words[0].en);
+check("Karteikarte zeigt erstes Wort (Deutsch vorne)", doc.querySelector(".fc-front .fc-word").textContent === G.UNIT1_SECTIONS[0].words[0].de);
 check("Karteikarte startet nicht umgedreht", !doc.querySelector(".flashcard").classList.contains("flipped"));
 click(win, doc.querySelector(".flashcard"));
 check("Klick auf Karte dreht sie um", doc.querySelector(".flashcard").classList.contains("flipped"));
+check("Kartenrueckseite zeigt Englisch", doc.querySelector(".fc-back .fc-word").textContent === G.UNIT1_SECTIONS[0].words[0].en);
 
 // "Muss ich üben" -> landet auf Merkliste, wird NICHT als bekannt gezaehlt
 const firstWordEn = G.UNIT1_SECTIONS[0].words[0].en;
