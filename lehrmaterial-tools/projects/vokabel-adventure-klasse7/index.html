@@ -1,0 +1,1829 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Vokabel-Adventure — Startbildschirm</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --bg-0:#0b1729; --bg-1:#12253d; --bg-2:#1c3352;
+    --ink-0:#e8eef7; --ink-1:#f0f5fb; --ink-2:#eaf1fa; --ink-3:#dfe9f6;
+    --ink-4:#cfdcec; --ink-5:#c9d8ea; --ink-6:#bccde2; --ink-7:#a9bed6;
+    --ink-8:#93aac6; --ink-9:#7f96b3;
+    --gold:#f4c95d; --gold-hover:#ffe3a3; --gold-deep:#e79a2f; --gold-dark:#f0a63e;
+    --teal:#7fd1c1; --blue:#8fb6e8; --pink:#e0899a;
+    --card:rgba(255,255,255,.06); --card-2:rgba(255,255,255,.07);
+    --border:rgba(255,255,255,.13); --border-strong:rgba(255,255,255,.16);
+    --focus:#8fd3ff;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--bg-0)}
+  body{font-family:Outfit,system-ui,-apple-system,sans-serif;color:var(--ink-0)}
+  h1{margin:0}
+  button{font:inherit;color:inherit}
+  a{color:var(--gold)}
+  a:hover{color:var(--gold-hover)}
+  a:focus-visible,button:focus-visible,[tabindex]:focus-visible{
+    outline:3px solid var(--focus); outline-offset:2px; border-radius:6px;
+  }
+
+  .page{
+    min-height:100vh;
+    background:radial-gradient(120% 80% at 50% 0%, var(--bg-2) 0%, var(--bg-1) 45%, var(--bg-0) 100%);
+    display:flex; justify-content:center;
+    padding:22px 16px 18px;
+  }
+  @media (min-width:560px){ .page{ padding:28px 22px 22px; } }
+  .wrap{ width:100%; max-width:1180px; display:flex; flex-direction:column; gap:20px; }
+  @media (min-width:560px){ .wrap{ gap:22px; } }
+
+  /* header */
+  .topbar{ display:flex; align-items:flex-start; justify-content:space-between; gap:14px; flex-wrap:wrap; }
+  .brand{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+  .icon-btn{
+    width:44px; height:44px; border-radius:13px; background:var(--card-2);
+    border:1px solid var(--border-strong); display:flex; flex-direction:column;
+    align-items:center; justify-content:center; gap:4px; cursor:pointer;
+    padding:0; transition:background .18s ease;
+  }
+  .icon-btn:hover{ background:rgba(255,255,255,.14); }
+  .icon-btn .bar{ width:18px; height:2px; background:var(--ink-3); border-radius:2px; }
+  .logo-badge{
+    height:46px; display:flex; align-items:center; padding:7px 13px; border-radius:12px;
+    background:#fff; box-shadow:0 6px 18px rgba(0,0,0,.28);
+  }
+  .logo-badge img{ display:block; height:32px; width:auto; }
+  .logo-fallback{ font-family:Fredoka,sans-serif; font-weight:600; font-size:14px; color:#12253d; white-space:nowrap; }
+  .class-label{ font-size:14px; font-weight:500; color:var(--ink-4); }
+
+  .pill-row{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+  .pill{
+    display:flex; align-items:center; gap:9px; padding:9px 14px; border-radius:999px;
+    background:var(--card); border:1px solid var(--border); font-size:13px; color:var(--ink-5);
+    cursor:pointer; transition:background .18s ease;
+  }
+  .pill:hover{ background:rgba(255,255,255,.12); }
+  .pill .dot{ width:8px; height:8px; flex:none; }
+  .dot-diamond{ border-radius:2px; transform:rotate(45deg); background:var(--teal); }
+  .dot-circle{ border-radius:50%; background:var(--gold); }
+
+  /* nav drawer */
+  .drawer{
+    position:fixed; inset:0; z-index:40; display:flex; visibility:hidden;
+  }
+  .drawer.open{ visibility:visible; }
+  .drawer-scrim{
+    position:absolute; inset:0; background:rgba(6,12,22,.6); opacity:0; transition:opacity .18s ease;
+  }
+  .drawer.open .drawer-scrim{ opacity:1; }
+  .drawer-panel{
+    position:relative; width:min(300px,84vw); height:100%; background:var(--bg-1);
+    border-right:1px solid var(--border); padding:18px; display:flex; flex-direction:column; gap:6px;
+    transform:translateX(-100%); transition:transform .2s ease;
+  }
+  .drawer.open .drawer-panel{ transform:translateX(0); }
+  .drawer h2{ font-family:Fredoka,sans-serif; font-size:18px; margin:0 0 8px; color:var(--ink-1); }
+  .drawer-item{
+    display:block; width:100%; text-align:left; background:none; border:none; cursor:pointer;
+    padding:11px 12px; border-radius:10px; color:var(--ink-3); font-size:14.5px;
+  }
+  .drawer-item:hover{ background:rgba(255,255,255,.08); }
+  .drawer-close{
+    position:absolute; top:14px; right:-46px; width:36px; height:36px; border-radius:10px;
+    background:rgba(255,255,255,.1); border:1px solid var(--border); color:var(--ink-2);
+    cursor:pointer; display:none;
+  }
+
+  /* title */
+  .titleblock{ text-align:center; display:flex; flex-direction:column; align-items:center; gap:10px; }
+  .titleblock h1{
+    font-family:Fredoka,sans-serif; font-weight:600; font-size:clamp(28px,7vw,58px);
+    line-height:1.04; letter-spacing:-.01em; color:#fff;
+  }
+  .title-meta{ display:flex; align-items:center; gap:12px; flex-wrap:wrap; justify-content:center; }
+  .badge-book{
+    padding:5px 13px; border-radius:999px; background:rgba(244,201,93,.14);
+    border:1px solid rgba(244,201,93,.35); color:var(--gold); font-size:13px;
+    letter-spacing:.06em; text-transform:uppercase; font-weight:500;
+  }
+  .title-sub{ font-size:15px; color:var(--ink-7); font-weight:300; }
+
+  /* main grid */
+  .main-grid{ display:grid; grid-template-columns:1fr; gap:24px; align-items:stretch; }
+  @media (min-width:760px){
+    .main-grid{ grid-template-columns:minmax(0,1.55fr) minmax(280px,1fr); }
+  }
+
+  .hero{
+    position:relative; border-radius:22px; overflow:hidden; border:1px solid var(--border-strong);
+    box-shadow:0 26px 60px rgba(0,0,0,.45); min-height:260px;
+  }
+  @media (min-width:760px){ .hero{ border-radius:26px; min-height:340px; } }
+  .hero img{
+    display:block; width:100%; height:100%; object-fit:cover; object-position:center 42%;
+    animation:floaty 7s ease-in-out infinite;
+  }
+  @media (prefers-reduced-motion:reduce){ .hero img{ animation:none; } }
+  .page.motion-off .hero img{ animation:none; }
+  @keyframes floaty{ 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-10px); } }
+  .hero-scrim{
+    position:absolute; inset:0;
+    background:linear-gradient(to top, rgba(9,20,34,.92) 0%, rgba(9,20,34,.25) 34%, rgba(9,20,34,0) 62%);
+  }
+  .hero-foot{
+    position:absolute; left:16px; right:16px; bottom:16px; display:flex; align-items:flex-end;
+    justify-content:space-between; gap:14px; flex-wrap:wrap;
+  }
+  .hero-progress{ display:flex; flex-direction:column; gap:7px; min-width:180px; flex:1; }
+  .hero-progress-labels{ display:flex; justify-content:space-between; align-items:baseline; font-size:13px; color:var(--ink-6); gap:10px; }
+  .hero-progress-labels strong{ font-weight:500; color:var(--ink-2); }
+  .bar-track{ height:7px; border-radius:99px; background:rgba(255,255,255,.16); overflow:hidden; }
+  .bar-fill{ height:100%; border-radius:99px; background:linear-gradient(90deg,var(--gold),var(--gold-dark)); transition:width .3s ease; }
+  .streak-badge{
+    padding:6px 11px; border-radius:9px; background:rgba(255,255,255,.12); border:1px solid var(--border-strong);
+    font-size:12px; color:var(--ink-3); display:flex; align-items:center; gap:7px; white-space:nowrap;
+  }
+  .streak-badge .dot{ width:8px; height:8px; border-radius:50%; background:var(--gold-dark); display:block; flex:none; }
+
+  .side{ display:flex; flex-direction:column; gap:12px; }
+  .cta{
+    position:relative; border-radius:20px; padding:22px 54px 22px 22px; text-align:left;
+    background:linear-gradient(160deg,#f6cf68,var(--gold-deep)); color:#1b1205; cursor:pointer;
+    box-shadow:0 16px 34px rgba(231,154,47,.3); display:flex; flex-direction:column; gap:4px;
+    border:none; width:100%; transition:box-shadow .18s ease, transform .18s ease;
+  }
+  @media (min-width:760px){ .cta{ border-radius:22px; padding:24px 58px 24px 22px; flex:1.25; justify-content:center; } }
+  .cta:hover{ box-shadow:0 22px 44px rgba(231,154,47,.42); transform:translateY(-2px); }
+  .cta-title{ font-family:Fredoka,sans-serif; font-size:26px; font-weight:600; line-height:1.05; }
+  @media (min-width:760px){ .cta-title{ font-size:30px; } }
+  .cta-sub{ font-size:14px; opacity:.72; }
+  .cta-arrow{
+    position:absolute; right:20px; top:50%; margin-top:-13px; width:0; height:0;
+    border-left:20px solid rgba(27,18,5,.75); border-top:13px solid transparent; border-bottom:13px solid transparent;
+  }
+
+  .tile-grid{ display:grid; grid-template-columns:1fr 1fr; gap:10px; flex:1; }
+  @media (min-width:760px){ .tile-grid{ gap:12px; } }
+  .tile{
+    border-radius:16px; padding:14px 13px; background:var(--card); border:1px solid var(--border);
+    cursor:pointer; display:flex; flex-direction:column; justify-content:space-between; gap:12px;
+    text-align:left; color:inherit; transition:background .18s ease, transform .18s ease;
+  }
+  @media (min-width:760px){ .tile{ border-radius:18px; padding:16px 15px; gap:14px; } }
+  .tile:hover{ background:rgba(255,255,255,.11); transform:translateY(-2px); }
+  .tile-title{ font-size:15.5px; font-weight:500; color:var(--ink-1); }
+  @media (min-width:760px){ .tile-title{ font-size:16px; } }
+  .tile-sub{ font-size:12px; color:var(--ink-8); }
+  .tile-icon-rect{ width:26px; height:20px; border-radius:5px; border:2px solid var(--teal); }
+  .tile-icon-bars{ display:flex; flex-direction:column; gap:4px; }
+  .tile-icon-bars span{ height:3px; background:var(--blue); border-radius:2px; display:block; }
+  .tile-icon-bars span:nth-child(1){ width:26px; } .tile-icon-bars span:nth-child(2){ width:20px; } .tile-icon-bars span:nth-child(3){ width:24px; }
+  .tile-icon-circle{ width:22px; height:22px; border-radius:50%; border:2px solid var(--gold); }
+  .tile-icon-diamond{ width:22px; height:22px; transform:rotate(45deg); border:2px solid var(--pink); border-radius:4px; }
+
+  /* footer */
+  .footbar{
+    margin-top:auto; padding-top:6px; display:flex; align-items:center; justify-content:space-between;
+    gap:14px; border-top:1px solid rgba(255,255,255,.09); font-size:12.5px; color:var(--ink-9); flex-wrap:wrap;
+  }
+  .footlinks{ display:flex; gap:16px; }
+  .footlinks button{ background:none; border:none; padding:2px 0; cursor:pointer; color:var(--ink-9); }
+  .footlinks button:hover{ color:var(--ink-4); }
+
+  /* modal */
+  .modal-layer{ position:fixed; inset:0; z-index:50; display:none; align-items:center; justify-content:center; padding:18px; }
+  .modal-layer.open{ display:flex; }
+  .modal-scrim{ position:absolute; inset:0; background:rgba(6,12,22,.68); }
+  .modal{
+    position:relative; width:min(440px,100%); max-height:82vh; overflow:auto; background:var(--bg-1);
+    border:1px solid var(--border-strong); border-radius:18px; padding:22px; display:flex; flex-direction:column; gap:14px;
+    box-shadow:0 30px 70px rgba(0,0,0,.5);
+  }
+  .modal h2{ font-family:Fredoka,sans-serif; font-size:20px; margin:0; color:#fff; }
+  .modal p{ margin:0; font-size:14.5px; line-height:1.55; color:var(--ink-5); }
+  .modal-close{
+    position:absolute; top:14px; right:14px; width:32px; height:32px; border-radius:9px;
+    background:rgba(255,255,255,.08); border:1px solid var(--border); color:var(--ink-2); cursor:pointer;
+  }
+  .modal-close:hover{ background:rgba(255,255,255,.16); }
+  .field-row{ display:flex; align-items:center; justify-content:space-between; gap:12px; padding:10px 0; border-top:1px solid rgba(255,255,255,.08); }
+  .field-row:first-of-type{ border-top:none; }
+  .field-row label{ font-size:14px; color:var(--ink-4); }
+  .btn-line{
+    display:inline-flex; align-items:center; gap:8px; padding:10px 14px; border-radius:10px;
+    background:rgba(244,201,93,.14); border:1px solid rgba(244,201,93,.35); color:var(--gold);
+    cursor:pointer; font-size:13.5px; align-self:flex-start;
+  }
+  .btn-line:hover{ background:rgba(244,201,93,.22); }
+  .btn-line.danger{ background:rgba(224,137,154,.14); border-color:rgba(224,137,154,.4); color:#f0aebb; }
+  .btn-line.danger:hover{ background:rgba(224,137,154,.22); }
+  .achv-list{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:8px; }
+  .achv{ display:flex; align-items:center; gap:10px; padding:9px 10px; border-radius:10px; background:rgba(255,255,255,.04); }
+  .achv.locked{ opacity:.45; }
+  .achv-dot{ width:9px; height:9px; border-radius:50%; background:var(--gold); flex:none; }
+  .achv.locked .achv-dot{ background:var(--ink-9); }
+  .achv.current{ border:1px solid rgba(244,201,93,.4); }
+  .stat-table{ width:100%; border-collapse:collapse; font-size:13.5px; }
+  .stat-table td{ padding:7px 0; border-top:1px solid rgba(255,255,255,.08); color:var(--ink-5); }
+  .stat-table tr:first-child td{ border-top:none; }
+  .stat-table td:last-child{ text-align:right; color:var(--ink-2); font-weight:500; }
+  .switch{
+    position:relative; width:40px; height:22px; border-radius:99px; background:rgba(255,255,255,.16);
+    border:1px solid var(--border); cursor:pointer; flex:none; padding:0;
+  }
+  .switch .knob{ position:absolute; top:2px; left:2px; width:16px; height:16px; border-radius:50%; background:var(--ink-3); transition:left .16s ease; }
+  .switch[aria-checked="true"]{ background:rgba(244,201,93,.4); border-color:rgba(244,201,93,.6); }
+  .switch[aria-checked="true"] .knob{ left:20px; background:var(--gold); }
+
+  .sr-only{ position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; }
+
+  /* ---- additional views (Unit, Section, Merkliste) ---- */
+  .view{ display:none; }
+  .view.active{ display:flex; }
+
+  .subhead{ display:flex; align-items:center; gap:10px; }
+  .subhead .back{
+    width:36px; height:36px; border-radius:10px; background:var(--card-2); border:1px solid var(--border-strong);
+    display:flex; align-items:center; justify-content:center; color:var(--ink-3); cursor:pointer; padding:0; flex:none;
+  }
+  .subhead .back:hover{ background:rgba(255,255,255,.14); }
+  .subhead .crumb{ font-size:13px; color:var(--ink-7); }
+  .view h1.page-title{
+    font-family:Fredoka,sans-serif; font-weight:600; font-size:clamp(24px,4.5vw,34px);
+    letter-spacing:-.01em; color:#fff; margin:2px 0 0;
+  }
+  .view .page-sub{ font-size:14px; color:var(--ink-7); font-weight:300; margin:4px 0 0; }
+
+  .sec-list{ display:flex; flex-direction:column; gap:10px; }
+  .sec-card{
+    display:flex; align-items:center; gap:14px; padding:14px 16px; border-radius:16px;
+    background:var(--card); border:1px solid var(--border); cursor:pointer; text-align:left;
+    color:inherit; width:100%; transition:background .18s ease;
+  }
+  .sec-card:hover{ background:rgba(255,255,255,.11); }
+  .sec-card.done{ border-color:rgba(127,209,193,.4); }
+  .sec-num{
+    width:34px; height:34px; border-radius:10px; background:rgba(255,255,255,.08); flex:none;
+    display:flex; align-items:center; justify-content:center; font-family:Fredoka,sans-serif; font-size:14px; color:var(--ink-4);
+  }
+  .sec-card.done .sec-num{ background:rgba(127,209,193,.18); color:var(--teal); }
+  .sec-info{ flex:1; min-width:0; }
+  .sec-name{ font-size:14.5px; font-weight:500; color:var(--ink-1); }
+  .sec-meta{ font-size:12px; color:var(--ink-8); margin-top:2px; }
+  .sec-bar-track{ height:5px; border-radius:99px; background:rgba(255,255,255,.12); overflow:hidden; margin-top:7px; }
+  .sec-bar-fill{ height:100%; border-radius:99px; background:linear-gradient(90deg,var(--gold),var(--gold-dark)); }
+
+  /* Abschnitts-Abzeichen: erscheint nur, wenn ein Abschnitt fertig geuebt ist (reine Belohnung, kein Gate) */
+  .sec-badge{ position:relative; width:34px; height:34px; flex:none; }
+  .sec-badge-seal{
+    position:absolute; inset:0;
+    clip-path:polygon(50.00% 0.00%, 59.35% 9.05%, 71.69% 4.95%, 76.19% 17.16%, 89.09% 18.83%, 87.84% 31.78%, 98.75% 38.87%, 92.00% 50.00%, 98.75% 61.13%, 87.84% 68.22%, 89.09% 81.17%, 76.19% 82.84%, 71.69% 95.05%, 59.35% 90.95%, 50.00% 100.00%, 40.65% 90.95%, 28.31% 95.05%, 23.81% 82.84%, 10.91% 81.17%, 12.16% 68.22%, 1.25% 61.13%, 8.00% 50.00%, 1.25% 38.87%, 12.16% 31.78%, 10.91% 18.83%, 23.81% 17.16%, 28.31% 4.95%, 40.65% 9.05%);
+    background:linear-gradient(155deg, var(--gold-hover), var(--gold-deep));
+    display:flex; align-items:center; justify-content:center;
+  }
+  .sec-badge-seal svg{ width:16px; height:16px; stroke:#1b1205; }
+  .sec-badge.pop .sec-badge-seal{ animation:secBadgePop .6s cubic-bezier(.34,1.56,.64,1) both; }
+  .sec-badge.pop .sec-badge-glow{ animation:secBadgeGlow .7s ease-out both; }
+  @keyframes secBadgePop{ 0%{transform:scale(0)} 35%{transform:scale(1.35)} 60%{transform:scale(.92)} 100%{transform:scale(1)} }
+  .sec-badge-glow{
+    position:absolute; inset:-8px; border-radius:50%; pointer-events:none; opacity:0;
+    background:radial-gradient(circle, rgba(244,201,93,.55) 0%, rgba(244,201,93,0) 70%);
+  }
+  @keyframes secBadgeGlow{ 0%{opacity:0;transform:scale(.6)} 40%{opacity:1;transform:scale(1.35)} 100%{opacity:0;transform:scale(1.8)} }
+  .sec-badge-spark{ position:absolute; left:50%; top:50%; width:4px; height:4px; border-radius:50%; background:var(--gold); opacity:0; pointer-events:none; }
+  .sec-badge.pop .sec-badge-spark{ animation:secSparkOut .6s ease-out both; }
+  @keyframes secSparkOut{ 0%{opacity:1; transform:translate(-50%,-50%) rotate(var(--a)) translateY(0) scale(1);} 100%{opacity:0; transform:translate(-50%,-50%) rotate(var(--a)) translateY(-26px) scale(.3);} }
+  @media (prefers-reduced-motion:reduce){
+    .sec-badge.pop .sec-badge-seal, .sec-badge.pop .sec-badge-glow, .sec-badge.pop .sec-badge-spark{ animation:none; }
+  }
+  .page.motion-off .sec-badge.pop .sec-badge-seal,
+  .page.motion-off .sec-badge.pop .sec-badge-glow,
+  .page.motion-off .sec-badge.pop .sec-badge-spark{ animation:none; }
+
+  .unit-toast{
+    display:flex; align-items:center; gap:8px; padding:11px 15px; border-radius:12px;
+    background:rgba(127,209,193,.14); border:1px solid rgba(127,209,193,.4); color:var(--teal);
+    font-size:13.5px; opacity:0; transform:translateY(-6px); transition:opacity .3s ease, transform .3s ease;
+    pointer-events:none;
+  }
+  .unit-toast.show{ opacity:1; transform:translateY(0); }
+
+  /* mode switch (section view) */
+  .modeswitch{ display:inline-flex; gap:4px; padding:4px; border-radius:14px; background:var(--card); border:1px solid var(--border); align-self:flex-start; }
+  .modeswitch button{
+    border:none; background:none; padding:9px 16px; border-radius:11px; font-size:13.5px; color:var(--ink-6);
+    cursor:pointer;
+  }
+  .modeswitch button.active{ background:linear-gradient(160deg,#f6cf68,var(--gold-deep)); color:#1b1205; font-weight:500; }
+  [data-mode-panel]{ display:none; }
+  [data-mode-panel].active{ display:block; }
+
+  /* flashcards */
+  .fc-wrap{ display:flex; flex-direction:column; align-items:center; gap:16px; }
+  .fc-progress{ font-size:13px; color:var(--ink-8); font-variant-numeric:tabular-nums; }
+  .fc-track{ width:100%; max-width:360px; height:5px; border-radius:99px; background:rgba(255,255,255,.12); overflow:hidden; }
+  .fc-track-fill{ height:100%; background:linear-gradient(90deg,var(--gold),var(--gold-dark)); border-radius:99px; transition:width .25s ease; }
+  .flashcard{ width:100%; max-width:360px; height:210px; cursor:pointer; perspective:1200px; -webkit-perspective:1200px; }
+  .flashcard-inner{
+    position:relative; width:100%; height:100%; transition:transform .45s cubic-bezier(.2,.8,.2,1);
+    transform-style:preserve-3d; -webkit-transform-style:preserve-3d;
+  }
+  .flashcard.flipped .flashcard-inner{ transform:rotateY(180deg); }
+  @media (prefers-reduced-motion:reduce){ .flashcard-inner{ transition:none; } }
+  .page.motion-off .flashcard-inner{ transition:none; }
+  .fc-face{
+    position:absolute; inset:0; backface-visibility:hidden; -webkit-backface-visibility:hidden;
+    border-radius:20px; border:1px solid var(--border-strong); box-shadow:0 22px 50px rgba(0,0,0,.4);
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; padding:22px; text-align:center;
+  }
+  .fc-front{ background:linear-gradient(160deg,#213b5e,#152640); }
+  .fc-back{ background:linear-gradient(160deg,#f6cf68,var(--gold-deep)); color:#1b1205; transform:rotateY(180deg); }
+  .fc-tag{ font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-8); }
+  .fc-back .fc-tag{ color:rgba(27,18,5,.6); }
+  .fc-word{ font-family:Fredoka,sans-serif; font-weight:600; font-size:24px; line-height:1.2; }
+  .fc-hint{ font-size:11.5px; color:var(--ink-9); }
+  .fc-back .fc-hint{ color:rgba(27,18,5,.55); }
+  .fc-controls{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; justify-content:center; }
+  .fc-nav{
+    width:38px; height:38px; border-radius:11px; background:var(--card-2); border:1px solid var(--border-strong);
+    color:var(--ink-3); cursor:pointer; display:flex; align-items:center; justify-content:center; flex:none;
+  }
+  .fc-nav:hover{ background:rgba(255,255,255,.14); }
+  .fc-assess{ display:flex; gap:10px; }
+  .fc-assess button{
+    padding:10px 16px; border-radius:11px; border:1px solid var(--border-strong); cursor:pointer; font-size:13px;
+    display:flex; align-items:center; gap:8px; background:var(--card-2); color:var(--ink-3);
+  }
+  .fc-assess .know{ border-color:rgba(127,209,193,.4); }
+  .fc-assess .know:hover{ background:rgba(127,209,193,.16); }
+  .fc-assess .practice{ border-color:rgba(224,137,154,.4); }
+  .fc-assess .practice:hover{ background:rgba(224,137,154,.16); }
+  .fc-assess .dot{ width:8px; height:8px; border-radius:50%; }
+  .fc-assess .know .dot{ background:var(--teal); }
+  .fc-assess .practice .dot{ background:var(--pink); }
+  .fc-empty{ font-size:14px; color:var(--ink-7); text-align:center; padding:30px 0; }
+
+  /* overview */
+  .ov-toolbar{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:space-between; }
+  .ov-count{ font-size:12.5px; color:var(--ink-8); white-space:nowrap; }
+  .ov-table{ width:100%; border-collapse:collapse; margin-top:6px; }
+  .ov-table tr{ border-top:1px solid rgba(255,255,255,.07); }
+  .ov-table tr:first-child{ border-top:none; }
+  .ov-table td{ padding:10px 6px; font-size:13.5px; vertical-align:top; }
+  .ov-table td.en{ color:var(--ink-1); font-weight:500; width:44%; }
+  .ov-table td.de{ color:var(--ink-6); }
+  .ov-table td.mark{ width:34px; text-align:right; }
+  .ov-star{
+    width:26px; height:26px; border-radius:8px; border:1px solid var(--border-strong); background:var(--card-2);
+    cursor:pointer; color:var(--ink-8); display:inline-flex; align-items:center; justify-content:center; padding:0;
+  }
+  .ov-star.on{ background:rgba(244,201,93,.18); border-color:rgba(244,201,93,.5); color:var(--gold); }
+  .ov-row-known{ background:rgba(127,209,193,.06); }
+  .ov-known-badge{
+    display:inline-flex; align-items:center; justify-content:center; width:16px; height:16px; margin-left:7px;
+    border-radius:50%; background:rgba(127,209,193,.18); color:var(--teal); font-size:10px; line-height:1; flex:none;
+  }
+
+  /* merkliste */
+  .mk-toolbar{ display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+  .mk-list{ display:flex; flex-direction:column; gap:8px; }
+  .mk-row{
+    display:flex; align-items:center; gap:12px; padding:11px 13px; border-radius:13px;
+    background:var(--card); border:1px solid var(--border);
+  }
+  .mk-info{ flex:1; min-width:0; }
+  .mk-en{ font-size:14px; font-weight:500; color:var(--ink-1); }
+  .mk-de{ font-size:12.5px; color:var(--ink-7); }
+  .mk-progress{ display:flex; gap:3px; flex:none; }
+  .mk-progress .dot{ width:7px; height:7px; border-radius:50%; background:rgba(255,255,255,.16); }
+  .mk-progress .dot.on{ background:var(--teal); }
+  .mk-remove{
+    width:30px; height:30px; border-radius:9px; background:var(--card-2); border:1px solid var(--border-strong);
+    color:var(--ink-8); cursor:pointer; flex:none; display:flex; align-items:center; justify-content:center; padding:0;
+  }
+  .mk-remove:hover{ background:rgba(224,137,154,.16); border-color:rgba(224,137,154,.4); color:#f0aebb; }
+
+  /* ---- Spiele ---- */
+  .game-type-chip{
+    display:inline-flex; align-items:center; gap:6px; padding:5px 11px; border-radius:999px; flex:none;
+    font-size:11.5px; font-weight:500; letter-spacing:.02em; background:var(--card-2); color:var(--ink-6);
+    border:1px solid var(--border);
+  }
+  .game-type-chip.memory{ background:rgba(143,182,232,.16); color:var(--blue); border-color:rgba(143,182,232,.4); }
+  .game-type-chip.hangman{ background:rgba(224,137,154,.16); color:var(--pink); border-color:rgba(224,137,154,.4); }
+  .game-type-chip.tempo{ background:rgba(244,201,93,.16); color:var(--gold); border-color:rgba(244,201,93,.4); }
+
+  .game-card{
+    background:var(--card); border:1px solid var(--border); border-radius:16px;
+    padding:20px; text-align:center;
+  }
+  .game-progress{ font-size:12.5px; color:var(--ink-8); text-align:center; margin-bottom:8px; }
+  .game-score{ font-size:13px; font-weight:600; color:var(--gold-dark); text-align:center; margin-top:10px; }
+  .game-feedback{ min-height:22px; text-align:center; font-weight:600; font-size:14px; margin:12px 0 2px; }
+  .game-feedback.good{ color:#4ade80; }
+  .game-feedback.bad{ color:#f87171; }
+  .game-next{
+    display:block; margin:16px auto 0; padding:10px 22px; border-radius:12px;
+    border:1px solid var(--border-strong); background:var(--card-2); color:var(--ink-0);
+    font-weight:600; cursor:pointer;
+  }
+  .game-restart{
+    display:block; margin:14px auto 0; padding:11px 24px; border-radius:12px;
+    background:var(--gold); color:#241505; border:none; font-weight:700; cursor:pointer;
+  }
+
+  /* ---- Memory ---- */
+  .mem-toolbar{ display:flex; gap:18px; font-size:13px; color:var(--ink-7); flex-wrap:wrap; justify-content:center; margin-bottom:12px; }
+  .mem-toolbar b{ color:var(--ink-2); font-weight:500; font-variant-numeric:tabular-nums; }
+  .mem-grid{ display:grid; grid-template-columns:repeat(4, 1fr); gap:10px; width:100%; max-width:460px; margin:0 auto; }
+  @media (max-width:480px){ .mem-grid{ grid-template-columns:repeat(3, 1fr); gap:8px; } }
+  .mem-card{
+    aspect-ratio:1; border-radius:14px; cursor:pointer; perspective:900px; border:none; background:none; padding:0;
+  }
+  .mem-card-inner{
+    position:relative; width:100%; height:100%; border-radius:14px; transition:transform .4s cubic-bezier(.2,.8,.2,1);
+    transform-style:preserve-3d;
+  }
+  .mem-card.flipped .mem-card-inner, .mem-card.matched .mem-card-inner{ transform:rotateY(180deg); }
+  @media (prefers-reduced-motion:reduce){ .mem-card-inner{ transition:none; } }
+  .page.motion-off .mem-card-inner{ transition:none; }
+  .mem-face{
+    position:absolute; inset:0; backface-visibility:hidden; border-radius:14px; border:1px solid var(--border-strong);
+    display:flex; align-items:center; justify-content:center; padding:6px;
+  }
+  .mem-face-back{ background:linear-gradient(160deg,#213b5e,#152640); font-size:20px; color:var(--ink-8); }
+  .mem-face-front{
+    background:linear-gradient(160deg,#2a4568,#1a2f4c); transform:rotateY(180deg); flex-direction:column; gap:4px;
+  }
+  .mem-card.matched .mem-face-front{ background:linear-gradient(160deg, rgba(127,209,193,.35), rgba(127,209,193,.15)); border-color:rgba(127,209,193,.5); }
+  .mem-word{ font-size:11.5px; font-weight:500; color:var(--ink-2); text-align:center; line-height:1.25; }
+  .mem-card.matched .mem-word{ color:var(--teal); }
+  .mem-done{ font-size:14px; color:var(--teal); text-align:center; margin-top:12px; }
+
+  /* ---- Galgenmaennchen ---- */
+  .hang-hint{ color:var(--ink-8); font-size:.85rem; margin-bottom:6px; }
+  .hang-word{ font-size:1.5rem; letter-spacing:.3em; font-weight:800; text-align:center; margin:8px 0 4px; font-family:monospace; }
+  .hang-status{ text-align:center; color:var(--ink-8); font-size:.85rem; margin-bottom:14px; }
+  .hang-keys{ display:flex; flex-wrap:wrap; gap:6px; justify-content:center; }
+  .hang-key{
+    width:34px; height:34px; border-radius:8px; border:1px solid var(--border-strong);
+    background:var(--card-2); color:var(--ink-0); font-weight:700; cursor:pointer; font-size:.88rem;
+  }
+  .hang-key:disabled{ opacity:.3; }
+  .hang-key.used-right{ background:#4ade80; border-color:#4ade80; color:#062617; }
+  .hang-key.used-wrong{ background:#f87171; border-color:#f87171; color:#3a0b0b; }
+
+  /* ---- Tempo-Runde ---- */
+  .tempo-timer{ text-align:center; font-size:1.6rem; font-weight:800; color:var(--gold-dark); margin-bottom:4px; }
+  .tempo-timer.low{ color:#f87171; }
+  .tempo-word{ font-size:1.6rem; font-weight:800; margin:10px 0 16px; text-align:center; }
+  .tempo-grid{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .tempo-opt{
+    padding:12px 10px; border-radius:12px; border:1px solid var(--border-strong);
+    background:var(--card-2); color:var(--ink-0); font-weight:600; cursor:pointer; font-size:.95rem;
+  }
+  .tempo-opt.correct{ background:#4ade80; border-color:#4ade80; color:#062617; }
+  .tempo-opt.wrong{ background:#f87171; border-color:#f87171; color:#3a0b0b; }
+  .tempo-start{
+    display:block; margin:8px auto 0; padding:12px 26px; border-radius:12px;
+    background:var(--gold); color:#241505; border:none; font-weight:700; cursor:pointer; font-size:1rem;
+  }
+</style>
+</head>
+<body>
+<div class="page view active" id="page" data-view="start">
+  <div class="wrap">
+
+    <header class="topbar">
+      <div class="brand">
+        <button class="icon-btn" id="menuBtn" aria-haspopup="true" aria-expanded="false" aria-controls="navDrawer" aria-label="Menü öffnen">
+          <span class="bar"></span><span class="bar"></span><span class="bar"></span>
+        </button>
+        <div class="logo-badge">
+          <img src="https://www.pelizaeus.de/typo3conf/sites/default/images/pelizaeus-logo.png" alt="Pelizaeus-Gymnasium Paderborn"
+               onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'logo-fallback',textContent:'Pelizaeus-Gymnasium'}))" />
+        </div>
+        <span class="class-label">Englisch · Jahrgang 7</span>
+      </div>
+      <div class="pill-row">
+        <button class="pill" id="optionsBtn"><span class="dot dot-diamond"></span>Options</button>
+        <button class="pill" id="achievementsBtn"><span class="dot dot-circle"></span>Badges</button>
+      </div>
+    </header>
+
+    <nav class="drawer" id="navDrawer" aria-label="Hauptmenü">
+      <div class="drawer-scrim" data-close-drawer></div>
+      <div class="drawer-panel">
+        <h2>Vokabel-Adventure</h2>
+        <button class="drawer-item" data-nav="continue">Continue</button>
+        <button class="drawer-item" data-nav="chapters">Chapters</button>
+        <button class="drawer-item" data-nav="games">Games</button>
+        <button class="drawer-item" data-nav="wordlist">Word list</button>
+        <button class="drawer-item" data-nav="options">Options</button>
+        <button class="drawer-item" data-nav="achievements">Badges</button>
+        <button class="drawer-item" data-nav="help">Help</button>
+        <button class="drawer-item" data-nav="teacher">Teacher view</button>
+      </div>
+    </nav>
+
+    <main>
+      <div class="titleblock">
+        <h1>Vokabel-Adventure</h1>
+        <div class="title-meta">
+          <span class="badge-book">Green Line 3</span>
+          <span class="title-sub">Around the UK</span>
+        </div>
+      </div>
+
+      <div class="main-grid" style="margin-top:24px">
+        <section class="hero" aria-label="Fortschritt aktuelles Kapitel">
+          <img src="hero.svg" alt="Union Jack, die Flagge des Vereinigten Königreichs" />
+          <div class="hero-scrim"></div>
+          <div class="hero-foot">
+            <div class="hero-progress">
+              <div class="hero-progress-labels">
+                <strong id="unitLabel">Unit 1</strong>
+                <span id="wordsLabel">0 / 100 Vokabeln</span>
+              </div>
+              <div class="bar-track">
+                <div class="bar-fill" id="progressBar" role="progressbar" aria-labelledby="unitLabel" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" style="width:0%"></div>
+              </div>
+            </div>
+            <div class="streak-badge">
+              <span class="dot"></span><span id="streakLabel">0 Tage in Folge</span>
+            </div>
+          </div>
+        </section>
+
+        <div class="side">
+          <button class="cta" id="continueBtn">
+            <span class="cta-title" id="ctaTitle">Start</span>
+            <span class="cta-sub" id="ctaSub">Unit 1 · Ready to start</span>
+            <span class="cta-arrow" aria-hidden="true"></span>
+          </button>
+
+          <div class="tile-grid">
+            <button class="tile" id="chaptersTile">
+              <span class="tile-icon-rect"></span>
+              <span><span class="tile-title">Chapters</span><br><span class="tile-sub" id="chaptersSub">6 Kapitel</span></span>
+            </button>
+            <button class="tile" id="gamesTile">
+              <span class="tile-icon-bars"><span></span><span></span><span></span></span>
+              <span><span class="tile-title">Games</span><br><span class="tile-sub">Memory · Hangman · Tempo</span></span>
+            </button>
+            <button class="tile" id="wordlistTile">
+              <span class="tile-icon-circle"></span>
+              <span><span class="tile-title">Word list</span><br><span class="tile-sub" id="wordlistSub">0 words</span></span>
+            </button>
+            <button class="tile" id="achievementsTile">
+              <span class="tile-icon-diamond"></span>
+              <span><span class="tile-title">Badges</span><br><span class="tile-sub" id="achvSub">Erfolge</span></span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <footer class="footbar">
+      <div id="schoolYearLabel">Pelizaeus-Gymnasium Paderborn</div>
+      <div class="footlinks">
+        <button id="helpBtn">Help</button>
+        <button id="teacherBtn">Teacher view</button>
+      </div>
+    </footer>
+  </div>
+</div>
+
+<!-- Unit-Ansicht: Liste der Abschnitte -->
+<div class="page view" id="viewUnit" data-view="unit">
+  <div class="wrap">
+    <div class="subhead">
+      <button class="back" id="unitBackBtn" aria-label="Zurück zum Startbildschirm">←</button>
+      <span class="crumb" id="unitCrumb">Vokabel-Adventure · Unit 1</span>
+    </div>
+    <div>
+      <h1 class="page-title" id="unitPageTitle">Find your place</h1>
+      <p class="page-sub" id="unitProgressSub"></p>
+    </div>
+    <div class="unit-toast" id="unitToast" role="status" aria-live="polite"></div>
+    <div class="sec-list" id="sectionList"></div>
+  </div>
+</div>
+
+<!-- Abschnitts-Ansicht: Karteikarten + Übersicht kombiniert -->
+<div class="page view" id="viewSection" data-view="section">
+  <div class="wrap">
+    <div class="subhead">
+      <button class="back" id="sectionBackBtn" aria-label="Zurück zur Kapitel-Übersicht">←</button>
+      <span class="crumb" id="sectionCrumb">Vokabel-Adventure · Unit 1</span>
+    </div>
+    <div>
+      <h1 class="page-title" id="sectionTitle"></h1>
+      <p class="page-sub" id="sectionSub"></p>
+    </div>
+
+    <div class="modeswitch" role="tablist" aria-label="Ansicht wählen">
+      <button type="button" data-secmode="flash" class="active" role="tab" aria-selected="true">🎴 Karteikarten</button>
+      <button type="button" data-secmode="overview" role="tab" aria-selected="false">📋 Übersicht</button>
+    </div>
+
+    <div data-mode-panel="flash" class="active" id="secFlashPanel"></div>
+    <div data-mode-panel="overview" id="secOverviewPanel"></div>
+  </div>
+</div>
+
+<!-- Merkliste -->
+<div class="page view" id="viewMerkliste" data-view="merkliste">
+  <div class="wrap">
+    <div class="subhead">
+      <button class="back" id="mkBackBtn" aria-label="Zurück zum Startbildschirm">←</button>
+      <span class="crumb">Vokabel-Adventure</span>
+    </div>
+    <div>
+      <h1 class="page-title">Merkliste</h1>
+      <p class="page-sub">Wörter, die du dir extra merken willst — von der Sterne-Markierung oder aus „Muss ich üben“. Nach 2× erfolgreicher Wiederholung verschwindet ein Wort automatisch.</p>
+    </div>
+
+    <div class="mk-toolbar">
+      <span class="ov-count" id="mkCount"></span>
+      <button class="btn-line" id="mkReviewBtn" type="button">🔁 Merkliste wiederholen</button>
+    </div>
+
+    <div id="mkListWrap"></div>
+    <div data-mode-panel="mkreview" id="mkReviewPanel"></div>
+  </div>
+</div>
+
+<!-- Spiele: Uebersicht -->
+<div class="page view" id="viewGames" data-view="games">
+  <div class="wrap">
+    <div class="subhead">
+      <button class="back" id="gamesBackBtn" aria-label="Zurück zum Startbildschirm">←</button>
+      <span class="crumb">Vokabel-Adventure</span>
+    </div>
+    <div>
+      <h1 class="page-title">Spiele</h1>
+      <p class="page-sub" id="gamesPageSub">Ein Spiel pro Abschnitt — mal Memory, mal Galgenmännchen, mal Tempo-Runde.</p>
+    </div>
+    <div class="sec-list" id="gameList"></div>
+  </div>
+</div>
+
+<!-- Spiele: einzelnes Spiel -->
+<div class="page view" id="viewGamePlay" data-view="gameplay">
+  <div class="wrap">
+    <div class="subhead">
+      <button class="back" id="gamePlayBackBtn" aria-label="Zurück zur Spiele-Übersicht">←</button>
+      <span class="crumb">Vokabel-Adventure · Spiele</span>
+    </div>
+    <div>
+      <h1 class="page-title" id="gamePlayTitle"></h1>
+      <p class="page-sub" id="gamePlaySub"></p>
+    </div>
+    <div id="gamePlayBody"></div>
+  </div>
+</div>
+
+<div class="modal-layer" id="modalLayer">
+  <div class="modal-scrim" data-close-modal></div>
+  <div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <button class="modal-close" id="modalCloseBtn" aria-label="Schließen" data-close-modal>✕</button>
+    <h2 id="modalTitle"></h2>
+    <div id="modalBody"></div>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var STORAGE_KEY = "vokabel_adventure_klasse7_v1";
+
+  // Green Line 3 G9, Klasse 7: 4 Units aus dem Buch plus 2 Zusatzunits, die die
+  // Zwischenkapitel buendeln (TMS = "Text and media smart", AC = "Across cultures",
+  // T = "Trailer"). Aus der Vocabulary-Sektion per PyMuPDF extrahiert (Schriftschnitt/
+  // -position: fette Stichwortspalte, normale deutsche Spalte, "Light"/kursive
+  // Beispielsatz-Spalte), Referenzkaesten ohne Beispielsatz (z. B. "Travel words")
+  // und die Aufgaben-Seiten ausgeschlossen.
+  var GROUPS = [
+  {
+    "id": "unit1",
+    "kind": "unit",
+    "number": 1,
+    "title": "Find your place"
+  },
+  {
+    "id": "unit2",
+    "kind": "unit",
+    "number": 2,
+    "title": "Let’s go to Scotland!"
+  },
+  {
+    "id": "unit3",
+    "kind": "unit",
+    "number": 3,
+    "title": "What was it like?"
+  },
+  {
+    "id": "unit4",
+    "kind": "unit",
+    "number": 4,
+    "title": "On the move"
+  },
+  {
+    "id": "zusatz1",
+    "kind": "zusatz",
+    "number": 1,
+    "title": "Text and media smart"
+  },
+  {
+    "id": "zusatz2",
+    "kind": "zusatz",
+    "number": 2,
+    "title": "Across cultures & Trailer"
+  }
+];
+  var DATA = {"unit1":{"title":"Find your place","sections":[{"name":"Check-in","words":[{"en":"personality","de":"Persönlichkeit; Charakter"},{"en":"to agree","de":"zustimmen; einer Meinung sein; sich einigen"},{"en":"to disagree","de":"anderer Meinung sein; nicht einverstanden sein"},{"en":"to compromise","de":"einen Kompromiss eingehen"},{"en":"smart type","de":"Lerntyp; Intelligenztyp"},{"en":"smart","de":"schlau; klug; intelligent"},{"en":"body","de":"Körper"},{"en":"self","de":"das Selbst"},{"en":"logic","de":"Logik"},{"en":"saying","de":"Sprichwort; Redensart"},{"en":"to judge","de":"beurteilen; bewerten"},{"en":"cover","de":"Titelseite; Einband; Cover"},{"en":"It doesn’t matter.","de":"es spielt keine Rolle; das macht nichts; das ist nicht wichtig"},{"en":"practice","de":"Übung; Training"},{"en":"call-in","de":"Sendung, bei der sich das Publi- kum telefonisch beteiligen kann"},{"en":"imagination","de":"Fantasie; Vorstellungskraft"},{"en":"to communicate","de":"kommunizieren; sich ver- ständigen"},{"en":"to compete (with)","de":"konkurrieren (mit); sich messen (mit); in Wettbewerb treten (mit)"},{"en":"imaginative","de":"einfallsreich; fantasievoll"},{"en":"doubt","de":"Zweifel"},{"en":"themselves","de":"sie (selbst); sich (selbst); selbst; selber"},{"en":"to learn about, learnt about, learnt about","de":"erfahren über"}],"game":{"type":"memory","pairs":[["personality","Persönlichkeit; Charakter"],["to agree","zustimmen; einer Meinung sein; sich einigen"],["to disagree","anderer Meinung sein; nicht einverstanden sein"],["to compromise","einen Kompromiss eingehen"],["smart type","Lerntyp; Intelligenztyp"],["smart","schlau; klug; intelligent"],["body","Körper"],["self","das Selbst"]]}},{"name":"Station 1: How to be an influencer (1/2)","words":[{"en":"environmental issues","de":"Umweltprobleme"},{"en":"technical","de":"technisch; fachlich; hand- werklich"},{"en":"topic","de":"Thema"},{"en":"to focus (on)","de":"sich konzentrieren (auf)"},{"en":"channel","de":"Kanal (TV); Programm (Radio)"},{"en":"to be concerned (about)","de":"besorgt sein (um); beunruhigt sein (wegen)"},{"en":"climate change","de":"Klimawandel"},{"en":"to produce","de":"produzieren; erzeugen; herstellen"},{"en":"waste","de":"Abfall; Müll; Verschwendung"},{"en":"to attract","de":"anziehen; anlocken"},{"en":"to trust","de":"vertrauen"},{"en":"especially","de":"besonders; vor allem"},{"en":"to be involved","de":"beteiligt sein; involviert sein"},{"en":"company","de":"Gesellschaft; Firma; Unter- nehmen"}],"game":{"type":"hangman","pool":[{"spell":"technical","de":"technisch; fachlich; hand- werklich"},{"spell":"topic","de":"Thema"},{"spell":"focus","de":"sich konzentrieren (auf)"},{"spell":"channel","de":"Kanal (TV); Programm (Radio)"},{"spell":"produce","de":"produzieren; erzeugen; herstellen"},{"spell":"waste","de":"Abfall; Müll; Verschwendung"},{"spell":"attract","de":"anziehen; anlocken"},{"spell":"trust","de":"vertrauen"},{"spell":"especially","de":"besonders; vor allem"},{"spell":"company","de":"Gesellschaft; Firma; Unter- nehmen"}]}},{"name":"Station 1: How to be an influencer (2/2)","words":[{"en":"to recommend","de":"empfehlen"},{"en":"product","de":"Produkt; Erzeugnis"},{"en":"to make sure, made sure,","de":"sichergehen; achten auf"},{"en":"Thank you very much!","de":"Vielen Dank!; Herzlichen Dank!"},{"en":"to subscribe","de":"abonnieren"},{"en":"role model","de":"Vorbild"},{"en":"tap","de":"Wasserhahn"},{"en":"to turn down","de":"abdrehen; niedriger stellen"},{"en":"heating","de":"Heizung"},{"en":"bin","de":"Mülleimer; Abfalleimer; Mülltonne"},{"en":"rainwater","de":"Regenwasser"},{"en":"to flush","de":"spülen; die Wasserspülung betätigen"},{"en":"rain","de":"Regen"}],"game":{"type":"tempo","items":[{"en":"to recommend","de":"empfehlen"},{"en":"product","de":"Produkt; Erzeugnis"},{"en":"to make sure, made sure,","de":"sichergehen; achten auf"},{"en":"Thank you very much!","de":"Vielen Dank!; Herzlichen Dank!"},{"en":"to subscribe","de":"abonnieren"},{"en":"role model","de":"Vorbild"},{"en":"tap","de":"Wasserhahn"},{"en":"to turn down","de":"abdrehen; niedriger stellen"},{"en":"heating","de":"Heizung"},{"en":"bin","de":"Mülleimer; Abfalleimer; Mülltonne"},{"en":"rainwater","de":"Regenwasser"},{"en":"to flush","de":"spülen; die Wasserspülung betätigen"},{"en":"rain","de":"Regen"}]}},{"name":"Station 2: They wouldn’t worry if they didn’t care! (1/2)","words":[{"en":"millionaire","de":"Millionär/-in"},{"en":"rich","de":"reich"},{"en":"age","de":"Alter; Zeitalter"},{"en":"to design","de":"entwerfen; gestalten"},{"en":"success","de":"Erfolg"},{"en":"to be stressed out","de":"völlig gestresst sein"},{"en":"a million","de":"Million"},{"en":"lead part","de":"Hauptrolle"},{"en":"backing dancer","de":"Backgroundtänzer/-in"},{"en":"lead dancer","de":"Vortänzer/-in"},{"en":"to grow, grew, grown","de":"wachsen; anbauen; züchten"},{"en":"to want sb to do sth","de":"wollen, dass jmd. etw. tut"},{"en":"mark","de":"Note"},{"en":"laid-back","de":"entspannt; locker"},{"en":"to drop out (of)","de":"abbrechen; ausscheiden; aussteigen"}],"game":{"type":"memory","pairs":[["millionaire","Millionär/-in"],["rich","reich"],["age","Alter; Zeitalter"],["to design","entwerfen; gestalten"],["success","Erfolg"],["to be stressed out","völlig gestresst sein"],["a million","Million"],["lead part","Hauptrolle"]]}},{"name":"Station 2: They wouldn’t worry if they didn’t care! (2/2)","words":[{"en":"modelling","de":"Modeln"},{"en":"to rely (on)","de":"sich verlassen (auf); vertrauen (auf)"},{"en":"looks (pl)","de":"Aussehen"},{"en":"to study","de":"lernen; studieren"},{"en":"career","de":"Beruf; Laufbahn; Karriere"},{"en":"in … shoes","de":"an … Stelle"},{"en":"to give up, gave up, given up","de":"aufgeben"},{"en":"successful","de":"erfolgreich"},{"en":"audition","de":"Vorsprechen; Vorsingen; Vortanzen"},{"en":"ugly","de":"hässlich; scheußlich; übel"},{"en":"comfortable","de":"bequem; komfortabel"},{"en":"dress","de":"Kleid"},{"en":"trainer","de":"Turnschuh"},{"en":"to perform","de":"auftreten; etw. vorführen; aufführen; vortragen; spielen"}],"game":{"type":"hangman","pool":[{"spell":"modelling","de":"Modeln"},{"spell":"rely","de":"sich verlassen (auf); vertrauen (auf)"},{"spell":"looks","de":"Aussehen"},{"spell":"study","de":"lernen; studieren"},{"spell":"career","de":"Beruf; Laufbahn; Karriere"},{"spell":"successful","de":"erfolgreich"},{"spell":"audition","de":"Vorsprechen; Vorsingen; Vortanzen"},{"spell":"ugly","de":"hässlich; scheußlich; übel"},{"spell":"comfortable","de":"bequem; komfortabel"},{"spell":"dress","de":"Kleid"},{"spell":"trainer","de":"Turnschuh"},{"spell":"perform","de":"auftreten; etw. vorführen; aufführen; vortragen; spielen"}]}},{"name":"Station 3: You have to push yourself","words":[{"en":"to push oneself","de":"sich alles abverlangen; sich Mühe geben"},{"en":"messy","de":"unordentlich"},{"en":"bossy","de":"bestimmend; rechthaberisch; herrisch"},{"en":"recorder","de":"Flöte"},{"en":"exactly","de":"genau"},{"en":"to enjoy oneself","de":"Spaß haben; sich amüsieren"},{"en":"to decide (on)","de":"(sich) entscheiden (für)"},{"en":"to be saved by the bell","de":"noch mal Glück haben"},{"en":"to give sb funny looks","de":"jmdn. schief anschauen; jmdn. komisch anschauen"},{"en":"each other","de":"einander; sich; sich gegenseitig"},{"en":"ourselvesWe wrote the article for the website","de":"ourselves"},{"en":"themselvesThe kids have solved the problem.","de":"They solved it"},{"en":"funny","de":"komisch; merkwürdig; seltsam"},{"en":"to behave","de":"sich benehmen; sich verhalten"},{"en":"opinion","de":"Meinung; Ansicht; Einstellung"},{"en":"What’s up?","de":"Was ist los?"},{"en":"to be in charge (of)","de":"zuständig sein (für); die Verant- wortung tragen (für)"},{"en":"to react","de":"reagieren"},{"en":"to be hard on sb","de":"streng mit jmdm. sein"},{"en":"Stay the way you are.","de":"Bleib wie du bist."},{"en":"Miss","de":"Fräulein (veraltete Anrede)"},{"en":"per cent","de":"Prozent"}],"game":{"type":"tempo","items":[{"en":"to push oneself","de":"sich alles abverlangen; sich Mühe geben"},{"en":"messy","de":"unordentlich"},{"en":"bossy","de":"bestimmend; rechthaberisch; herrisch"},{"en":"recorder","de":"Flöte"},{"en":"exactly","de":"genau"},{"en":"to enjoy oneself","de":"Spaß haben; sich amüsieren"},{"en":"to decide (on)","de":"(sich) entscheiden (für)"},{"en":"to be saved by the bell","de":"noch mal Glück haben"},{"en":"to give sb funny looks","de":"jmdn. schief anschauen; jmdn. komisch anschauen"},{"en":"each other","de":"einander; sich; sich gegenseitig"},{"en":"ourselvesWe wrote the article for the website","de":"ourselves"},{"en":"themselvesThe kids have solved the problem.","de":"They solved it"},{"en":"funny","de":"komisch; merkwürdig; seltsam"},{"en":"to behave","de":"sich benehmen; sich verhalten"},{"en":"opinion","de":"Meinung; Ansicht; Einstellung"},{"en":"What’s up?","de":"Was ist los?"},{"en":"to be in charge (of)","de":"zuständig sein (für); die Verant- wortung tragen (für)"},{"en":"to react","de":"reagieren"},{"en":"to be hard on sb","de":"streng mit jmdm. sein"},{"en":"Stay the way you are.","de":"Bleib wie du bist."},{"en":"Miss","de":"Fräulein (veraltete Anrede)"},{"en":"per cent","de":"Prozent"}]}},{"name":"Skills: How to compromise","words":[{"en":"to have a point","de":"nicht ganz Unrecht haben"},{"en":"necessary","de":"nötig; notwendig; erforderlich"},{"en":"possible","de":"möglich"},{"en":"simple","de":"einfach; simpel"},{"en":"to meet halfway","de":"sich auf halbem Weg treffen"},{"en":"I don’t mind (+ …ing)","de":"Ich habe nichts dagegen (zu …); Mir macht es nichts aus (zu …)"},{"en":"misunderstood","de":"missverstanden"},{"en":"to end","de":"enden; beenden"},{"en":"decision","de":"Entscheidung"},{"en":"conflict","de":"Konflikt; Auseinandersetzung"},{"en":"to blame","de":"verantwortlich machen; beschuldigen"}],"game":{"type":"memory","pairs":[["to have a point","nicht ganz Unrecht haben"],["necessary","nötig; notwendig; erforderlich"],["possible","möglich"],["simple","einfach; simpel"],["to meet halfway","sich auf halbem Weg treffen"],["I don’t mind (+ …ing)","Ich habe nichts dagegen (zu …); Mir macht es nichts aus (zu …)"],["misunderstood","missverstanden"],["to end","enden; beenden"]]}},{"name":"Story: Hang out with us instead! (1/2)","words":[{"en":"storyboard","de":"Szenenbuch; Storyboard"},{"en":"stud","de":"Stecker"},{"en":"facial expression","de":"Gesichtsausdruck"},{"en":"body language","de":"Körpersprache"},{"en":"to hang out (with), hung","de":"rumhängen (mit); sich herum-"},{"en":"out (with), hung out (with) (infml)","de":"treiben (mit)"},{"en":"instead","de":"stattdessen"},{"en":"to get into trouble","de":"in Schwierigkeiten geraten"},{"en":"to be fed up (with)","de":"sauer sein (auf); die Nase voll haben (von)"},{"en":"argument","de":"Auseinandersetzung; Streit"},{"en":"these days","de":"heute; heutzutage; zurzeit"},{"en":"to be allowed to (do sth)","de":"dürfen"},{"en":"to be grounded","de":"Hausarrest haben"},{"en":"to put on, put on, put on","de":"anziehen"},{"en":"freedom (no pl)","de":"Freiheit; Unabhängigkeit"},{"en":"in-crowd","de":"die Angesagten; die Beliebten; Szene"},{"en":"blond","de":"blond"},{"en":"the high street","de":"die Haupteinkaufsstraße"},{"en":"bloke (fam)","de":"Typ (ugs.)"}],"game":{"type":"hangman","pool":[{"spell":"storyboard","de":"Szenenbuch; Storyboard"},{"spell":"stud","de":"Stecker"},{"spell":"out","de":"treiben (mit)"},{"spell":"instead","de":"stattdessen"},{"spell":"argument","de":"Auseinandersetzung; Streit"},{"spell":"freedom","de":"Freiheit; Unabhängigkeit"},{"spell":"blond","de":"blond"},{"spell":"bloke","de":"Typ (ugs.)"}]}},{"name":"Story: Hang out with us instead! (2/2)","words":[{"en":"to be able to (do sth)","de":"fähig sein zu; können; dürfen"},{"en":"overnight","de":"über Nacht"},{"en":"back","de":"Rücken; Rückseite"},{"en":"usual","de":"üblich"},{"en":"to treat","de":"behandeln"},{"en":"to ignore","de":"ignorieren; außer Acht lassen"},{"en":"pretty","de":"hübsch"},{"en":"to come up to sb, came up to, come up to","de":"auf jmdn. zukommen"},{"en":"poor","de":"arm"},{"en":"mummy","de":"Mama; Mami; Mutti"},{"en":"piece of junk","de":"Stück Schrott"},{"en":"anger (no pl)","de":"Zorn; Wut"},{"en":"peer pressure","de":"Gruppenzwang"},{"en":"to fit in","de":"dazupassen; sich einfügen"},{"en":"excitement (no pl)","de":"Aufregung"},{"en":"confused","de":"verwirrt; wirr; konfus"},{"en":"honest","de":"ehrlich"},{"en":"turning point","de":"Wendepunkt"}],"game":{"type":"tempo","items":[{"en":"to be able to (do sth)","de":"fähig sein zu; können; dürfen"},{"en":"overnight","de":"über Nacht"},{"en":"back","de":"Rücken; Rückseite"},{"en":"usual","de":"üblich"},{"en":"to treat","de":"behandeln"},{"en":"to ignore","de":"ignorieren; außer Acht lassen"},{"en":"pretty","de":"hübsch"},{"en":"to come up to sb, came up to, come up to","de":"auf jmdn. zukommen"},{"en":"poor","de":"arm"},{"en":"mummy","de":"Mama; Mami; Mutti"},{"en":"piece of junk","de":"Stück Schrott"},{"en":"anger (no pl)","de":"Zorn; Wut"},{"en":"peer pressure","de":"Gruppenzwang"},{"en":"to fit in","de":"dazupassen; sich einfügen"},{"en":"excitement (no pl)","de":"Aufregung"},{"en":"confused","de":"verwirrt; wirr; konfus"},{"en":"honest","de":"ehrlich"},{"en":"turning point","de":"Wendepunkt"}]}},{"name":"Action UK! When Sean came to visit","words":[{"en":"to tease sb","de":"jmdn. aufziehen; jmdn. hänseln; jmdn. ärgern"},{"en":"sense of humour (no pl)","de":"Sinn für Humor"},{"en":"to feel sorry for, felt sorry for, felt sorry for","de":"Mitleid haben mit; bedauern"},{"en":"optimistic","de":"optimistisch"},{"en":"to cheer sb up","de":"jmdn. aufheitern"},{"en":"show-off","de":"Angeber/-in"},{"en":"to apologise","de":"sich entschuldigen"},{"en":"to delete","de":"löschen"},{"en":"wall","de":"hier: Online-Pinnwand"},{"en":"account settings","de":"Profileinstellungen"},{"en":"bench","de":"Bank; Sitzbank"},{"en":"to work out","de":"funktionieren; klappen"},{"en":"founder","de":"Gründer/-in"},{"en":"to develop","de":"(sich) entwickeln"},{"en":"a billion","de":"Milliarde"},{"en":"to pay attention, paid","de":"aufmerksam sein; aufpassen;"},{"en":"underground","de":"U-Bahn"}],"game":{"type":"memory","pairs":[["to tease sb","jmdn. aufziehen; jmdn. hänseln; jmdn. ärgern"],["sense of humour (no pl)","Sinn für Humor"],["to feel sorry for, felt sorry for, felt sorry for","Mitleid haben mit; bedauern"],["optimistic","optimistisch"],["to cheer sb up","jmdn. aufheitern"],["show-off","Angeber/-in"],["to apologise","sich entschuldigen"],["to delete","löschen"]]}}]},"unit2":{"title":"Let’s go to Scotland!","sections":[{"name":"Check-in","words":[{"en":"historic","de":"historisch"},{"en":"traditional","de":"traditionell"},{"en":"to be like sb/sth","de":"wie jmd./etw. sein"},{"en":"haggis","de":"Haggis (schottisches Gericht aus in einem Schafsmagen gekochten Schafsinnereien und Haferschrot)"},{"en":"tartan","de":"Schottenkaro (bestimmtes Muster eines Clans); karierter Schottenstoff"},{"en":"kilt","de":"Kilt; Schottenrock"},{"en":"bagpipes (pl)","de":"Dudelsack"},{"en":"loch","de":"See (in Schottland)"},{"en":"the Scottish fl ag","de":"bagpipes"},{"en":"a kilt","de":"tartan"}],"game":{"type":"memory","pairs":[["historic","historisch"],["traditional","traditionell"],["to be like sb/sth","wie jmd./etw. sein"],["haggis","Haggis (schottisches Gericht aus in einem Schafsmagen gekochten Schafsinnereien und Haferschrot)"],["tartan","Schottenkaro (bestimmtes Muster eines Clans); karierter Schottenstoff"],["kilt","Kilt; Schottenrock"],["bagpipes (pl)","Dudelsack"],["loch","See (in Schottland)"]]}},{"name":"Station 1: Is that made with meat? (1/2)","words":[{"en":"meat (no pl)","de":"Fleisch"},{"en":"son","de":"Sohn"},{"en":"large","de":"groß; riesig"},{"en":"vegetable","de":"Gemüse"},{"en":"vegetarian (= Person)","de":"Vegetarier/-in"},{"en":"thousands of","de":"tausende (von)"},{"en":"to pull down","de":"abreißen"},{"en":"musical","de":"musikalisch; Musik-"},{"en":"shipbuilding","de":"Schiffsbau"},{"en":"industry","de":"Industrie; Branche; Gewerbe"},{"en":"midnight","de":"Mitternacht"},{"en":"to set off fireworks","de":"ein Feuerwerk zünden"},{"en":"bun","de":"Brötchen; Gebäckstück"},{"en":"coal","de":"Kohle"},{"en":"government","de":"Regierung"},{"en":"to grant","de":"gewähren; zusprechen; geben"},{"en":"Scot","de":"Schotte/Schottin"},{"en":"invention","de":"Erfindung"},{"en":"discovery","de":"Entdeckung"},{"en":"by","de":"von"}],"game":{"type":"hangman","pool":[{"spell":"meat","de":"Fleisch"},{"spell":"son","de":"Sohn"},{"spell":"large","de":"groß; riesig"},{"spell":"vegetable","de":"Gemüse"},{"spell":"vegetarian","de":"Vegetarier/-in"},{"spell":"musical","de":"musikalisch; Musik-"},{"spell":"shipbuilding","de":"Schiffsbau"},{"spell":"industry","de":"Industrie; Branche; Gewerbe"},{"spell":"midnight","de":"Mitternacht"},{"spell":"bun","de":"Brötchen; Gebäckstück"},{"spell":"coal","de":"Kohle"},{"spell":"government","de":"Regierung"},{"spell":"grant","de":"gewähren; zusprechen; geben"},{"spell":"scot","de":"Schotte/Schottin"},{"spell":"invention","de":"Erfindung"},{"spell":"discovery","de":"Entdeckung"},{"spell":"by","de":"von"}]}},{"name":"Station 1: Is that made with meat? (2/2)","words":[{"en":"to clone","de":"klonen"},{"en":"scientist","de":"Wissenschaftler/-in"},{"en":"to invent","de":"erfinden"},{"en":"steam engine","de":"Dampfmaschine"},{"en":"television","de":"Fernsehen; Fernseher"},{"en":"station","de":"Sender"},{"en":"to start","de":"hier: gründen"},{"en":"to fill","de":"füllen"},{"en":"vegetarian (= Adjektiv)","de":"vegetarisch"},{"en":"option","de":"Möglichkeit; Option; Wahl"},{"en":"mashed potatoes (pl)","de":"Kartoffelpüree; Kartoffelbrei"},{"en":"sauce","de":"Soße"},{"en":"to ban","de":"bannen; verbieten; sperren"},{"en":"decade","de":"Jahrzehnt"},{"en":"hundreds of","de":"hunderte (von)"},{"en":"narrow","de":"eng; schmal"},{"en":"close","de":"schmaler Durchgang"},{"en":"to name","de":"nennen; benennen"},{"en":"to die","de":"sterben"},{"en":"to leave behind","de":"zurücklassen"}],"game":{"type":"tempo","items":[{"en":"to clone","de":"klonen"},{"en":"scientist","de":"Wissenschaftler/-in"},{"en":"to invent","de":"erfinden"},{"en":"steam engine","de":"Dampfmaschine"},{"en":"television","de":"Fernsehen; Fernseher"},{"en":"station","de":"Sender"},{"en":"to start","de":"hier: gründen"},{"en":"to fill","de":"füllen"},{"en":"vegetarian (= Adjektiv)","de":"vegetarisch"},{"en":"option","de":"Möglichkeit; Option; Wahl"},{"en":"mashed potatoes (pl)","de":"Kartoffelpüree; Kartoffelbrei"},{"en":"sauce","de":"Soße"},{"en":"to ban","de":"bannen; verbieten; sperren"},{"en":"decade","de":"Jahrzehnt"},{"en":"hundreds of","de":"hunderte (von)"},{"en":"narrow","de":"eng; schmal"},{"en":"close","de":"schmaler Durchgang"},{"en":"to name","de":"nennen; benennen"},{"en":"to die","de":"sterben"},{"en":"to leave behind","de":"zurücklassen"}]}},{"name":"Station 2: Holly’s blog","words":[{"en":"update","de":"Aktualisierung; Update"},{"en":"latest","de":"neueste/-r/-s"},{"en":"pic (= picture)","de":"Foto"},{"en":"actually","de":"tatsächlich; wirklich; eigentlich"},{"en":"in fact","de":"tatsächlich; eigentlich; genau genommen"},{"en":"south","de":"südlich; im Süden"},{"en":"to hold, held, held","de":"abhalten"},{"en":"gentleman, gentlemen (pl)","de":"Gentleman; feiner Herr"},{"en":"clan","de":"Clan; Sippe"},{"en":"ben","de":"hoher Berg"},{"en":"glen","de":"Schlucht"},{"en":"recipe","de":"Rezept"},{"en":"ceilidh","de":"schottisches Fest, bei dem getanzt und musiziert wird"},{"en":"official (= Adjektiv)","de":"offiziell"},{"en":"national anthem","de":"Nationalhymne"},{"en":"unofficial","de":"inoffiziell"},{"en":"to defeat","de":"besiegen"},{"en":"soldier","de":"Soldat/-in"},{"en":"web","de":"Netz; Spinnennetz"}],"game":{"type":"memory","pairs":[["update","Aktualisierung; Update"],["latest","neueste/-r/-s"],["pic (= picture)","Foto"],["actually","tatsächlich; wirklich; eigentlich"],["in fact","tatsächlich; eigentlich; genau genommen"],["south","südlich; im Süden"],["to hold, held, held","abhalten"],["gentleman, gentlemen (pl)","Gentleman; feiner Herr"]]}},{"name":"Skills: How to write a persuasive text","words":[{"en":"final","de":"letzte/-r/-s"},{"en":"further","de":"weiter (weg)"},{"en":"north","de":"nördlich; im Norden"},{"en":"fascinating","de":"faszinierend"},{"en":"extremely","de":"äußerst; sehr"},{"en":"present","de":"heutig; Gegenwarts-"},{"en":"huge","de":"riesig; riesengroß; gewaltig"},{"en":"to improve","de":"(sich) verbessern"},{"en":"tiny","de":"klein; winzig"},{"en":"crane","de":"Kran"},{"en":"engineer","de":"Ingenieur/-in; Techniker/-in"},{"en":"We walked up the hill to the castle","de":"extremely slowly."},{"en":"The guide’s story was quite","de":"dramatic."},{"en":"The castle was fascinating","de":"enough."}],"game":{"type":"hangman","pool":[{"spell":"final","de":"letzte/-r/-s"},{"spell":"further","de":"weiter (weg)"},{"spell":"north","de":"nördlich; im Norden"},{"spell":"fascinating","de":"faszinierend"},{"spell":"extremely","de":"äußerst; sehr"},{"spell":"present","de":"heutig; Gegenwarts-"},{"spell":"huge","de":"riesig; riesengroß; gewaltig"},{"spell":"improve","de":"(sich) verbessern"},{"spell":"tiny","de":"klein; winzig"},{"spell":"crane","de":"Kran"},{"spell":"engineer","de":"Ingenieur/-in; Techniker/-in"}]}},{"name":"Story: I don’t believe in ghosts! (1/2)","words":[{"en":"to appeal to sb","de":"jmdm. zusagen; jmdm. gefallen; jmdn. ansprechen; jmdn. reizen"},{"en":"convincing","de":"überzeugend"},{"en":"sky","de":"Himmel"},{"en":"entrance","de":"Eingang; Eintritt"},{"en":"ticket office","de":"Kartenausgabestelle; Vorverkaufsschalter; Fahr- kartenschalter"},{"en":"stone","de":"Stein; Stein-"},{"en":"pocket","de":"Tasche; Hosentasche"},{"en":"signal","de":"Empfang; Signal; Zeichen"},{"en":"thick","de":"dick"},{"en":"perhaps","de":"vielleicht"},{"en":"to go round in circles","de":"sich im Kreis drehen"},{"en":"wounded","de":"verletzt; verwundet"},{"en":"tower","de":"Turm"},{"en":"moonlight","de":"Mondlicht"},{"en":"stairs (pl)","de":"Treppe"},{"en":"wooden","de":"hölzern; aus Holz"},{"en":"to cry","de":"weinen"}],"game":{"type":"tempo","items":[{"en":"to appeal to sb","de":"jmdm. zusagen; jmdm. gefallen; jmdn. ansprechen; jmdn. reizen"},{"en":"convincing","de":"überzeugend"},{"en":"sky","de":"Himmel"},{"en":"entrance","de":"Eingang; Eintritt"},{"en":"ticket office","de":"Kartenausgabestelle; Vorverkaufsschalter; Fahr- kartenschalter"},{"en":"stone","de":"Stein; Stein-"},{"en":"pocket","de":"Tasche; Hosentasche"},{"en":"signal","de":"Empfang; Signal; Zeichen"},{"en":"thick","de":"dick"},{"en":"perhaps","de":"vielleicht"},{"en":"to go round in circles","de":"sich im Kreis drehen"},{"en":"wounded","de":"verletzt; verwundet"},{"en":"tower","de":"Turm"},{"en":"moonlight","de":"Mondlicht"},{"en":"stairs (pl)","de":"Treppe"},{"en":"wooden","de":"hölzern; aus Holz"},{"en":"to cry","de":"weinen"}]}},{"name":"Story: I don’t believe in ghosts! (2/2)","words":[{"en":"to look up","de":"aufschauen; hochschauen"},{"en":"to fall down","de":"einstürzen; zusammenfallen; hinunterfallen"},{"en":"danger","de":"Gefahr"},{"en":"to keep out (of)","de":"draußen bleiben (von); draußen halten (von)"},{"en":"cracking","de":"knackend; brechend"},{"en":"to realise","de":"erkennen; realisieren"},{"en":"key ring","de":"Schlüsselbund; Schlüssel- anhänger"},{"en":"to tie (to)","de":"binden (an); festbinden (an)"},{"en":"rope","de":"Seil"},{"en":"to hold onto","de":"(sich) festhalten an"},{"en":"crack","de":"Knacken; Krachen"},{"en":"wood","de":"Holz"},{"en":"below","de":"unten; unter; unterhalb (von)"},{"en":"gig","de":"Auftritt; Gig"},{"en":"definitely","de":"definitiv; bestimmt; eindeutig"},{"en":"climax","de":"Höhepunkt"}],"game":{"type":"memory","pairs":[["to look up","aufschauen; hochschauen"],["to fall down","einstürzen; zusammenfallen; hinunterfallen"],["danger","Gefahr"],["to keep out (of)","draußen bleiben (von); draußen halten (von)"],["cracking","knackend; brechend"],["to realise","erkennen; realisieren"],["key ring","Schlüsselbund; Schlüssel- anhänger"],["to tie (to)","binden (an); festbinden (an)"]]}},{"name":"Action UK! How times change","words":[{"en":"to help out","de":"aushelfen"},{"en":"neighbourhood","de":"Nachbarschaft"},{"en":"to do the shopping","de":"einkaufen; einkaufen gehen"},{"en":"elderly","de":"ältere/-r/-s"},{"en":"inventor","de":"Erfinder/-in"},{"en":"tin can","de":"Blechdose"},{"en":"switch","de":"Schalter"},{"en":"versus (vs.)","de":"gegen"},{"en":"rotary phone","de":"Telefon mit Wählscheibe"},{"en":"fall","de":"Sturz"},{"en":"natural","de":"natürlich; Natur-"},{"en":"to rent (out)","de":"(ver)mieten"},{"en":"thistle","de":"Distel"},{"en":"to kiss","de":"(sich) küssen"},{"en":"to be known (as)","de":"bekannt sein (als)"}],"game":{"type":"hangman","pool":[{"spell":"neighbourhood","de":"Nachbarschaft"},{"spell":"elderly","de":"ältere/-r/-s"},{"spell":"inventor","de":"Erfinder/-in"},{"spell":"switch","de":"Schalter"},{"spell":"versus","de":"gegen"},{"spell":"fall","de":"Sturz"},{"spell":"natural","de":"natürlich; Natur-"},{"spell":"rent","de":"(ver)mieten"},{"spell":"thistle","de":"Distel"},{"spell":"kiss","de":"(sich) küssen"}]}}]},"unit3":{"title":"What was it like?","sections":[{"name":"Check-in (1/4)","words":[{"en":"What was … like?","de":"Wie war … ?"},{"en":"object","de":"Gegenstand; Objekt"},{"en":"period","de":"Periode; Zeitspanne; Zeitraum"},{"en":"Ice Age","de":"Eiszeit"},{"en":"to flood","de":"überfluten; fluten; über- schwemmen"},{"en":"to rise, rose, risen","de":"steigen; sich erheben; aufste- hen"},{"en":"sea level","de":"Meeresspiegel"},{"en":"to disappear","de":"verschwinden"},{"en":"BC (= before Christ)","de":"vor Christus"},{"en":"Celt","de":"Kelte/Keltin"},{"en":"AD (= Anno Domini)","de":"nach Christus"},{"en":"western","de":"westlich; West-"},{"en":"tribe","de":"Stamm; Volksstamm"},{"en":"round","de":"rund"},{"en":"metal","de":"Metall"},{"en":"leather","de":"Leder"},{"en":"to conquer","de":"erobern"},{"en":"to found","de":"gründen"},{"en":"palace","de":"Palast"},{"en":"fort","de":"Fort; Festung"},{"en":"peace","de":"Frieden"},{"en":"empire","de":"Reich; Kaiserreich"}],"game":{"type":"memory","pairs":[["What was … like?","Wie war … ?"],["object","Gegenstand; Objekt"],["period","Periode; Zeitspanne; Zeitraum"],["Ice Age","Eiszeit"],["to flood","überfluten; fluten; über- schwemmen"],["to rise, rose, risen","steigen; sich erheben; aufste- hen"],["sea level","Meeresspiegel"],["to disappear","verschwinden"]]}},{"name":"Check-in (2/4)","words":[{"en":"Picts","de":"Pikten (schottischer Volks- stamm)"},{"en":"to begin, began, begun","de":"anfangen; beginnen"},{"en":"to attack","de":"angreifen"},{"en":"to say goodbye (to)","de":"sich verabschieden (von)"},{"en":"Anglo-Saxon","de":"Angelsachse; Angelsächsin; angelsächsisch"},{"en":"Germanic","de":"germanisch"},{"en":"people (pl)","de":"Volk"},{"en":"rule","de":"Herrschaft; Regierungszeit"},{"en":"peaceful","de":"in Frieden; friedlich"},{"en":"to burn, burnt, burnt","de":"brennen; verbrennen"},{"en":"to divide (up/into)","de":"aufteilen (in)"},{"en":"kingdom","de":"Königreich"},{"en":"complete","de":"vollständig; komplett; völlig"},{"en":"Latin","de":"Latein; lateinisch"},{"en":"bible","de":"Bibel"},{"en":"to date back to","de":"zurückgehen auf; stammen aus"},{"en":"Norman","de":"Normanne/Normannin; normannisch"},{"en":"leader","de":"Führer/-in; Anführer/-in"},{"en":"duke","de":"Herzog"},{"en":"Saxon","de":"Sachse/Sächsin; sächsisch"},{"en":"battle","de":"Schlacht; Kampf"},{"en":"to this day","de":"bis heute"}],"game":{"type":"hangman","pool":[{"spell":"picts","de":"Pikten (schottischer Volks- stamm)"},{"spell":"begin","de":"anfangen; beginnen"},{"spell":"attack","de":"angreifen"},{"spell":"germanic","de":"germanisch"},{"spell":"people","de":"Volk"},{"spell":"rule","de":"Herrschaft; Regierungszeit"},{"spell":"peaceful","de":"in Frieden; friedlich"},{"spell":"burn","de":"brennen; verbrennen"},{"spell":"divide","de":"aufteilen (in)"},{"spell":"kingdom","de":"Königreich"},{"spell":"complete","de":"vollständig; komplett; völlig"},{"spell":"latin","de":"Latein; lateinisch"},{"spell":"bible","de":"Bibel"},{"spell":"norman","de":"Normanne/Normannin; normannisch"},{"spell":"leader","de":"Führer/-in; Anführer/-in"},{"spell":"duke","de":"Herzog"},{"spell":"saxon","de":"Sachse/Sächsin; sächsisch"},{"spell":"battle","de":"Schlacht; Kampf"}]}},{"name":"Check-in (3/4)","words":[{"en":"at this time","de":"zu dieser Zeit"},{"en":"lord","de":"Lord; Herr"},{"en":"Tudor","de":"Tudor; Tudor-"},{"en":"monarch","de":"Monarch/-in"},{"en":"daughter","de":"Tochter"},{"en":"to divorce","de":"sich scheiden lassen"},{"en":"to marry","de":"heiraten"},{"en":"the Pope","de":"der Papst"},{"en":"reign","de":"Herrschaft; Regierungszeit"},{"en":"golden age","de":"goldenes Zeitalter"},{"en":"Spanish","de":"spanisch; Spanisch; die Spanier"},{"en":"Victorian","de":"viktorianisch; Viktorianer/-in"},{"en":"Industrial Revolution","de":"die industrielle Revolution"},{"en":"by hand","de":"von Hand; manuell"},{"en":"however","de":"jedoch"},{"en":"number","de":"Anzahl"},{"en":"factory","de":"Fabrik; Werk"},{"en":"goods (pl)","de":"Güter; Waren"},{"en":"seaside","de":"Küste; Meeresküste"},{"en":"colony","de":"Kolonie"},{"en":"raw material","de":"Rohstoff; Rohmaterial"},{"en":"independent","de":"unabhängig"}],"game":{"type":"tempo","items":[{"en":"at this time","de":"zu dieser Zeit"},{"en":"lord","de":"Lord; Herr"},{"en":"Tudor","de":"Tudor; Tudor-"},{"en":"monarch","de":"Monarch/-in"},{"en":"daughter","de":"Tochter"},{"en":"to divorce","de":"sich scheiden lassen"},{"en":"to marry","de":"heiraten"},{"en":"the Pope","de":"der Papst"},{"en":"reign","de":"Herrschaft; Regierungszeit"},{"en":"golden age","de":"goldenes Zeitalter"},{"en":"Spanish","de":"spanisch; Spanisch; die Spanier"},{"en":"Victorian","de":"viktorianisch; Viktorianer/-in"},{"en":"Industrial Revolution","de":"die industrielle Revolution"},{"en":"by hand","de":"von Hand; manuell"},{"en":"however","de":"jedoch"},{"en":"number","de":"Anzahl"},{"en":"factory","de":"Fabrik; Werk"},{"en":"goods (pl)","de":"Güter; Waren"},{"en":"seaside","de":"Küste; Meeresküste"},{"en":"colony","de":"Kolonie"},{"en":"raw material","de":"Rohstoff; Rohmaterial"},{"en":"independent","de":"unabhängig"}]}},{"name":"Check-in (4/4)","words":[{"en":"political","de":"politisch"},{"en":"view (= Meinung)","de":"Ansicht; Einstellung; Stand- punkt"},{"en":"influence","de":"Einfluss"},{"en":"to vote","de":"abstimmen; wählen"},{"en":"rather than","de":"eher als"},{"en":"exit","de":"Ausgang; Abgang; Ausfahrt; Ausstieg"},{"en":"embroidery","de":"Stickerei"},{"en":"to connect (to)","de":"verbinden (mit); vermitteln; anschließen"},{"en":"Viking","de":"Wikinger"},{"en":"Middle Ages","de":"Mittelalter"},{"en":"revolution","de":"Revolution"},{"en":"valuable","de":"wertvoll"},{"en":"to be made of","de":"bestehen aus; gemacht sein aus; hergestellt sein aus"},{"en":"calendar","de":"Kalender"},{"en":"axe","de":"Axt"},{"en":"mirror","de":"Spiegel"},{"en":"necklace","de":"Halskette"},{"en":"sandal","de":"Sandale"},{"en":"hairbrush","de":"Haarbürste"}],"game":{"type":"memory","pairs":[["political","politisch"],["view (= Meinung)","Ansicht; Einstellung; Stand- punkt"],["influence","Einfluss"],["to vote","abstimmen; wählen"],["rather than","eher als"],["exit","Ausgang; Abgang; Ausfahrt; Ausstieg"],["embroidery","Stickerei"],["to connect (to)","verbinden (mit); vermitteln; anschließen"]]}},{"name":"Station 1: The calendar which Claire is making","words":[{"en":"which","de":"der; die; das; dem; den (Relativpronomen)"},{"en":"characteristic","de":"Eigenschaft; typisches Merkmal"},{"en":"that","de":"der; dem; den; die; das (Relativpronomen)"},{"en":"who","de":"der; dem; den; die (Relativpronomen)"},{"en":"to photograph (sb/sth)","de":"jmdn./etw. fotografieren"},{"en":"lady-in-waiting","de":"Hofdame"},{"en":"potato, potatoes (pl)","de":"Kartoffel"},{"en":"tobacco (no pl)","de":"Tabak"},{"en":"to kill","de":"töten; umbringen"},{"en":"bald","de":"glatzköpfig; kahl"},{"en":"term","de":"Trimester; Semester; Halbjahr"},{"en":"to invade","de":"einmarschieren (in); einfallen in"},{"en":"bowls","de":"Bowling"},{"en":"to destroy","de":"zerstören; vernichten; auslö- schen"},{"en":"relaxed","de":"entspannt; locker; gelassen"},{"en":"whom","de":"der; die; das"},{"en":"instead of","de":"statt; anstatt; an Stelle von"},{"en":"to control","de":"kontrollieren; beherrschen; steuern"},{"en":"explorer","de":"Forscher/-in; Forschungsreisende/-r"},{"en":"charm","de":"Charme"},{"en":"colonist","de":"Siedler/-in; Kolonist/-in"},{"en":"to settle","de":"siedeln; sich niederlassen"},{"en":"play","de":"Theaterstück"}],"game":{"type":"hangman","pool":[{"spell":"which","de":"der; die; das; dem; den (Relativpronomen)"},{"spell":"characteristic","de":"Eigenschaft; typisches Merkmal"},{"spell":"that","de":"der; dem; den; die; das (Relativpronomen)"},{"spell":"who","de":"der; dem; den; die (Relativpronomen)"},{"spell":"photograph","de":"jmdn./etw. fotografieren"},{"spell":"potato","de":"Kartoffel"},{"spell":"tobacco","de":"Tabak"},{"spell":"kill","de":"töten; umbringen"},{"spell":"bald","de":"glatzköpfig; kahl"},{"spell":"term","de":"Trimester; Semester; Halbjahr"},{"spell":"invade","de":"einmarschieren (in); einfallen in"},{"spell":"bowls","de":"Bowling"},{"spell":"destroy","de":"zerstören; vernichten; auslö- schen"},{"spell":"relaxed","de":"entspannt; locker; gelassen"},{"spell":"whom","de":"der; die; das"},{"spell":"control","de":"kontrollieren; beherrschen; steuern"},{"spell":"explorer","de":"Forscher/-in; Forschungsreisende/-r"},{"spell":"charm","de":"Charme"},{"spell":"colonist","de":"Siedler/-in; Kolonist/-in"},{"spell":"settle","de":"siedeln; sich niederlassen"},{"spell":"play","de":"Theaterstück"}]}},{"name":"Station 2: A murder story","words":[{"en":"murder","de":"Mord"},{"en":"to rebuild, rebuilt, rebuilt","de":"wieder aufbauen"},{"en":"actor/actress","de":"Schauspieler/Schauspielerin"},{"en":"Elizabethan","de":"Elisabethaner/-in; elisabethanisch"},{"en":"to turn back","de":"umkehren; zurückgehen"},{"en":"What luck!","de":"Was für ein Glück!"},{"en":"blood","de":"Blut"},{"en":"dressed","de":"angezogen; gekleidet; angekleidet"},{"en":"silence (no pl)","de":"Stille; Schweigen; Ruhe"},{"en":"to shine, shone, shone","de":"glänzen; scheinen"},{"en":"pipe","de":"Pfeife"},{"en":"Guess what!","de":"Stell dir vor!; Rate mal!"},{"en":"to hire","de":"mieten; ausleihen"}],"game":{"type":"tempo","items":[{"en":"murder","de":"Mord"},{"en":"to rebuild, rebuilt, rebuilt","de":"wieder aufbauen"},{"en":"actor/actress","de":"Schauspieler/Schauspielerin"},{"en":"Elizabethan","de":"Elisabethaner/-in; elisabethanisch"},{"en":"to turn back","de":"umkehren; zurückgehen"},{"en":"What luck!","de":"Was für ein Glück!"},{"en":"blood","de":"Blut"},{"en":"dressed","de":"angezogen; gekleidet; angekleidet"},{"en":"silence (no pl)","de":"Stille; Schweigen; Ruhe"},{"en":"to shine, shone, shone","de":"glänzen; scheinen"},{"en":"pipe","de":"Pfeife"},{"en":"Guess what!","de":"Stell dir vor!; Rate mal!"},{"en":"to hire","de":"mieten; ausleihen"}]}},{"name":"Story: It’s a mystery! (1/2)","words":[{"en":"entertainment (no pl)","de":"Unterhaltung"},{"en":"to reign","de":"herrschen; regieren"},{"en":"to be born","de":"geboren werden"},{"en":"to burn down","de":"abbrennen; niederbrennen"},{"en":"description","de":"Beschreibung"},{"en":"biographical","de":"biografisch"},{"en":"quill","de":"Federkiel"},{"en":"mystery","de":"Geheimnis; Rätsel"},{"en":"photoshoot","de":"Fotoshooting; Fotoaufnahmen"},{"en":"chaos","de":"Chaos; Durcheinander; Unordnung"},{"en":"to mix (up)","de":"mischen; vermischen"},{"en":"to take care of sb/sth","de":"sich um jmdn./etw. kümmern; für jmdn. sorgen"},{"en":"drama queen (coll)","de":"Tussi (abwertend); Zicke (abwertend)"},{"en":"plaster cast","de":"Gipsverband"},{"en":"to zoom in (on)","de":"heranzoomen (auf)"}],"game":{"type":"memory","pairs":[["entertainment (no pl)","Unterhaltung"],["to reign","herrschen; regieren"],["to be born","geboren werden"],["to burn down","abbrennen; niederbrennen"],["description","Beschreibung"],["biographical","biografisch"],["quill","Federkiel"],["mystery","Geheimnis; Rätsel"]]}},{"name":"Story: It’s a mystery! (2/2)","words":[{"en":"to roll one’s eyes","de":"die Augen verdrehen"},{"en":"half an hour","de":"eine halbe Stunde"},{"en":"out of focus","de":"unscharf"},{"en":"to photobomb","de":"ins Foto laufen"},{"en":"flash","de":"Blitz; Lichtblitz"},{"en":"nurse","de":"Krankenschwester; Kranken- pfleger"},{"en":"boot","de":"Kofferraum"},{"en":"hospital","de":"Krankenhaus; Hospital"},{"en":"to drive off","de":"wegfahren"},{"en":"to edit out","de":"herausschneiden"},{"en":"to crop (a photo)","de":"(ein Foto) zurechtschneiden"},{"en":"to crash (into)","de":"zusammenstoßen (mit)"},{"en":"ambulance","de":"Krankenwagen"},{"en":"to lighten","de":"aufhellen"},{"en":"flashback","de":"Rückblende; Flashback"}],"game":{"type":"hangman","pool":[{"spell":"photobomb","de":"ins Foto laufen"},{"spell":"flash","de":"Blitz; Lichtblitz"},{"spell":"nurse","de":"Krankenschwester; Kranken- pfleger"},{"spell":"boot","de":"Kofferraum"},{"spell":"hospital","de":"Krankenhaus; Hospital"},{"spell":"crop","de":"(ein Foto) zurechtschneiden"},{"spell":"crash","de":"zusammenstoßen (mit)"},{"spell":"ambulance","de":"Krankenwagen"},{"spell":"lighten","de":"aufhellen"},{"spell":"flashback","de":"Rückblende; Flashback"}]}},{"name":"Action UK! The girl from the past","words":[{"en":"I’d rather","de":"ich würde lieber"},{"en":"to identify (with)","de":"sich identifizieren (mit)"},{"en":"pawn shop","de":"Pfandhaus; Pfandleihe"},{"en":"school fees (pl)","de":"Schulgeld; Schulgebühren"},{"en":"teabag","de":"Teebeutel"},{"en":"pineapple","de":"Ananas"},{"en":"vitamin","de":"Vitamin"},{"en":"sequence","de":"Sequenz; Szene"},{"en":"blurred","de":"verschwommen; verwischt"},{"en":"to wake up, woke up, woken up","de":"aufwachen; aufwecken"},{"en":"patent","de":"patentieren"},{"en":"light bulb","de":"Glühbirne"},{"en":"umbrella","de":"Regenschirm"},{"en":"to brush","de":"bürsten"}],"game":{"type":"tempo","items":[{"en":"I’d rather","de":"ich würde lieber"},{"en":"to identify (with)","de":"sich identifizieren (mit)"},{"en":"pawn shop","de":"Pfandhaus; Pfandleihe"},{"en":"school fees (pl)","de":"Schulgeld; Schulgebühren"},{"en":"teabag","de":"Teebeutel"},{"en":"pineapple","de":"Ananas"},{"en":"vitamin","de":"Vitamin"},{"en":"sequence","de":"Sequenz; Szene"},{"en":"blurred","de":"verschwommen; verwischt"},{"en":"to wake up, woke up, woken up","de":"aufwachen; aufwecken"},{"en":"patent","de":"patentieren"},{"en":"light bulb","de":"Glühbirne"},{"en":"umbrella","de":"Regenschirm"},{"en":"to brush","de":"bürsten"}]}}]},"unit4":{"title":"On the move","sections":[{"name":"Check-in (1/2)","words":[{"en":"on the move","de":"unterwegs"},{"en":"travel","de":"Reise-"},{"en":"itinerary","de":"Reiseplan; Reiseroute; Reiseweg"},{"en":"foreign language","de":"Fremdsprache"},{"en":"seasick","de":"seekrank"},{"en":"luggage (no pl)","de":"Gepäck"},{"en":"flying","de":"Fliegen"},{"en":"to miss","de":"verpassen; versäumen"},{"en":"plane","de":"Flugzeug"},{"en":"departure lounge","de":"Abflughalle"},{"en":"passport","de":"Pass; Reisepass"},{"en":"boarding card","de":"Bordkarte"},{"en":"desk","de":"Schalter; Schreibtisch"},{"en":"visa, visas (pl)","de":"Visum, Visa (Pl.); Einreise- bewilligung"},{"en":"passenger","de":"Passagier/-in; Fahrgast"},{"en":"flight attendant","de":"Flugbegleiter/-in"},{"en":"customs (sg)","de":"Zoll"},{"en":"suitcase","de":"Koffer"},{"en":"airport","de":"Flughafen"},{"en":"ferry","de":"Fähre"},{"en":"control","de":"Kontrolle"}],"game":{"type":"memory","pairs":[["on the move","unterwegs"],["travel","Reise-"],["itinerary","Reiseplan; Reiseroute; Reiseweg"],["foreign language","Fremdsprache"],["seasick","seekrank"],["luggage (no pl)","Gepäck"],["flying","Fliegen"],["to miss","verpassen; versäumen"]]}},{"name":"Check-in (2/2)","words":[{"en":"arrivals hall","de":"Ankunftshalle"},{"en":"foreign","de":"ausländisch; fremd"},{"en":"currency","de":"Währung"},{"en":"environmentally friendly","de":"umweltfreundlich"},{"en":"CO (carbon dioxide)","de":"Kohlendioxid; CO"},{"en":"emission","de":"Emission; Ausstoß"},{"en":"holidays (pl)","de":"Ferien; Schulferien"},{"en":"means of transport (sg or pl)","de":"Transportmittel; Verkehrsmittel"},{"en":"convenience","de":"Zweckmäßigkeit; Annehmlich- keit; Komfort"},{"en":"answerto answer","de":"exchange"},{"en":"changeto change","de":"fi lm"},{"en":"chatto chat","de":"fi ght"},{"en":"compromiseto compromise","de":"help"},{"en":"controlto control","de":"hope"},{"en":"danceto dance","de":"interview"},{"en":"designto design","de":"joke"},{"en":"dreamto dream","de":"land"},{"en":"drinkto drink","de":"lie"},{"en":"emailto email","de":"look"},{"en":"endto end","de":"love"}],"game":{"type":"hangman","pool":[{"spell":"foreign","de":"ausländisch; fremd"},{"spell":"currency","de":"Währung"},{"spell":"co","de":"Kohlendioxid; CO"},{"spell":"emission","de":"Emission; Ausstoß"},{"spell":"holidays","de":"Ferien; Schulferien"},{"spell":"convenience","de":"Zweckmäßigkeit; Annehmlich- keit; Komfort"}]}},{"name":"Station 1: What time do we get there?","words":[{"en":"coast","de":"Küste"},{"en":"enthusiasm","de":"Begeisterung; Enthusiasmus"},{"en":"holiday home","de":"Ferienhaus"},{"en":"local time","de":"Ortszeit"},{"en":"ahead","de":"vor; vorn; voraus"},{"en":"port","de":"Hafen"},{"en":"to mumble","de":"murmeln; nuscheln"},{"en":"to dial","de":"wählen"},{"en":"flight","de":"Flug"}],"game":{"type":"tempo","items":[{"en":"coast","de":"Küste"},{"en":"enthusiasm","de":"Begeisterung; Enthusiasmus"},{"en":"holiday home","de":"Ferienhaus"},{"en":"local time","de":"Ortszeit"},{"en":"ahead","de":"vor; vorn; voraus"},{"en":"port","de":"Hafen"},{"en":"to mumble","de":"murmeln; nuscheln"},{"en":"to dial","de":"wählen"},{"en":"flight","de":"Flug"}]}},{"name":"Station 2: At passport control","words":[{"en":"to fly, flew, flown","de":"fliegen"},{"en":"document","de":"Dokument; Urkunde"},{"en":"to continue","de":"fortfahren; andauern; weiter- machen"},{"en":"valid","de":"gültig"},{"en":"to expire","de":"ablaufen"},{"en":"to insist (on)","de":"bestehen (auf); insistieren"},{"en":"to apply for","de":"beantragen; sich bewerben um"},{"en":"regulation","de":"Vorschrift; Regelung; Regulierung"},{"en":"awake","de":"wach"},{"en":"to frown","de":"die Stirn runzeln"},{"en":"to enter","de":"einreisen; hineingehen; betreten; eintreten; mitmachen"},{"en":"side room","de":"Nebenraum"},{"en":"luckily","de":"glücklicherweise"},{"en":"immigration officer","de":"Grenzschutzbeamter/-beamtin; Einwanderungsbeamter/- beamtin"},{"en":"relief","de":"Erleichterung; Linderung"},{"en":"traffic","de":"Verkehr"},{"en":"to bargain","de":"verhandeln"},{"en":"research (no pl)","de":"Recherche; Forschung; Unter- suchung"},{"en":"truth","de":"Wahrheit"},{"en":"Bengali","de":"Bengale/Bengalin; bengalisch"},{"en":"European","de":"Europäer/-in; europäisch; aus Europa"}],"game":{"type":"memory","pairs":[["to fly, flew, flown","fliegen"],["document","Dokument; Urkunde"],["to continue","fortfahren; andauern; weiter- machen"],["valid","gültig"],["to expire","ablaufen"],["to insist (on)","bestehen (auf); insistieren"],["to apply for","beantragen; sich bewerben um"],["regulation","Vorschrift; Regelung; Regulierung"]]}},{"name":"Skills: How to plan a travel itinerary","words":[{"en":"tour operator","de":"Reiseveranstalter"},{"en":"flexible","de":"flexibel"},{"en":"practical","de":"praktisch"},{"en":"wasteful","de":"verschwenderisch"},{"en":"illness","de":"Krankheit"},{"en":"local","de":"Ortsansässige/-r; Einheimische/-r"},{"en":"package tour","de":"Pauschalreise"},{"en":"perspective","de":"Perspektive; Blickwinkel"},{"en":"mix","de":"Mischung"},{"en":"unforgettable","de":"unvergesslich"},{"en":"arrival","de":"Ankunft"},{"en":"pace","de":"Geschwindigkeit; Gangart"},{"en":"overall","de":"allgemein; Gesamt-"},{"en":"tasty","de":"lecker; schmackhaft"},{"en":"a must-see","de":"unbedingt empfehlenswert"},{"en":"prisoner","de":"Gefangene/-r; Häftling; Sträfling"},{"en":"death","de":"Tod"},{"en":"stall","de":"Stand; Bude"}],"game":{"type":"hangman","pool":[{"spell":"flexible","de":"flexibel"},{"spell":"practical","de":"praktisch"},{"spell":"wasteful","de":"verschwenderisch"},{"spell":"illness","de":"Krankheit"},{"spell":"local","de":"Ortsansässige/-r; Einheimische/-r"},{"spell":"perspective","de":"Perspektive; Blickwinkel"},{"spell":"mix","de":"Mischung"},{"spell":"unforgettable","de":"unvergesslich"},{"spell":"arrival","de":"Ankunft"},{"spell":"pace","de":"Geschwindigkeit; Gangart"},{"spell":"overall","de":"allgemein; Gesamt-"},{"spell":"tasty","de":"lecker; schmackhaft"},{"spell":"prisoner","de":"Gefangene/-r; Häftling; Sträfling"},{"spell":"death","de":"Tod"},{"spell":"stall","de":"Stand; Bude"}]}},{"name":"Story: Where I belong (1/2)","words":[{"en":"catalogue","de":"Katalog; Broschüre"},{"en":"to require","de":"benötigen; erfordern"},{"en":"based on","de":"basierend auf; beruhend auf"},{"en":"criterion, criteria (pl)","de":"Kriterium; Kriterien (Pl.)"},{"en":"alternative","de":"Alternative"},{"en":"to draw up, drew up, drawn up","de":"entwerfen"},{"en":"introduction","de":"Einführung; Einleitung"},{"en":"where I belong","de":"wo ich hingehöre"},{"en":"to lead, led, led","de":"führen; anführen"},{"en":"responsible","de":"verantwortlich; zuständig"},{"en":"to change one’s mind","de":"seine Meinung ändern"},{"en":"to accept","de":"akzeptieren; hinnehmen; annehmen"},{"en":"mask","de":"Maske"},{"en":"smuggler","de":"Schmuggler/-in"},{"en":"overloaded","de":"überladen"},{"en":"shark","de":"Hai"},{"en":"crushed","de":"eingequetscht; eingeklemmt"},{"en":"to rock","de":"schaukeln"},{"en":"to smash","de":"zerschlagen; zerschmettern"},{"en":"to survive","de":"überleben"},{"en":"to close oneself away from","de":"sich abschotten von"},{"en":"to give sb a piggyback","de":"jmdn. Huckepack nehmen"},{"en":"checkpoint","de":"Kontrollpunkt"}],"game":{"type":"tempo","items":[{"en":"catalogue","de":"Katalog; Broschüre"},{"en":"to require","de":"benötigen; erfordern"},{"en":"based on","de":"basierend auf; beruhend auf"},{"en":"criterion, criteria (pl)","de":"Kriterium; Kriterien (Pl.)"},{"en":"alternative","de":"Alternative"},{"en":"to draw up, drew up, drawn up","de":"entwerfen"},{"en":"introduction","de":"Einführung; Einleitung"},{"en":"where I belong","de":"wo ich hingehöre"},{"en":"to lead, led, led","de":"führen; anführen"},{"en":"responsible","de":"verantwortlich; zuständig"},{"en":"to change one’s mind","de":"seine Meinung ändern"},{"en":"to accept","de":"akzeptieren; hinnehmen; annehmen"},{"en":"mask","de":"Maske"},{"en":"smuggler","de":"Schmuggler/-in"},{"en":"overloaded","de":"überladen"},{"en":"shark","de":"Hai"},{"en":"crushed","de":"eingequetscht; eingeklemmt"},{"en":"to rock","de":"schaukeln"},{"en":"to smash","de":"zerschlagen; zerschmettern"},{"en":"to survive","de":"überleben"},{"en":"to close oneself away from","de":"sich abschotten von"},{"en":"to give sb a piggyback","de":"jmdn. Huckepack nehmen"},{"en":"checkpoint","de":"Kontrollpunkt"}]}},{"name":"Story: Where I belong (2/2)","words":[{"en":"to concentrate (on)","de":"(sich) konzentrieren (auf)"},{"en":"steady","de":"kontinuierlich; unaufhörlich"},{"en":"depressing","de":"deprimierend; bedrückend"},{"en":"drizzle","de":"Nieselregen"},{"en":"to cover","de":"abdecken; bedecken; zudecken"},{"en":"concrete","de":"Beton"},{"en":"official (= Person)","de":"Beamter/Beamtin"},{"en":"useless","de":"nutzlos"},{"en":"invisible","de":"unsichtbar"},{"en":"phone box","de":"Telefonzelle"},{"en":"to fetch","de":"holen; abholen"},{"en":"on one’s own","de":"allein; für sich"},{"en":"to press","de":"drücken; pressen"},{"en":"button","de":"Knopf"},{"en":"Somali","de":"Somali; somalisch"},{"en":"straight","de":"gerade; direkt; geradewegs"},{"en":"to hesitate","de":"zögern"},{"en":"refugee","de":"Flüchtling"},{"en":"narrator","de":"Erzähler/-in"},{"en":"gadget","de":"Gerät; technische Spielerei"},{"en":"climate","de":"Klima"},{"en":"to be homesick","de":"Heimweh haben"}],"game":{"type":"memory","pairs":[["to concentrate (on)","(sich) konzentrieren (auf)"],["steady","kontinuierlich; unaufhörlich"],["depressing","deprimierend; bedrückend"],["drizzle","Nieselregen"],["to cover","abdecken; bedecken; zudecken"],["concrete","Beton"],["official (= Person)","Beamter/Beamtin"],["useless","nutzlos"]]}},{"name":"Action UK! The guitar lesson","words":[{"en":"guitar","de":"Gitarre"},{"en":"I go wherever the wind takes me.","de":"Ich lasse mich treiben."},{"en":"future","de":"zukünftig; Zukunfts-"},{"en":"origin","de":"Ursprung; Herkunft; Abstam- mung"},{"en":"outgoing","de":"kontaktfreudig"},{"en":"easy-going","de":"locker; unkompliziert"},{"en":"genre","de":"Gattung; Genre"},{"en":"to be set in","de":"spielen in"},{"en":"unreal","de":"unwirklich"},{"en":"romance","de":"Liebesgeschichte; Liebesfilm"},{"en":"specific","de":"spezifisch; speziell"},{"en":"era","de":"Ära; Zeitalter"},{"en":"lavish","de":"üppig; verschwenderisch"},{"en":"magic","de":"Magie; Zauberei"},{"en":"supernatural","de":"übernatürlich"},{"en":"force","de":"Kraft; Macht"},{"en":"mythical","de":"sagenhaft; sagenumwoben"},{"en":"the rest","de":"der Rest"},{"en":"emergency","de":"Notfall; Notlage"},{"en":"booklet","de":"Broschüre; Heft"},{"en":"to sort","de":"sortieren"}],"game":{"type":"hangman","pool":[{"spell":"guitar","de":"Gitarre"},{"spell":"future","de":"zukünftig; Zukunfts-"},{"spell":"origin","de":"Ursprung; Herkunft; Abstam- mung"},{"spell":"outgoing","de":"kontaktfreudig"},{"spell":"genre","de":"Gattung; Genre"},{"spell":"unreal","de":"unwirklich"},{"spell":"romance","de":"Liebesgeschichte; Liebesfilm"},{"spell":"specific","de":"spezifisch; speziell"},{"spell":"era","de":"Ära; Zeitalter"},{"spell":"lavish","de":"üppig; verschwenderisch"},{"spell":"magic","de":"Magie; Zauberei"},{"spell":"supernatural","de":"übernatürlich"},{"spell":"force","de":"Kraft; Macht"},{"spell":"mythical","de":"sagenhaft; sagenumwoben"},{"spell":"emergency","de":"Notfall; Notlage"},{"spell":"booklet","de":"Broschüre; Heft"},{"spell":"sort","de":"sortieren"}]}}]},"zusatz1":{"title":"Text and media smart","sections":[{"name":"TMS 1: Check-in","words":[{"en":"songwriter","de":"Liedermacher/-in; Songschreiber/-in"},{"en":"poet","de":"Dichter/-in"},{"en":"concert","de":"Konzert"},{"en":"shape poem","de":"Formgedicht; Gestaltgedicht"},{"en":"nursery rhyme","de":"Kinderreim; Kinderlied"},{"en":"poetry","de":"Lyrik; Poesie; Dichtung; Gedichte"},{"en":"to get ready","de":"sich vorbereiten; sich fertig machen"},{"en":"to entertain sb","de":"jmdn. unterhalten; jmdn. beschäftigen"},{"en":"literature","de":"Literatur"},{"en":"emotion","de":"Gefühl; Emotion"},{"en":"occasion","de":"Anlass; Ereignis; Gelegenheit"}],"game":{"type":"memory","pairs":[["songwriter","Liedermacher/-in; Songschreiber/-in"],["poet","Dichter/-in"],["concert","Konzert"],["shape poem","Formgedicht; Gestaltgedicht"],["nursery rhyme","Kinderreim; Kinderlied"],["poetry","Lyrik; Poesie; Dichtung; Gedichte"],["to get ready","sich vorbereiten; sich fertig machen"],["to entertain sb","jmdn. unterhalten; jmdn. beschäftigen"]]}},{"name":"TMS 1: Station 1: Say it with a song (1/2)","words":[{"en":"impression","de":"Eindruck; Impression"},{"en":"to sign","de":"unterschreiben; unterzeichnen"},{"en":"laugh","de":"Lachen"},{"en":"you’ve got my back","de":"du stehst hinter mir"},{"en":"shell","de":"Schale; Muschel"},{"en":"ground","de":"Boden; Erdboden"},{"en":"to be out of chances","de":"keine Chance mehr haben"},{"en":"to hang on","de":"warten; durchhalten"},{"en":"ups and downs","de":"Höhen und Tiefen"},{"en":"to pretend","de":"tun als ob; vortäuschen"},{"en":"to escape","de":"fliehen; entfliehen; flüchten; entkommen"},{"en":"to free","de":"befreien; freilassen"},{"en":"cage","de":"Käfig"},{"en":"lie","de":"Lüge"},{"en":"ear","de":"Ohr"}],"game":{"type":"hangman","pool":[{"spell":"impression","de":"Eindruck; Impression"},{"spell":"sign","de":"unterschreiben; unterzeichnen"},{"spell":"laugh","de":"Lachen"},{"spell":"shell","de":"Schale; Muschel"},{"spell":"ground","de":"Boden; Erdboden"},{"spell":"pretend","de":"tun als ob; vortäuschen"},{"spell":"escape","de":"fliehen; entfliehen; flüchten; entkommen"},{"spell":"free","de":"befreien; freilassen"},{"spell":"cage","de":"Käfig"},{"spell":"lie","de":"Lüge"},{"spell":"ear","de":"Ohr"}]}},{"name":"TMS 1: Station 1: Say it with a song (2/2)","words":[{"en":"closed","de":"geschlossen; zu"},{"en":"catchy","de":"eingängig; einprägsam"},{"en":"chorus","de":"Refrain"},{"en":"to repeat","de":"wiederholen"},{"en":"to emphasize","de":"betonen; hervorheben"},{"en":"to keep one’s feet or","de":"die Beine und Hände ruhig"},{"en":"to sing along, sang along, sung along","de":"mitsingen"},{"en":"to get sth out of one’s head","de":"etw. aus dem Kopf bekommen; von einem Gedanken los- kommen"},{"en":"effect","de":"Effekt; Wirkung"},{"en":"rhythm","de":"Rhythmus"},{"en":"rhythmic","de":"rhythmisch; gleichmäßig"},{"en":"beat","de":"Takt; Schlag"},{"en":"terms","de":"Bestimmungen; Bedingungen"},{"en":"legal","de":"legal; rechtlich; Rechts-"}],"game":{"type":"tempo","items":[{"en":"closed","de":"geschlossen; zu"},{"en":"catchy","de":"eingängig; einprägsam"},{"en":"chorus","de":"Refrain"},{"en":"to repeat","de":"wiederholen"},{"en":"to emphasize","de":"betonen; hervorheben"},{"en":"to keep one’s feet or","de":"die Beine und Hände ruhig"},{"en":"to sing along, sang along, sung along","de":"mitsingen"},{"en":"to get sth out of one’s head","de":"etw. aus dem Kopf bekommen; von einem Gedanken los- kommen"},{"en":"effect","de":"Effekt; Wirkung"},{"en":"rhythm","de":"Rhythmus"},{"en":"rhythmic","de":"rhythmisch; gleichmäßig"},{"en":"beat","de":"Takt; Schlag"},{"en":"terms","de":"Bestimmungen; Bedingungen"},{"en":"legal","de":"legal; rechtlich; Rechts-"}]}},{"name":"TMS 1: Station 2: Say it with a poem","words":[{"en":"bookshop","de":"Buchhandlung"},{"en":"to prefer","de":"vorziehen; bevorzugen"},{"en":"to have in common","de":"gemein haben"},{"en":"trust","de":"Vertrauen"},{"en":"second","de":"Sekunde"},{"en":"to stick, stuck, stuck","de":"kleben; stecken"},{"en":"glue","de":"Klebstoff"},{"en":"bright","de":"leuchtend; strahlend; hell"},{"en":"responsibility","de":"Verantwortung"},{"en":"cleverness","de":"Schlauheit; Klugheit; Cleverness"},{"en":"stranger","de":"Fremde/-r"},{"en":"magnet","de":"Magnet"},{"en":"no matter","de":"egal; ganz gleich"},{"en":"to last","de":"dauern; andauern; anhalten"},{"en":"to remind (sb of sth/sb)","de":"(jmdn. an etw./jmdn.) erinnern"},{"en":"evidence (no pl)","de":"Beweis; Beleg; Beweismaterial"},{"en":"to leave out","de":"weglassen; auslassen"},{"en":"common","de":"üblich; gewöhnlich; (weit) verbreitet; gebräuchlich"},{"en":"to rhyme","de":"(sich) reimen"},{"en":"one another","de":"einander; gegenseitig"}],"game":{"type":"memory","pairs":[["bookshop","Buchhandlung"],["to prefer","vorziehen; bevorzugen"],["to have in common","gemein haben"],["trust","Vertrauen"],["second","Sekunde"],["to stick, stuck, stuck","kleben; stecken"],["glue","Klebstoff"],["bright","leuchtend; strahlend; hell"]]}},{"name":"TMS 2: Station 1: Formal communication (1/2)","words":[{"en":"informal","de":"informell; zwanglos; inoffiziell"},{"en":"to be related to","de":"sich beziehen auf; verwandt sein mit"},{"en":"destination","de":"Ziel; Reiseziel"},{"en":"direct","de":"direkt; unmittelbar"},{"en":"to inform","de":"informieren"},{"en":"Yours sincerely,","de":"Mit freundlichen Grüßen,"},{"en":"head teacher","de":"Schulleiter/-in"},{"en":"manager","de":"Geschäftsführer/-in; Leiter/-in; Manager/-in"},{"en":"available","de":"verfügbar; erhältlich"},{"en":"paragraph","de":"Absatz; Paragraf"},{"en":"recipient","de":"Empfänger/-in"},{"en":"to contain","de":"enthalten"},{"en":"unnecessary","de":"unnötig; überflüssig; verzichtbar"}],"game":{"type":"hangman","pool":[{"spell":"informal","de":"informell; zwanglos; inoffiziell"},{"spell":"destination","de":"Ziel; Reiseziel"},{"spell":"direct","de":"direkt; unmittelbar"},{"spell":"inform","de":"informieren"},{"spell":"manager","de":"Geschäftsführer/-in; Leiter/-in; Manager/-in"},{"spell":"available","de":"verfügbar; erhältlich"},{"spell":"paragraph","de":"Absatz; Paragraf"},{"spell":"recipient","de":"Empfänger/-in"},{"spell":"contain","de":"enthalten"},{"spell":"unnecessary","de":"unnötig; überflüssig; verzichtbar"}]}},{"name":"TMS 2: Station 1: Formal communication (2/2)","words":[{"en":"purpose","de":"Ziel; Absicht; Zweck"},{"en":"postal address","de":"Postanschrift"},{"en":"payment","de":"Bezahlung; Vergütung"},{"en":"married","de":"verheiratet"},{"en":"Ms","de":"Frau (Anrede)"},{"en":"permission","de":"Erlaubnis; Genehmigung"},{"en":"signature","de":"Unterschrift"},{"en":"sender","de":"Absender/-in"},{"en":"envelope","de":"Umschlag; Briefumschlag"},{"en":"stamp","de":"Briefmarke"},{"en":"semi-","de":"halb-; Halb-"},{"en":"absolutely","de":"völlig; absolut"},{"en":"Best wishes,","de":"Viele Grüße,; Herzliche Grüße,"}],"game":{"type":"tempo","items":[{"en":"purpose","de":"Ziel; Absicht; Zweck"},{"en":"postal address","de":"Postanschrift"},{"en":"payment","de":"Bezahlung; Vergütung"},{"en":"married","de":"verheiratet"},{"en":"Ms","de":"Frau (Anrede)"},{"en":"permission","de":"Erlaubnis; Genehmigung"},{"en":"signature","de":"Unterschrift"},{"en":"sender","de":"Absender/-in"},{"en":"envelope","de":"Umschlag; Briefumschlag"},{"en":"stamp","de":"Briefmarke"},{"en":"semi-","de":"halb-; Halb-"},{"en":"absolutely","de":"völlig; absolut"},{"en":"Best wishes,","de":"Viele Grüße,; Herzliche Grüße,"}]}},{"name":"TMS 2: Station 2: Informal communication","words":[{"en":"gonna (= going to) (coll)","de":"werden"},{"en":"loads (of)","de":"viel/-e; jede Menge"},{"en":"to abbreviate","de":"abkürzen"},{"en":"icon","de":"Symbol; Ikone"},{"en":"to replace (by/with)","de":"ersetzen (durch)"},{"en":"husband","de":"Ehemann"},{"en":"Get well soon!","de":"Gute Besserung!"},{"en":"Congratulations!","de":"Glückwunsch!; Gratuliere!"},{"en":"hug","de":"Umarmung"},{"en":"kiss","de":"Kuss"},{"en":"Hooray!","de":"Hurra!"},{"en":"neutral","de":"neutral"}],"game":{"type":"memory","pairs":[["gonna (= going to) (coll)","werden"],["loads (of)","viel/-e; jede Menge"],["to abbreviate","abkürzen"],["icon","Symbol; Ikone"],["to replace (by/with)","ersetzen (durch)"],["husband","Ehemann"],["Get well soon!","Gute Besserung!"],["Congratulations!","Glückwunsch!; Gratuliere!"]]}}]},"zusatz2":{"title":"Across cultures & Trailer","sections":[{"name":"Reacting to a new situation","words":[{"en":"plate","de":"Teller"},{"en":"mug","de":"Becher"},{"en":"cup","de":"Tasse"},{"en":"bread roll","de":"Brötchen"},{"en":"butter","de":"Butter"},{"en":"marmalade","de":"Orangenmarmelade"},{"en":"honey","de":"Honig"},{"en":"muesli","de":"Müsli"},{"en":"ham","de":"Schinken"},{"en":"sausage","de":"Wurst; Bratwurst"},{"en":"host family","de":"Gastfamilie"},{"en":"exchange student","de":"Austauschschüler/-in"},{"en":"unfamiliar","de":"nicht vertraut; unbekannt"},{"en":"appropriate","de":"angemessen"},{"en":"to make sb angry","de":"jmdn. wütend machen; jmdn. verärgern"},{"en":"to upset, upset, upset","de":"aus der Fassung bringen"},{"en":"gratitude","de":"Dankbarkeit"},{"en":"impolite","de":"unhöflich"},{"en":"hot","de":"heiß"},{"en":"this early","de":"so früh"},{"en":"that much","de":"so viel"},{"en":"to be used to","de":"gewöhnt sein an; gewohnt sein"}],"game":{"type":"memory","pairs":[["plate","Teller"],["mug","Becher"],["cup","Tasse"],["bread roll","Brötchen"],["butter","Butter"],["marmalade","Orangenmarmelade"],["honey","Honig"],["muesli","Müsli"]]}},{"name":"Making small talk","words":[{"en":"to get to know","de":"kennen lernen"},{"en":"light","de":"leicht"},{"en":"pattern","de":"Muster"},{"en":"talker","de":"Sprecher/-in"},{"en":"to hog a conversation","de":"ein Gespräch für sich in Beschlag nehmen; ein Gespräch dominieren"},{"en":"to keep the ball bouncing","de":"hier: das Gespräch am Laufen halten"},{"en":"to move in/into","de":"einziehen in"},{"en":"next door","de":"(von) nebenan"},{"en":"to bounce","de":"springen; hüpfen"},{"en":"to check out (coll)","de":"abchecken; auschecken; prüfen"},{"en":"Cheers!","de":"Danke!"},{"en":"to catch, caught, caught","de":"mitbekommen (ugs.); mitkriegen (ugs.)"},{"en":"student exchange","de":"Schüleraustausch"},{"en":"stage direction","de":"Regieanweisung"},{"en":"hint","de":"Hinweis; Andeutung; Tipp"},{"en":"to the point","de":"prägnant; treffend"}],"game":{"type":"hangman","pool":[{"spell":"light","de":"leicht"},{"spell":"pattern","de":"Muster"},{"spell":"talker","de":"Sprecher/-in"},{"spell":"bounce","de":"springen; hüpfen"},{"spell":"catch","de":"mitbekommen (ugs.); mitkriegen (ugs.)"},{"spell":"hint","de":"Hinweis; Andeutung; Tipp"}]}},{"name":"Dos and don’ts","words":[{"en":"dos and don’ts","de":"Ge- und Verbote; was man tun und was man nicht tun sollte"},{"en":"behaviour (no pl)","de":"Verhalten; Benehmen; Betragen"},{"en":"to hold open","de":"aufhalten"},{"en":"to litter","de":"verschmutzen; Müll herumlie- gen lassen; verunreinigen"},{"en":"among","de":"unter; inmitten"},{"en":"odd","de":"seltsam; komisch"},{"en":"to go on","de":"geschehen; los sein; ablaufen"},{"en":"to guess","de":"annehmen; vermuten; raten; erraten"},{"en":"custom","de":"Gewohnheit; Brauch; Sitte"},{"en":"icebreaker","de":"Eisbrecher (Sätze, um mit jmdm. ins Gespräch zu kommen)"},{"en":"glad","de":"froh; dankbar"},{"en":"crowded","de":"überfüllt"},{"en":"chapter","de":"Kapitel"},{"en":"manners (pl)","de":"Manieren; Benehmen"}],"game":{"type":"tempo","items":[{"en":"dos and don’ts","de":"Ge- und Verbote; was man tun und was man nicht tun sollte"},{"en":"behaviour (no pl)","de":"Verhalten; Benehmen; Betragen"},{"en":"to hold open","de":"aufhalten"},{"en":"to litter","de":"verschmutzen; Müll herumlie- gen lassen; verunreinigen"},{"en":"among","de":"unter; inmitten"},{"en":"odd","de":"seltsam; komisch"},{"en":"to go on","de":"geschehen; los sein; ablaufen"},{"en":"to guess","de":"annehmen; vermuten; raten; erraten"},{"en":"custom","de":"Gewohnheit; Brauch; Sitte"},{"en":"icebreaker","de":"Eisbrecher (Sätze, um mit jmdm. ins Gespräch zu kommen)"},{"en":"glad","de":"froh; dankbar"},{"en":"crowded","de":"überfüllt"},{"en":"chapter","de":"Kapitel"},{"en":"manners (pl)","de":"Manieren; Benehmen"}]}},{"name":"Walking in the Highlands feels great! (1/2)","words":[{"en":"return","de":"Rückkehr"},{"en":"hardly","de":"kaum"},{"en":"(not) any longer","de":"(nicht) mehr; (nicht) länger"},{"en":"trail","de":"Weg; Pfad"},{"en":"daily","de":"täglich"},{"en":"the wild","de":"Wildnis; freie Wildbahn"},{"en":"tent","de":"Zelt"},{"en":"howling","de":"heulend"},{"en":"firewood","de":"Brennholz"},{"en":"to warm","de":"aufwärmen"},{"en":"fire","de":"Feuer"},{"en":"to taste","de":"probieren; kosten; schmecken"},{"en":"tin","de":"Dose; Büchse"},{"en":"to carry","de":"hier: befördern; mit sich tragen"},{"en":"fence","de":"Zaun"},{"en":"military","de":"militärisch"}],"game":{"type":"memory","pairs":[["return","Rückkehr"],["hardly","kaum"],["(not) any longer","(nicht) mehr; (nicht) länger"],["trail","Weg; Pfad"],["daily","täglich"],["the wild","Wildnis; freie Wildbahn"],["tent","Zelt"],["howling","heulend"]]}},{"name":"Walking in the Highlands feels great! (2/2)","words":[{"en":"firing range","de":"Schießplatz"},{"en":"unmarked","de":"nicht gekennzeichnet"},{"en":"compass","de":"Kompass"},{"en":"hiker","de":"Wanderer/-in"},{"en":"air","de":"Luft"},{"en":"to smell, smelt, smelt","de":"riechen; duften"},{"en":"to experience","de":"erleben; erfahren"},{"en":"to dry","de":"trocknen"},{"en":"lost","de":"verloren"},{"en":"prepared","de":"vorbereitet"},{"en":"hostel","de":"Herberge"},{"en":"at least","de":"zumindest; mindestens; wenigstens"},{"en":"view (= Ausblick)","de":"Aussicht; Sicht; Ausblick; Blick"},{"en":"within","de":"innerhalb (von)"},{"en":"fog","de":"Nebel"},{"en":"to clear","de":"aufklaren"}],"game":{"type":"hangman","pool":[{"spell":"unmarked","de":"nicht gekennzeichnet"},{"spell":"compass","de":"Kompass"},{"spell":"hiker","de":"Wanderer/-in"},{"spell":"air","de":"Luft"},{"spell":"smell","de":"riechen; duften"},{"spell":"experience","de":"erleben; erfahren"},{"spell":"dry","de":"trocknen"},{"spell":"lost","de":"verloren"},{"spell":"prepared","de":"vorbereitet"},{"spell":"hostel","de":"Herberge"},{"spell":"view","de":"Aussicht; Sicht; Ausblick; Blick"},{"spell":"within","de":"innerhalb (von)"},{"spell":"fog","de":"Nebel"},{"spell":"clear","de":"aufklaren"}]}},{"name":"Robin Hood’s diary","words":[{"en":"power","de":"Kraft; Macht; Stärke"},{"en":"little","de":"wenig"},{"en":"ours","de":"unser/-er/-e/-es"},{"en":"to get out (of)","de":"verschwinden (von/aus)"},{"en":"theirs","de":"ihre/-r/-es"},{"en":"to be good with","de":"gut umgehen können mit"},{"en":"to turn in","de":"sich stellen"},{"en":"wise","de":"weise"},{"en":"to hunt","de":"jagen"},{"en":"terrible","de":"furchtbar; schrecklich; schlimm"},{"en":"all over","de":"überall (in)"},{"en":"pleasure","de":"Freude; Vergnügen"}],"game":{"type":"tempo","items":[{"en":"power","de":"Kraft; Macht; Stärke"},{"en":"little","de":"wenig"},{"en":"ours","de":"unser/-er/-e/-es"},{"en":"to get out (of)","de":"verschwinden (von/aus)"},{"en":"theirs","de":"ihre/-r/-es"},{"en":"to be good with","de":"gut umgehen können mit"},{"en":"to turn in","de":"sich stellen"},{"en":"wise","de":"weise"},{"en":"to hunt","de":"jagen"},{"en":"terrible","de":"furchtbar; schrecklich; schlimm"},{"en":"all over","de":"überall (in)"},{"en":"pleasure","de":"Freude; Vergnügen"}]}},{"name":"A trip to Dublin","words":[{"en":"bank holiday","de":"Feiertag"},{"en":"accommodation","de":"Unterkunft; Unterbringung"},{"en":"right","de":"direkt; genau"},{"en":"grand","de":"großartig; prächtig; o.k."},{"en":"yummy","de":"lecker"},{"en":"stew","de":"Eintopf"},{"en":"boxty","de":"irische Pfannkuchen aus Kartoffeln"},{"en":"pancake","de":"Pfannkuchen"},{"en":"secret","de":"geheim; Geheim-"},{"en":"last but not least","de":"zu guter Letzt"},{"en":"cosy","de":"gemütlich; kuschelig"},{"en":"pub","de":"Kneipe; Gasthaus"},{"en":"live","de":"live"},{"en":"tin whistle","de":"Blechflöte"},{"en":"Bodhrán","de":"traditionelle irische Trommel"},{"en":"fiddle","de":"Geige"},{"en":"to get","de":"verstehen; begreifen"},{"en":"thingy","de":"Dingsda"},{"en":"to perceive","de":"wahrnehmen; empfinden; betrachten"},{"en":"sleeve","de":"Ärmel"},{"en":"patron saint","de":"Nationalheiliger"},{"en":"Christianity","de":"Christentum"},{"en":"parade","de":"Parade; Umzug"}],"game":{"type":"memory","pairs":[["bank holiday","Feiertag"],["accommodation","Unterkunft; Unterbringung"],["right","direkt; genau"],["grand","großartig; prächtig; o.k."],["yummy","lecker"],["stew","Eintopf"],["boxty","irische Pfannkuchen aus Kartoffeln"],["pancake","Pfannkuchen"]]}}]}};
+
+
+  function groupById(id){
+    for (var i = 0; i < GROUPS.length; i++) if (GROUPS[i].id === id) return GROUPS[i];
+    return null;
+  }
+  function groupLabel(g){ return (g.kind === "unit" ? "Unit " + g.number : "Zusatzunit " + g.number) + " · " + g.title; }
+  function sectionsFor(groupId){ return (DATA[groupId] && DATA[groupId].sections) || []; }
+
+  // flache Wortliste ueber alle Kapitel, fuer globale Statistiken/Export/Merkliste
+  var ALL_WORDS = [];
+  var WORD_INDEX = {};
+  GROUPS.forEach(function(g){
+    sectionsFor(g.id).forEach(function(sec){
+      sec.words.forEach(function(w){
+        var entry = { en: w.en, de: w.de, section: sec.name, groupId: g.id };
+        ALL_WORDS.push(entry);
+        if (!WORD_INDEX[w.en]) WORD_INDEX[w.en] = entry;
+      });
+    });
+  });
+  function findWord(en){ return WORD_INDEX[en] || null; }
+
+  function pad(n){ return n < 10 ? "0" + n : "" + n; }
+  function todayStr(d){ d = d || new Date(); return d.getFullYear() + "-" + pad(d.getMonth()+1) + "-" + pad(d.getDate()); }
+  function yesterdayStr(todayIso){
+    var d = new Date(todayIso + "T00:00:00");
+    d.setDate(d.getDate() - 1);
+    return todayStr(d);
+  }
+
+  function defaultState(){
+    return {
+      v: 1,
+      currentGroupId: GROUPS[0].id,
+      wordAssessments: {}, // "en" -> "know" | "practice", ueber alle Kapitel
+      merkliste: [], // [{ en, de, section, reviewCount, addedAt }]
+      badgesSeen: [], // Namen der Abschnitte, deren Abzeichen-Animation schon gezeigt wurde
+      streakCount: 0,
+      lastVisitDate: null,
+      reducedMotion: null
+    };
+  }
+
+  function loadState(){
+    var raw;
+    try { raw = localStorage.getItem(STORAGE_KEY); } catch(e) { raw = null; }
+    if (!raw) return defaultState();
+    try {
+      var parsed = JSON.parse(raw);
+      var d = defaultState();
+      for (var k in d) { if (parsed[k] !== undefined) d[k] = parsed[k]; }
+      if (!groupById(d.currentGroupId)) d.currentGroupId = GROUPS[0].id;
+      return d;
+    } catch(e) { return defaultState(); }
+  }
+
+  function saveState(state){
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch(e) {}
+  }
+
+  // reine Funktion, damit sie ohne echtes Datum testbar ist
+  function computeStreak(prevCount, prevDateIso, todayIso){
+    if (prevDateIso === todayIso) return { count: prevCount || 1, date: todayIso };
+    if (prevDateIso === yesterdayStr(todayIso)) return { count: (prevCount || 0) + 1, date: todayIso };
+    return { count: 1, date: todayIso };
+  }
+
+  function applyDailyVisit(state){
+    var today = todayStr();
+    var result = computeStreak(state.streakCount, state.lastVisitDate, today);
+    state.streakCount = result.count;
+    state.lastVisitDate = result.date;
+    return state;
+  }
+
+  var MASTERY_REPEATS = 2; // so oft muss ein Merkliste-Wort erfolgreich wiederholt werden
+
+  function knownWordCount(state){
+    var n = 0;
+    for (var en in state.wordAssessments) if (state.wordAssessments[en] === "know") n++;
+    return n;
+  }
+
+  function sectionAssessedCount(state, section){
+    var n = 0;
+    section.words.forEach(function(w){ if (state.wordAssessments[w.en] !== undefined) n++; });
+    return n;
+  }
+
+  function sectionDoneCountForGroup(state, groupId){
+    var n = 0;
+    sectionsFor(groupId).forEach(function(sec){
+      if (sectionAssessedCount(state, sec) === sec.words.length) n++;
+    });
+    return n;
+  }
+
+  function wordsKnownForGroup(state, groupId){
+    var n = 0;
+    sectionsFor(groupId).forEach(function(sec){
+      sec.words.forEach(function(w){ if (state.wordAssessments[w.en] === "know") n++; });
+    });
+    return n;
+  }
+
+  function wordsTotalForGroup(groupId){
+    var n = 0;
+    sectionsFor(groupId).forEach(function(sec){ n += sec.words.length; });
+    return n;
+  }
+
+  function globalSectionDoneCount(state){
+    var n = 0;
+    GROUPS.forEach(function(g){ n += sectionDoneCountForGroup(state, g.id); });
+    return n;
+  }
+  function globalSectionTotal(){
+    var n = 0;
+    GROUPS.forEach(function(g){ n += sectionsFor(g.id).length; });
+    return n;
+  }
+
+  function merklisteIndex(state, en){
+    for (var i = 0; i < state.merkliste.length; i++) if (state.merkliste[i].en === en) return i;
+    return -1;
+  }
+
+  function addToMerkliste(state, word, sectionName){
+    if (merklisteIndex(state, word.en) !== -1) return;
+    state.merkliste.push({ en: word.en, de: word.de, section: sectionName || word.section || "", reviewCount: 0, addedAt: todayStr() });
+  }
+
+  function removeFromMerkliste(state, en){
+    var idx = merklisteIndex(state, en);
+    if (idx !== -1) state.merkliste.splice(idx, 1);
+  }
+
+  // Zentrale Bewertungslogik fuer Karteikarten: bei "practice" landet das Wort
+  // (neu) auf der Merkliste, bei "know" zaehlt eine erfolgreiche Wiederholung
+  // fuer ein Merkliste-Wort - nach MASTERY_REPEATS Erfolgen faellt es automatisch
+  // wieder herunter.
+  function assessWord(state, word, outcome, sectionName){
+    state.wordAssessments[word.en] = outcome;
+    var idx = merklisteIndex(state, word.en);
+    if (outcome === "practice") {
+      if (idx === -1) addToMerkliste(state, word, sectionName || word.section);
+      else state.merkliste[idx].reviewCount = 0;
+    } else if (outcome === "know" && idx !== -1) {
+      state.merkliste[idx].reviewCount++;
+      if (state.merkliste[idx].reviewCount >= MASTERY_REPEATS) removeFromMerkliste(state, word.en);
+    }
+  }
+
+  function computeAchievements(state){
+    return [
+      { id: "first-visit", label: "Erster Besuch", unlocked: state.streakCount >= 1 },
+      { id: "streak-3", label: "3 Tage in Folge", unlocked: state.streakCount >= 3 },
+      { id: "streak-7", label: "7 Tage in Folge", unlocked: state.streakCount >= 7 },
+      { id: "words-10", label: "Erste 10 Vokabeln gelernt", unlocked: knownWordCount(state) >= 10 },
+      { id: "words-100", label: "100 Vokabeln gelernt", unlocked: knownWordCount(state) >= 100 },
+      { id: "section-1", label: "Ersten Abschnitt geschafft", unlocked: globalSectionDoneCount(state) >= 1 },
+      { id: "wordlist-5", label: "5 Wörter auf der Merkliste", unlocked: state.merkliste.length >= 5 }
+    ];
+  }
+
+  var state = loadState();
+  applyDailyVisit(state);
+  saveState(state);
+
+  // ---- Rendering ----
+  var $ = function(id){ return document.getElementById(id); };
+
+  function render(){
+    var g = groupById(state.currentGroupId);
+    $("unitLabel").textContent = groupLabel(g);
+    var wordsLearned = wordsKnownForGroup(state, g.id);
+    var wordsTotal = wordsTotalForGroup(g.id);
+    $("wordsLabel").textContent = wordsLearned + " / " + wordsTotal + " Vokabeln";
+    var pct = wordsTotal > 0 ? Math.round(wordsLearned / wordsTotal * 100) : 0;
+    $("progressBar").style.width = pct + "%";
+    $("progressBar").setAttribute("aria-valuenow", String(pct));
+
+    var streakText = state.streakCount + " " + (state.streakCount === 1 ? "Tag" : "Tage") + " in Folge";
+    $("streakLabel").textContent = streakText;
+
+    var doneSections = sectionDoneCountForGroup(state, g.id);
+    var totalSections = sectionsFor(g.id).length;
+    var started = wordsLearned > 0 || doneSections > 0;
+    $("ctaTitle").textContent = started ? "Continue" : "Start";
+    $("ctaSub").textContent = started
+      ? (groupLabel(g) + " · Section " + doneSections + " of " + totalSections)
+      : (groupLabel(g) + " · Ready to start");
+
+    $("chaptersSub").textContent = GROUPS.length + " Kapitel";
+    $("wordlistSub").textContent = state.merkliste.length + " " + (state.merkliste.length === 1 ? "word" : "words");
+    $("achvSub").textContent = computeAchievements(state).filter(function(a){ return a.unlocked; }).length + " / " + computeAchievements(state).length;
+
+    var now = new Date();
+    var schoolYear = now.getMonth() >= 7 ? (now.getFullYear() + "/" + String(now.getFullYear()+1).slice(2))
+                                          : ((now.getFullYear()-1) + "/" + String(now.getFullYear()).slice(2));
+    $("schoolYearLabel").textContent = "Pelizaeus-Gymnasium Paderborn · Schuljahr " + schoolYear;
+
+    var page = $("page");
+    var reduce = state.reducedMotion === true || (state.reducedMotion === null && window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+    page.classList.toggle("motion-off", !!reduce);
+  }
+
+  // ---- Modal ----
+  var modalLayer = $("modalLayer");
+  var lastFocused = null;
+
+  function openModal(title, bodyNode){
+    $("modalTitle").textContent = title;
+    var body = $("modalBody");
+    body.innerHTML = "";
+    body.appendChild(bodyNode);
+    lastFocused = document.activeElement;
+    modalLayer.classList.add("open");
+    $("modalCloseBtn").focus();
+    document.addEventListener("keydown", onModalKeydown, true);
+  }
+
+  function closeModal(){
+    modalLayer.classList.remove("open");
+    document.removeEventListener("keydown", onModalKeydown, true);
+    if (lastFocused && typeof lastFocused.focus === "function") lastFocused.focus();
+  }
+
+  function onModalKeydown(e){
+    if (e.key === "Escape") { closeModal(); return; }
+    if (e.key !== "Tab") return;
+    var focusable = $("modal").querySelectorAll("button, [href], input, select, textarea, [tabindex]:not([tabindex='-1'])");
+    if (!focusable.length) return;
+    var first = focusable[0], last = focusable[focusable.length - 1];
+    if (e.shiftKey && document.activeElement === first) { last.focus(); e.preventDefault(); }
+    else if (!e.shiftKey && document.activeElement === last) { first.focus(); e.preventDefault(); }
+  }
+
+  Array.prototype.forEach.call(document.querySelectorAll("[data-close-modal]"), function(el){
+    el.addEventListener("click", closeModal);
+  });
+
+  function el(tag, props, children){
+    var e = document.createElement(tag);
+    if (props) for (var k in props) {
+      if (k === "className") e.className = props[k];
+      else if (k === "text") e.textContent = props[k];
+      else e.setAttribute(k, props[k]);
+    }
+    (children || []).forEach(function(c){ e.appendChild(c); });
+    return e;
+  }
+
+  function comingSoonModal(title, text){
+    var body = el("div", null, [ el("p", { text: text }) ]);
+    openModal(title, body);
+  }
+
+  // ---- Kapitel ----
+  function openChaptersModal(){
+    var body = document.createElement("div");
+    body.appendChild(el("p", { text: "Green Line 3 in vier Units plus zwei Zusatzunits (die Zwischenkapitel des Buchs). Alle sechs Kapitel sind startklar." }));
+    var list = el("ul", { className: "achv-list" });
+    GROUPS.forEach(function(g){
+      var isCurrent = g.id === state.currentGroupId;
+      var btn = el("button", { className: "achv" + (isCurrent ? " current" : ""), style: "width:100%;border:none;cursor:pointer;text-align:left;font:inherit;color:inherit" }, [
+        el("span", { className: "achv-dot" }),
+        el("span", { text: groupLabel(g) + (isCurrent ? " (aktuell)" : "") + " →" })
+      ]);
+      btn.addEventListener("click", function(){
+        state.currentGroupId = g.id;
+        saveState(state);
+        closeModal();
+        showView("unit");
+        render();
+      });
+      list.appendChild(el("li", null, [btn]));
+    });
+    body.appendChild(list);
+    openModal("Kapitel", body);
+  }
+
+  // ---- Optionen ----
+  function openOptionsModal(){
+    var body = document.createElement("div");
+
+    var row1 = el("div", { className: "field-row" }, [
+      el("label", { text: "Bewegungseffekte reduzieren", id: "reduceMotionLabel" }),
+    ]);
+    var sw = el("button", {
+      className: "switch",
+      role: "switch",
+      "aria-checked": String(state.reducedMotion === true),
+      "aria-labelledby": "reduceMotionLabel"
+    }, [ el("span", { className: "knob" }) ]);
+    sw.addEventListener("click", function(){
+      state.reducedMotion = state.reducedMotion === true ? false : true;
+      saveState(state);
+      render();
+      sw.setAttribute("aria-checked", String(state.reducedMotion === true));
+    });
+    row1.appendChild(sw);
+    body.appendChild(row1);
+
+    var exportBtn = el("button", { className: "btn-line", type: "button", text: "⤓ Fortschritt exportieren (.json)" });
+    exportBtn.style.marginTop = "14px";
+    exportBtn.addEventListener("click", downloadExport);
+    body.appendChild(exportBtn);
+
+    var resetBtn = el("button", { className: "btn-line danger", type: "button", text: "Fortschritt zurücksetzen" });
+    resetBtn.style.marginTop = "10px";
+    resetBtn.addEventListener("click", function(){
+      var ok = window.confirm("Fortschritt auf diesem Gerät wirklich zurücksetzen? Das kann nicht rückgängig gemacht werden.");
+      if (!ok) return;
+      Object.assign(state, defaultState());
+      applyDailyVisit(state);
+      saveState(state);
+      render();
+      closeModal();
+    });
+    body.appendChild(resetBtn);
+
+    openModal("Optionen", body);
+  }
+
+  function exportProgressData(){
+    return JSON.stringify({
+      exportiertAm: new Date().toISOString(),
+      aktuellesKapitel: groupLabel(groupById(state.currentGroupId)),
+      wordsLearned: knownWordCount(state),
+      wordsTotal: ALL_WORDS.length,
+      abschnitteFertig: globalSectionDoneCount(state),
+      abschnitteGesamt: globalSectionTotal(),
+      streakCount: state.streakCount,
+      merkliste: state.merkliste
+    }, null, 2);
+  }
+
+  function downloadExport(){
+    var json = exportProgressData();
+    var blob = new Blob([json], { type: "application/json" });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a");
+    a.href = url;
+    a.download = "vokabel-adventure-klasse7-fortschritt_" + todayStr() + ".json";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
+  }
+
+  // ---- Erfolge ----
+  function openAchievementsModal(){
+    var achievements = computeAchievements(state);
+    var list = el("ul", { className: "achv-list" });
+    achievements.forEach(function(a){
+      list.appendChild(el("li", { className: "achv" + (a.unlocked ? "" : " locked") }, [
+        el("span", { className: "achv-dot" }),
+        el("span", { text: a.label })
+      ]));
+    });
+    openModal("Erfolge", list);
+  }
+
+  // ---- Hilfe ----
+  function openHelpModal(){
+    var body = document.createElement("div");
+    body.appendChild(el("p", { text: "In „Kapitel“ wählst du eine der vier Units oder eine der zwei Zusatzunits. Danach lernst du die Vokabeln abschnittsweise mit Karteikarten oder als Übersicht. Karteikarte umdrehen: tippen oder Leertaste. „Muss ich üben“ und der Stern in der Übersicht legen ein Wort auf deine Merkliste — dort wiederholst du es, bis du es zweimal hintereinander sicher kannst." }));
+    body.appendChild(el("p", { text: "Dein Fortschritt wird nur auf diesem Gerät in diesem Browser gespeichert. Sichere ihn bei Bedarf über „Optionen → Fortschritt exportieren“, bevor du den Cache leerst oder das Gerät wechselst." }));
+    openModal("Hilfe", body);
+  }
+
+  // ---- Lehrkraft-Ansicht ----
+  function openTeacherModal(){
+    var g = groupById(state.currentGroupId);
+    var rows = [
+      ["Aktuelles Kapitel", groupLabel(g)],
+      ["Gelernte Vokabeln (gesamt)", knownWordCount(state) + " / " + ALL_WORDS.length],
+      ["Abschnitte fertig (gesamt)", globalSectionDoneCount(state) + " von " + globalSectionTotal()],
+      ["Serie (Tage in Folge)", String(state.streakCount)],
+      ["Merkliste", String(state.merkliste.length) + " Wörter"],
+      ["Letzter Besuch", state.lastVisitDate || "—"]
+    ];
+    var table = el("table", { className: "stat-table" });
+    rows.forEach(function(r){
+      table.appendChild(el("tr", null, [ el("td", { text: r[0] }), el("td", { text: r[1] }) ]));
+    });
+    var body = document.createElement("div");
+    body.appendChild(el("p", { text: "Geräte-lokale Übersicht — kein Server, keine Übertragung. Zum Vergleichen über mehrere Geräte: „Optionen → Fortschritt exportieren“." }));
+    body.appendChild(table);
+    openModal("Lehrkraft-Ansicht", body);
+  }
+
+  // ---- Views ----
+  var views = Array.prototype.slice.call(document.querySelectorAll(".page.view"));
+  var currentView = "start";
+  function showView(name){
+    currentView = name;
+    views.forEach(function(v){ v.classList.toggle("active", v.getAttribute("data-view") === name); });
+    if (name === "unit") renderUnitView();
+    else if (name === "merkliste") renderMerklisteView();
+    else if (name === "games") renderGamesList();
+    if (name !== "start") { try { window.scrollTo(0, 0); } catch(e) {} }
+  }
+
+  // ---- Kapitel-Ansicht (Abschnittsliste) ----
+  var CHECK_ICON_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"></path></svg>';
+
+  function buildSectionBadge(sec, animate){
+    var badge = el("div", { className: "sec-badge" + (animate ? " pop" : ""), "aria-hidden": "true" });
+    var glow = el("div", { className: "sec-badge-glow" });
+    var seal = document.createElement("div");
+    seal.className = "sec-badge-seal";
+    seal.innerHTML = CHECK_ICON_SVG;
+    badge.appendChild(glow);
+    badge.appendChild(seal);
+    if (animate) {
+      for (var i = 0; i < 8; i++) {
+        var spark = el("div", { className: "sec-badge-spark", style: "--a:" + (i * 45) + "deg" });
+        badge.appendChild(spark);
+      }
+    }
+    return badge;
+  }
+
+  var unitToastTimer = null;
+  function showUnitToast(text){
+    var toast = $("unitToast");
+    clearTimeout(unitToastTimer);
+    toast.textContent = text;
+    toast.classList.add("show");
+    unitToastTimer = setTimeout(function(){ toast.classList.remove("show"); }, 3200);
+  }
+
+  function renderUnitView(){
+    var g = groupById(state.currentGroupId);
+    var sections = sectionsFor(g.id);
+    $("unitCrumb").textContent = "Vokabel-Adventure · " + groupLabel(g);
+    $("unitPageTitle").textContent = g.title;
+    $("unitProgressSub").textContent = wordsKnownForGroup(state, g.id) + " / " + wordsTotalForGroup(g.id) + " Vokabeln gelernt · " +
+      sectionDoneCountForGroup(state, g.id) + " von " + sections.length + " Abschnitten fertig";
+    var list = $("sectionList");
+    list.innerHTML = "";
+    var freshlyEarned = [];
+    sections.forEach(function(sec, idx){
+      var done = sectionAssessedCount(state, sec);
+      var total = sec.words.length;
+      var isDone = done === total;
+      var badgeKey = g.id + "::" + sec.name;
+      var alreadySeen = state.badgesSeen.indexOf(badgeKey) !== -1;
+      var justEarned = isDone && !alreadySeen;
+      if (justEarned) freshlyEarned.push(badgeKey);
+
+      var infoChildren = [
+        el("div", { className: "sec-name", text: sec.name }),
+        el("div", { className: "sec-meta", text: done + " / " + total + " Wörter geübt" }),
+        el("div", { className: "sec-bar-track" }, [
+          el("div", { className: "sec-bar-fill", style: "width:" + Math.round(done / total * 100) + "%" })
+        ])
+      ];
+      var cardChildren = [
+        el("span", { className: "sec-num", text: String(idx + 1) }),
+        el("span", { className: "sec-info" }, infoChildren)
+      ];
+      if (isDone) cardChildren.push(buildSectionBadge(sec, justEarned));
+
+      var card = el("button", { className: "sec-card" + (isDone ? " done" : ""), type: "button" }, cardChildren);
+      card.addEventListener("click", function(){ openSection(idx); });
+      list.appendChild(card);
+    });
+    if (freshlyEarned.length) {
+      freshlyEarned.forEach(function(name){ state.badgesSeen.push(name); });
+      saveState(state);
+      showUnitToast("Geschafft: " + groupLabel(g) + "!");
+    }
+  }
+  $("unitBackBtn").addEventListener("click", function(){ showView("start"); });
+
+  // ---- Karteikarten-Baustein (wiederverwendbar fuer Abschnitt + Merkliste-Wiederholung) ----
+  // words: [{en, de, section?}]  onAssess(word, outcome) wird nach jeder Bewertung gerufen.
+  // Vorderseite zeigt Deutsch, Rueckseite Englisch (SuS werden von der Mutter-
+  // sprache zur Fremdsprache abgefragt).
+  function buildFlashcards(words, opts){
+    opts = opts || {};
+    var wrap = el("div", { className: "fc-wrap" });
+    if (!words.length) {
+      wrap.appendChild(el("div", { className: "fc-empty", text: opts.emptyText || "Keine Karten." }));
+      return wrap;
+    }
+    var progress = el("div", { className: "fc-progress" });
+    var track = el("div", { className: "fc-track" }, [ el("div", { className: "fc-track-fill" }) ]);
+    var trackFill = track.firstChild;
+
+    var card = el("div", { className: "flashcard", tabindex: "0", role: "button", "aria-label": "Karte umdrehen" });
+    var inner = el("div", { className: "flashcard-inner" });
+    var front = el("div", { className: "fc-face fc-front" }, [
+      el("span", { className: "fc-tag" }), el("span", { className: "fc-word" }), el("span", { className: "fc-hint", text: "Tippen oder Leertaste zum Umdrehen" })
+    ]);
+    var back = el("div", { className: "fc-face fc-back" }, [
+      el("span", { className: "fc-tag" }), el("span", { className: "fc-word" })
+    ]);
+    inner.appendChild(front); inner.appendChild(back);
+    card.appendChild(inner);
+
+    var controls = el("div", { className: "fc-controls" });
+    var prevBtn = el("button", { className: "fc-nav", type: "button", "aria-label": "Vorherige Karte", text: "‹" });
+    var nextBtn = el("button", { className: "fc-nav", type: "button", "aria-label": "Nächste Karte", text: "›" });
+    var assessRow = el("div", { className: "fc-assess" });
+    var knowBtn = el("button", { className: "know", type: "button" }, [ el("span", { className: "dot" }), el("span", { text: "Kann ich schon" }) ]);
+    var practiceBtn = el("button", { className: "practice", type: "button" }, [ el("span", { className: "dot" }), el("span", { text: "Muss ich üben" }) ]);
+    assessRow.appendChild(knowBtn); assessRow.appendChild(practiceBtn);
+    controls.appendChild(prevBtn); controls.appendChild(assessRow); controls.appendChild(nextBtn);
+
+    wrap.appendChild(progress); wrap.appendChild(track); wrap.appendChild(card); wrap.appendChild(controls);
+
+    var index = 0, flipped = false;
+
+    function setFlipped(v){ flipped = v; card.classList.toggle("flipped", flipped); }
+
+    function renderCard(){
+      if (index >= words.length) index = 0;
+      if (index < 0) index = words.length - 1;
+      var w = words[index];
+      front.querySelector(".fc-tag").textContent = w.section || opts.tag || "";
+      front.querySelector(".fc-word").textContent = w.de;
+      back.querySelector(".fc-tag").textContent = w.section || opts.tag || "";
+      back.querySelector(".fc-word").textContent = w.en;
+      progress.textContent = (index + 1) + " / " + words.length;
+      trackFill.style.width = Math.round((index + 1) / words.length * 100) + "%";
+      setFlipped(false);
+    }
+
+    function next(){ index++; renderCard(); }
+    function prev(){ index--; renderCard(); }
+
+    card.addEventListener("click", function(){ setFlipped(!flipped); });
+    card.addEventListener("keydown", function(e){
+      if (e.key === " " || e.key === "Enter") { e.preventDefault(); setFlipped(!flipped); }
+      else if (e.key === "ArrowRight") next();
+      else if (e.key === "ArrowLeft") prev();
+    });
+    prevBtn.addEventListener("click", prev);
+    nextBtn.addEventListener("click", next);
+    knowBtn.addEventListener("click", function(){
+      var w = words[index];
+      if (opts.onAssess) opts.onAssess(w, "know");
+      next();
+    });
+    practiceBtn.addEventListener("click", function(){
+      var w = words[index];
+      if (opts.onAssess) opts.onAssess(w, "practice");
+      next();
+    });
+
+    renderCard();
+    return wrap;
+  }
+
+  // ---- Übersicht-Baustein (wiederverwendbar) ----
+  // Spalte 1 bleibt Englisch (Erstsprache der Liste), Spalte 2 Deutsch.
+  function buildOverview(words, opts){
+    opts = opts || {};
+    var wrap = document.createElement("div");
+    var table = el("table", { className: "ov-table" });
+    words.forEach(function(w){
+      var starred = merklisteIndex(state, w.en) !== -1;
+      var known = state.wordAssessments[w.en] === "know";
+      var star = el("button", { className: "ov-star" + (starred ? " on" : ""), type: "button", "aria-pressed": String(starred), "aria-label": "Auf Merkliste" }, [document.createTextNode("★")]);
+      star.addEventListener("click", function(){
+        if (merklisteIndex(state, w.en) !== -1) removeFromMerkliste(state, w.en);
+        else addToMerkliste(state, w, w.section || opts.tag);
+        saveState(state);
+        star.classList.toggle("on");
+        var nowOn = star.classList.contains("on");
+        star.setAttribute("aria-pressed", String(nowOn));
+        render();
+        if (opts.onChange) opts.onChange();
+      });
+      var enCell = el("td", { className: "en" }, [
+        document.createTextNode(w.en)
+      ]);
+      if (known) {
+        enCell.appendChild(el("span", { className: "ov-known-badge", title: "Schon als gekonnt markiert" }, [
+          document.createTextNode("✓"),
+          el("span", { className: "sr-only", text: " – schon als gekonnt markiert" })
+        ]));
+      }
+      var tr = el("tr", { className: known ? "ov-row-known" : "" }, [
+        enCell,
+        el("td", { className: "de", text: w.de }),
+        el("td", { className: "mark" }, [star])
+      ]);
+      table.appendChild(tr);
+    });
+    wrap.appendChild(table);
+    return wrap;
+  }
+
+  // ---- Abschnitts-Ansicht ----
+  var currentSectionIndex = 0;
+  function openSection(idx){
+    currentSectionIndex = idx;
+    showView("section");
+    renderSectionView();
+  }
+  function renderSectionView(){
+    var g = groupById(state.currentGroupId);
+    var sections = sectionsFor(g.id);
+    var sec = sections[currentSectionIndex];
+    if (!sec) return;
+    $("sectionCrumb").textContent = "Vokabel-Adventure · " + groupLabel(g);
+    $("sectionTitle").textContent = sec.name;
+    $("sectionSub").textContent = sec.words.length + " Wörter · " + groupLabel(g) + ", Abschnitt " + (currentSectionIndex + 1) + " von " + sections.length;
+
+    var words = sec.words.map(function(w){ return { en: w.en, de: w.de, section: sec.name }; });
+
+    var flashPanel = $("secFlashPanel");
+    flashPanel.innerHTML = "";
+    flashPanel.appendChild(buildFlashcards(words, {
+      tag: sec.name,
+      onAssess: function(w, outcome){
+        assessWord(state, w, outcome, sec.name);
+        saveState(state);
+        render();
+        renderOverviewPanel();
+        renderUnitViewIfVisible();
+      }
+    }));
+
+    renderOverviewPanel();
+
+    function renderOverviewPanel(){
+      var ovPanel = $("secOverviewPanel");
+      ovPanel.innerHTML = "";
+      ovPanel.appendChild(buildOverview(words, { tag: sec.name }));
+    }
+  }
+  function renderUnitViewIfVisible(){ if (currentView === "unit") renderUnitView(); }
+
+  $("sectionBackBtn").addEventListener("click", function(){ showView("unit"); });
+  Array.prototype.forEach.call(document.querySelectorAll("[data-secmode]"), function(btn){
+    btn.addEventListener("click", function(){
+      var mode = btn.getAttribute("data-secmode");
+      Array.prototype.forEach.call(document.querySelectorAll("[data-secmode]"), function(b){
+        b.classList.remove("active"); b.setAttribute("aria-selected", "false");
+      });
+      btn.classList.add("active"); btn.setAttribute("aria-selected", "true");
+      Array.prototype.forEach.call(document.querySelectorAll("#viewSection [data-mode-panel]"), function(p){
+        p.classList.toggle("active", p.getAttribute("data-mode-panel") === mode);
+      });
+    });
+  });
+
+  // ---- Merkliste-Ansicht ----
+  function renderMerklisteList(){
+    $("mkCount").textContent = state.merkliste.length + " " + (state.merkliste.length === 1 ? "Wort" : "Wörter");
+    var wrap = $("mkListWrap");
+    wrap.innerHTML = "";
+    if (!state.merkliste.length) {
+      wrap.appendChild(el("div", { className: "fc-empty", text: "Deine Merkliste ist leer. Wörter landen hier über den Stern in der Übersicht oder über „Muss ich üben“ bei den Karteikarten." }));
+      return;
+    }
+    var list = el("div", { className: "mk-list" });
+    state.merkliste.forEach(function(m){
+      var dots = el("div", { className: "mk-progress" });
+      for (var i = 0; i < MASTERY_REPEATS; i++) {
+        dots.appendChild(el("span", { className: "dot" + (i < m.reviewCount ? " on" : "") }));
+      }
+      var removeBtn = el("button", { className: "mk-remove", type: "button", "aria-label": "Von Merkliste entfernen", text: "✕" });
+      removeBtn.addEventListener("click", function(en){
+        return function(){
+          removeFromMerkliste(state, en);
+          saveState(state);
+          render();
+          renderMerklisteList();
+        };
+      }(m.en));
+      list.appendChild(el("div", { className: "mk-row" }, [
+        el("div", { className: "mk-info" }, [
+          el("div", { className: "mk-en", text: m.en }),
+          el("div", { className: "mk-de", text: m.de + (m.section ? " · " + m.section : "") })
+        ]),
+        dots,
+        removeBtn
+      ]));
+    });
+    wrap.appendChild(list);
+  }
+  function renderMerklisteView(){
+    renderMerklisteList();
+    $("mkReviewPanel").innerHTML = "";
+    $("mkReviewPanel").classList.remove("active");
+  }
+  $("mkBackBtn").addEventListener("click", function(){ showView("start"); });
+  $("mkReviewBtn").addEventListener("click", function(){
+    var panel = $("mkReviewPanel");
+    if (!state.merkliste.length) { renderMerklisteView(); return; }
+    var words = state.merkliste.map(function(m){ return { en: m.en, de: m.de, section: m.section }; });
+    panel.innerHTML = "";
+    panel.classList.add("active");
+    panel.appendChild(buildFlashcards(words, {
+      emptyText: "Merkliste ist leer.",
+      onAssess: function(w, outcome){
+        var word = findWord(w.en) || w;
+        assessWord(state, word, outcome, w.section);
+        saveState(state);
+        render();
+        renderMerklisteList();
+      }
+    }));
+  });
+
+  // ---- Spiele: Uebersicht ----
+  var GAME_TYPE_LABEL = { memory: "Memory", hangman: "Galgenmännchen", tempo: "Tempo-Runde" };
+  var currentGameIndex = 0;
+
+  function shuffle(arr){
+    var a = arr.slice();
+    for (var i = a.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = a[i]; a[i] = a[j]; a[j] = t;
+    }
+    return a;
+  }
+
+  function renderGamesList(){
+    var g = groupById(state.currentGroupId);
+    var sections = sectionsFor(g.id);
+    $("gamesPageSub").textContent = "Ein Spiel pro Abschnitt aus " + groupLabel(g) + " — mal Memory, mal Galgenmännchen, mal Tempo-Runde.";
+    var list = $("gameList");
+    list.innerHTML = "";
+    sections.forEach(function(sec, idx){
+      var game = sec.game;
+      if (!game) return;
+      var card = el("button", { className: "sec-card", type: "button" }, [
+        el("span", { className: "sec-num", text: String(idx + 1) }),
+        el("span", { className: "sec-info" }, [
+          el("div", { className: "sec-name", text: sec.name })
+        ]),
+        el("span", { className: "game-type-chip " + game.type, text: GAME_TYPE_LABEL[game.type] })
+      ]);
+      card.addEventListener("click", function(){ openGame(idx); });
+      list.appendChild(card);
+    });
+  }
+  $("gamesBackBtn").addEventListener("click", function(){ showView("start"); });
+  $("gamePlayBackBtn").addEventListener("click", function(){ showView("games"); });
+
+  function openGame(idx){
+    currentGameIndex = idx;
+    var g = groupById(state.currentGroupId);
+    var sections = sectionsFor(g.id);
+    var sec = sections[idx];
+    var game = sec && sec.game;
+    if (!sec || !game) return;
+    $("gamePlayTitle").textContent = sec.name;
+    $("gamePlaySub").textContent = groupLabel(g) + " · " + GAME_TYPE_LABEL[game.type];
+    var body = $("gamePlayBody");
+    body.innerHTML = "";
+    if (game.type === "memory") body.appendChild(buildMemoryGame(game.pairs));
+    else if (game.type === "hangman") body.appendChild(buildHangmanGame(game.pool));
+    else body.appendChild(buildTempoGame(game.items));
+    showView("gameplay");
+  }
+
+  // ---- Memory: Englisch/Deutsch-Paare finden ----
+  function shortLabel(text){
+    var s = text.split(";")[0].split(",")[0].trim();
+    return s.length > 34 ? s.slice(0, 32) + "…" : s;
+  }
+
+  function buildMemoryGame(pairs){
+    var wrap = el("div", { className: "fc-wrap" });
+    var toolbar = el("div", { className: "mem-toolbar" }, [
+      el("span", null, [document.createTextNode("Paare: "), el("b", { id: "memPairs", text: "0 / " + pairs.length })]),
+      el("span", null, [document.createTextNode("Züge: "), el("b", { id: "memMoves", text: "0" })])
+    ]);
+    var grid = el("div", { className: "mem-grid" });
+    wrap.appendChild(toolbar);
+    wrap.appendChild(grid);
+
+    var cards = [];
+    pairs.forEach(function(pair, i){
+      cards.push({ label: shortLabel(pair[0]), pairId: i });
+      cards.push({ label: shortLabel(pair[1]), pairId: i });
+    });
+    cards = shuffle(cards);
+
+    var moves = 0, matched = 0, open = [], lock = false;
+    var pairsEl = toolbar.querySelector("#memPairs"), movesEl = toolbar.querySelector("#memMoves");
+
+    cards.forEach(function(card){
+      var btn = el("button", { className: "mem-card", type: "button", "aria-label": "Karte verdeckt" });
+      var inner = el("div", { className: "mem-card-inner" }, [
+        el("div", { className: "mem-face mem-face-back" }, [document.createTextNode("?")]),
+        el("div", { className: "mem-face mem-face-front" }, [
+          el("span", { className: "mem-word", text: card.label })
+        ])
+      ]);
+      btn.appendChild(inner);
+      btn.addEventListener("click", function(){
+        if (lock || btn.classList.contains("flipped") || btn.classList.contains("matched")) return;
+        btn.classList.add("flipped");
+        btn.setAttribute("aria-label", card.label);
+        open.push({ btn: btn, card: card });
+        if (open.length === 2) {
+          moves++; movesEl.textContent = String(moves);
+          lock = true;
+          var a = open[0], b = open[1];
+          if (a.card.pairId === b.card.pairId) {
+            a.btn.classList.add("matched"); b.btn.classList.add("matched");
+            matched++; pairsEl.textContent = matched + " / " + pairs.length;
+            open = []; lock = false;
+            if (matched === pairs.length) {
+              wrap.appendChild(el("div", { className: "mem-done", text: "🎉 Geschafft — alle Paare gefunden!" }));
+            }
+          } else {
+            setTimeout(function(){
+              a.btn.classList.remove("flipped"); a.btn.setAttribute("aria-label", "Karte verdeckt");
+              b.btn.classList.remove("flipped"); b.btn.setAttribute("aria-label", "Karte verdeckt");
+              open = []; lock = false;
+            }, 700);
+          }
+        }
+      });
+      grid.appendChild(btn);
+    });
+    return wrap;
+  }
+
+  // ---- Galgenmaennchen: Englisches Wort erraten, deutscher Hinweis ----
+  function buildHangmanGame(pool){
+    var items = pool;
+    var poolShuf = shuffle(items);
+    var idx = 0;
+    var LETTERS = "abcdefghijklmnopqrstuvwxyz".split("");
+    var MAX_WRONG = 6;
+    var wrap = el("div", { className: "game-card" });
+    var progress = el("div", { className: "game-progress" });
+    var hintLine = el("div", { className: "hang-hint" });
+    var wordDisplay = el("div", { className: "hang-word" });
+    var status = el("div", { className: "hang-status" });
+    var keys = el("div", { className: "hang-keys" });
+    var feedback = el("div", { className: "game-feedback" });
+    wrap.appendChild(progress); wrap.appendChild(hintLine); wrap.appendChild(wordDisplay);
+    wrap.appendChild(status); wrap.appendChild(keys); wrap.appendChild(feedback);
+
+    var guessed, wrongCount, finished;
+
+    function renderKeys(){
+      keys.innerHTML = "";
+      LETTERS.forEach(function(l){
+        var k = el("button", { className: "hang-key", type: "button", text: l });
+        k.addEventListener("click", function(){ guess(l, k); });
+        keys.appendChild(k);
+      });
+    }
+    function renderWord(item){
+      wordDisplay.textContent = item.spell.split("").map(function(ch){ return guessed.indexOf(ch) !== -1 ? ch : "_"; }).join(" ");
+    }
+    function start(){
+      if (idx >= poolShuf.length) {
+        progress.textContent = ""; hintLine.textContent = ""; wordDisplay.textContent = ""; status.textContent = ""; keys.innerHTML = "";
+        feedback.className = "game-feedback good";
+        feedback.textContent = "Alle Wörter durch!";
+        var restart = el("button", { className: "game-restart", type: "button", text: "Nochmal" });
+        restart.addEventListener("click", function(){ poolShuf = shuffle(items); idx = 0; start(); });
+        wrap.appendChild(restart);
+        return;
+      }
+      var item = poolShuf[idx];
+      guessed = []; wrongCount = 0; finished = false;
+      progress.textContent = (idx + 1) + " / " + poolShuf.length;
+      hintLine.textContent = "Hinweis: " + item.de;
+      status.textContent = "Fehlversuche: 0 / " + MAX_WRONG;
+      feedback.className = "game-feedback"; feedback.textContent = "";
+      renderKeys();
+      renderWord(item);
+    }
+    function guess(letter, btn){
+      if (finished) return;
+      var item = poolShuf[idx];
+      btn.disabled = true;
+      if (item.spell.indexOf(letter) !== -1) {
+        guessed.push(letter);
+        btn.classList.add("used-right");
+        renderWord(item);
+        if (item.spell.split("").every(function(ch){ return guessed.indexOf(ch) !== -1; })) {
+          finished = true;
+          feedback.className = "game-feedback good";
+          feedback.textContent = "✓ Geschafft: " + item.spell;
+          nextButton();
+        }
+      } else {
+        wrongCount++;
+        btn.classList.add("used-wrong");
+        status.textContent = "Fehlversuche: " + wrongCount + " / " + MAX_WRONG;
+        if (wrongCount >= MAX_WRONG) {
+          finished = true;
+          wordDisplay.textContent = item.spell.split("").join(" ");
+          feedback.className = "game-feedback bad";
+          feedback.textContent = "✗ Verloren — es war: " + item.spell;
+          nextButton();
+        }
+      }
+    }
+    function nextButton(){
+      Array.prototype.forEach.call(keys.querySelectorAll(".hang-key"), function(k){ k.disabled = true; });
+      var nextBtn = el("button", { className: "game-next", type: "button", text: "Weiter ›" });
+      nextBtn.addEventListener("click", function(){ idx++; start(); });
+      wrap.appendChild(nextBtn);
+    }
+    start();
+    return wrap;
+  }
+
+  // ---- Tempo-Runde: 60 Sekunden, Deutsch gezeigt, Englisch per Multiple-Choice ----
+  function buildTempoGame(items){
+    var TIME = 60;
+    var timeLeft = TIME, score = 0, running = false, timerId = null, current = null;
+    var wrap = el("div", { className: "game-card" });
+    var timer = el("div", { className: "tempo-timer", text: TIME + "s" });
+    var progress = el("div", { className: "game-score", text: "Punkte: 0" });
+    var word = el("div", { className: "tempo-word" });
+    var grid = el("div", { className: "tempo-grid" });
+    var feedback = el("div", { className: "game-feedback" });
+    var startBtn = el("button", { className: "tempo-start", type: "button", text: "Start" });
+    wrap.appendChild(timer); wrap.appendChild(progress); wrap.appendChild(word);
+    wrap.appendChild(grid); wrap.appendChild(feedback); wrap.appendChild(startBtn);
+
+    function nextQuestion(){
+      current = items[Math.floor(Math.random() * items.length)];
+      word.textContent = current.de;
+      var distractors = shuffle(items.filter(function(w){ return w.en !== current.en; })).slice(0, 3).map(function(w){ return w.en; });
+      var options = shuffle(distractors.concat([current.en]));
+      grid.innerHTML = "";
+      options.forEach(function(opt){
+        var btn = el("button", { className: "tempo-opt", type: "button", text: opt });
+        btn.addEventListener("click", function(){
+          if (!running) return;
+          if (opt === current.en) { btn.classList.add("correct"); score++; progress.textContent = "Punkte: " + score; }
+          else btn.classList.add("wrong");
+          setTimeout(nextQuestion, 250);
+        });
+        grid.appendChild(btn);
+      });
+      feedback.textContent = "";
+    }
+    function tick(){
+      timeLeft--;
+      timer.textContent = timeLeft + "s";
+      timer.classList.toggle("low", timeLeft <= 10);
+      if (timeLeft <= 0) endRound();
+    }
+    function endRound(){
+      running = false;
+      clearInterval(timerId);
+      grid.innerHTML = ""; word.textContent = "";
+      feedback.className = "game-feedback good";
+      feedback.textContent = "Zeit um! Endstand: " + score + " Punkte.";
+      startBtn.textContent = "Nochmal spielen";
+      startBtn.style.display = "block";
+    }
+    startBtn.addEventListener("click", function(){
+      running = true; timeLeft = TIME; score = 0;
+      timer.textContent = TIME + "s"; timer.classList.remove("low");
+      progress.textContent = "Punkte: 0"; feedback.textContent = "";
+      startBtn.style.display = "none";
+      nextQuestion();
+      timerId = setInterval(tick, 1000);
+    });
+    return wrap;
+  }
+
+  // ---- Drawer ----
+  var navDrawer = $("navDrawer");
+  var menuBtn = $("menuBtn");
+
+  function openDrawer(){
+    navDrawer.classList.add("open");
+    menuBtn.setAttribute("aria-expanded", "true");
+  }
+  function closeDrawer(){
+    navDrawer.classList.remove("open");
+    menuBtn.setAttribute("aria-expanded", "false");
+  }
+  menuBtn.addEventListener("click", function(){
+    navDrawer.classList.contains("open") ? closeDrawer() : openDrawer();
+  });
+  Array.prototype.forEach.call(document.querySelectorAll("[data-close-drawer]"), function(elm){
+    elm.addEventListener("click", closeDrawer);
+  });
+  document.addEventListener("keydown", function(e){
+    if (e.key === "Escape" && navDrawer.classList.contains("open")) closeDrawer();
+  });
+
+  function handleNav(key){
+    closeDrawer();
+    switch (key) {
+      case "continue": showView("unit"); break;
+      case "chapters": openChaptersModal(); break;
+      case "games": showView("games"); break;
+      case "wordlist": showView("merkliste"); break;
+      case "options": openOptionsModal(); break;
+      case "achievements": openAchievementsModal(); break;
+      case "help": openHelpModal(); break;
+      case "teacher": openTeacherModal(); break;
+    }
+  }
+
+  Array.prototype.forEach.call(document.querySelectorAll("[data-nav]"), function(btn){
+    btn.addEventListener("click", function(){ handleNav(btn.getAttribute("data-nav")); });
+  });
+  $("continueBtn").addEventListener("click", function(){ handleNav("continue"); });
+  $("chaptersTile").addEventListener("click", function(){ handleNav("chapters"); });
+  $("gamesTile").addEventListener("click", function(){ handleNav("games"); });
+  $("wordlistTile").addEventListener("click", function(){ handleNav("wordlist"); });
+  $("achievementsTile").addEventListener("click", function(){ handleNav("achievements"); });
+  $("optionsBtn").addEventListener("click", function(){ handleNav("options"); });
+  $("achievementsBtn").addEventListener("click", function(){ handleNav("achievements"); });
+  $("helpBtn").addEventListener("click", function(){ handleNav("help"); });
+  $("teacherBtn").addEventListener("click", function(){ handleNav("teacher"); });
+
+  render();
+
+  window.__game = {
+    STORAGE_KEY: STORAGE_KEY,
+    GROUPS: GROUPS,
+    DATA: DATA,
+    ALL_WORDS: ALL_WORDS,
+    MASTERY_REPEATS: MASTERY_REPEATS,
+    state: state,
+    render: render,
+    computeStreak: computeStreak,
+    computeAchievements: computeAchievements,
+    knownWordCount: function(){ return knownWordCount(state); },
+    sectionDoneCountGlobal: function(){ return globalSectionDoneCount(state); },
+    sectionDoneCountForGroup: function(groupId){ return sectionDoneCountForGroup(state, groupId); },
+    sectionAssessedCount: function(groupId, idx){ return sectionAssessedCount(state, sectionsFor(groupId)[idx]); },
+    assessWord: function(en, outcome){
+      var w = findWord(en); if (!w) return;
+      assessWord(state, w, outcome, w.section);
+      saveState(state); render();
+    },
+    toggleMerkliste: function(en){
+      var w = findWord(en); if (!w) return;
+      if (merklisteIndex(state, en) !== -1) removeFromMerkliste(state, en);
+      else addToMerkliste(state, w, w.section);
+      saveState(state); render();
+    },
+    completeSection: function(groupId, idx){
+      var sec = sectionsFor(groupId)[idx]; if (!sec) return;
+      sec.words.forEach(function(w){ state.wordAssessments[w.en] = "know"; });
+      saveState(state);
+    },
+    resetProgress: function(){
+      Object.assign(state, defaultState());
+      applyDailyVisit(state);
+      saveState(state);
+      render();
+    },
+    exportProgressData: exportProgressData,
+    openModal: openModal,
+    closeModal: closeModal,
+    handleNav: handleNav,
+    openDrawer: openDrawer,
+    closeDrawer: closeDrawer,
+    showView: showView,
+    openSection: openSection,
+    openGame: openGame,
+    setCurrentGroup: function(id){ if (!groupById(id)) return; state.currentGroupId = id; saveState(state); render(); },
+    currentGroupId: function(){ return state.currentGroupId; },
+    currentView: function(){ return currentView; },
+    isDrawerOpen: function(){ return navDrawer.classList.contains("open"); },
+    isModalOpen: function(){ return modalLayer.classList.contains("open"); }
+  };
+})();
+</script>
+</body>
+</html>

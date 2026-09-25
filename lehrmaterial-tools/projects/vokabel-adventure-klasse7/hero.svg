@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 700" width="1200" height="700" role="img" aria-label="Union Jack, die Flagge des Vereinigten Königreichs">
+  <rect width="1200" height="700" fill="#00247d"/>
+  <g stroke="#ffffff" stroke-width="150">
+    <line x1="0" y1="0" x2="1200" y2="700"/>
+    <line x1="1200" y1="0" x2="0" y2="700"/>
+  </g>
+  <g stroke="#cf142b" stroke-width="50">
+    <line x1="0" y1="0" x2="1200" y2="700"/>
+    <line x1="1200" y1="0" x2="0" y2="700"/>
+  </g>
+  <rect x="500" y="0" width="200" height="700" fill="#ffffff"/>
+  <rect x="0" y="260" width="1200" height="180" fill="#ffffff"/>
+  <rect x="540" y="0" width="120" height="700" fill="#cf142b"/>
+  <rect x="0" y="300" width="1200" height="100" fill="#cf142b"/>
+</svg>
