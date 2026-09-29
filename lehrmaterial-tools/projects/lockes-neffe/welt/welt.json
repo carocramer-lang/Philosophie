@@ -1,0 +1,195 @@
+{
+ "kachelgroesse": 16,
+ "breite": 96,
+ "hoehe": 54,
+ "legende": {
+  "#": "Weg/Platz, begehbar",
+  ".": "Wiese, begehbar (optional sperren)",
+  "X": "Hindernis",
+  "~": "Wasser",
+  "E": "Eingang (Tuer)"
+ },
+ "start": {
+  "x": 47,
+  "y": 36,
+  "hinweis": "Zentralplatz, suedlich des Brunnens"
+ },
+ "lernorte": {
+  "observatorium": {
+   "gebaeude": {
+    "x": 38,
+    "y": 4,
+    "w": 20,
+    "h": 12
+   },
+   "tuer": [
+    {
+     "x": 47,
+     "y": 15
+    },
+    {
+     "x": 48,
+     "y": 15
+    }
+   ],
+   "vorplatz": {
+    "x0": 44,
+    "y0": 16,
+    "x1": 51,
+    "y1": 18
+   }
+  },
+  "lesesaal": {
+   "gebaeude": {
+    "x": 7,
+    "y": 5,
+    "w": 16,
+    "h": 11
+   },
+   "tuer": [
+    {
+     "x": 14,
+     "y": 15
+    },
+    {
+     "x": 15,
+     "y": 15
+    }
+   ],
+   "vorplatz": {
+    "x0": 12,
+    "y0": 16,
+    "x1": 17,
+    "y1": 18
+   }
+  },
+  "salon": {
+   "gebaeude": {
+    "x": 7,
+    "y": 34,
+    "w": 14,
+    "h": 8
+   },
+   "tuer": [
+    {
+     "x": 13,
+     "y": 41
+    },
+    {
+     "x": 14,
+     "y": 41
+    }
+   ],
+   "vorplatz": {
+    "x0": 10,
+    "y0": 42,
+    "x1": 17,
+    "y1": 43
+   }
+  },
+  "druckerei": {
+   "gebaeude": {
+    "x": 67,
+    "y": 35,
+    "w": 16,
+    "h": 7
+   },
+   "tuer": [
+    {
+     "x": 74,
+     "y": 41
+    },
+    {
+     "x": 75,
+     "y": 41
+    }
+   ],
+   "vorplatz": {
+    "x0": 71,
+    "y0": 42,
+    "x1": 78,
+    "y1": 43
+   }
+  },
+  "akademie": {
+   "gebaeude": {
+    "x": 66,
+    "y": 4,
+    "w": 18,
+    "h": 12
+   },
+   "tuer": [
+    {
+     "x": 74,
+     "y": 15
+    },
+    {
+     "x": 75,
+     "y": 15
+    }
+   ],
+   "vorplatz": {
+    "x0": 71,
+    "y0": 16,
+    "x1": 78,
+    "y1": 18
+   }
+  }
+ },
+ "raster": [
+  "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX~~~~XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+  "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX~~~~XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+  "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX~~~~XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+  "XXX.........................XX..............................~~~~.............................XXX",
+  "XXX.XX..................XX..XX........XXXXXXXXXXXXXXXXXXXX..~~~~..XXXXXXXXXXXXXXXXXX.....XX..XXX",
+  "XXX.XX.XXXXXXXXXXXXXXXX.XX...........XXXXXXXXXXXXXXXXXXXXX..~~~~..XXXXXXXXXXXXXXXXXX.....XX..XXX",
+  "XXX....XXXXXXXXXXXXXXXX...............XXXXXXXXXXXXXXXXXXXXX.~~~~.XXXXXXXXXXXXXXXXXXX..XX.....XXX",
+  "XXX....XXXXXXXXXXXXXXXX..XX...XXXXXXX.XXXXXXXXXXXXXXXXXXXX..~~~~..XXXXXXXXXXXXXXXXXX..XX...XXXXX",
+  "XXX....XXXXXXXXXXXXXXXX..XX...X.....X.XXXXXXXXXXXXXXXXXXXX..~~~~..XXXXXXXXXXXXXXXXXX.......XXXXX",
+  "XXX.XX.XXXXXXXXXXXXXXXX.......XX...XX.XXXXXXXXXXXXXXXXXXXX..~~~~..XXXXXXXXXXXXXXXXXX.XX.XX...XXX",
+  "XXX.XX.XXXXXXXXXXXXXXXX....XX.X.....X.XXXXXXXXXXXXXXXXXXXXX.~~~~.XXXXXXXXXXXXXXXXXXX.XX.XX...XXX",
+  "XXX....XXXXXXXXXXXXXXXX..X.XX.X.XX..X.XXXXXXXXXXXXXXXXXXXX..~~~~..XXXXXXXXXXXXXXXXXX.........XXX",
+  "XXX.XX.XXXXXXXXXXXXXXXX.......X.XX..X.XXXXXXXXXXXXXXXXXXXX..~~~~..XXXXXXXXXXXXXXXXXX...XX....XXX",
+  "XXX.XX.XXXXXXXXXXXXXXXX....XX.X.....X.XXXXXXXXXXXXXXXXXXXX..~~~~..XXXXXXXXXXXXXXXXXX...XX..XXXXX",
+  "XXX....XXXXXXXXXXXXXXXX....XX.XX...XX.XXXXXXXXXXXXXXXXXXXXX.~~~~.XXXXXXXXXXXXXXXXXXX.......XXXXX",
+  "XXX.XX.XXXXXXXEEXXXXXXX.XX....X.....X.XXXXXXXXXEEXXXXXXXXX..~~~~..XXXXXXXXEEXXXXXXXX.........XXX",
+  "XXX.XX......######......XX.XX.XXX.XXX.......########........~~~~.......########............XXXXX",
+  "XXX.....XXX.######.XXX.....XX..........XXX..########..XXX...~~~~..XXX.X########X.XXX.......XXXXX",
+  "XXX........X######X........................X########X......XXXXXX......########..............XXX",
+  "XXX##########################################################################################XXX",
+  "XXX##########################################################################################XXX",
+  "XXX##########################################################################################XXX",
+  "XXX.....X...........X.....###.......X.........####.......X.XXXXXX..X..............X...###....XXX",
+  "XXX..XXXXXXXXXXXXXXXXXXXX.###.XXXXXX.....XX..X####X..XX.....~~~~..XXXXXX..XXXXXX.XXXX.###....XXX",
+  "XXX..XXXXXXXXXXXXXXXXXXXX.###.XXXXXX.X........####..........~~~~.XXXXXXX..XXXXXX.XXXX.###....XXX",
+  "XXX..XXXX~~~~~~XXXXXXXXXX.###.XXXXXX..####################..~~~~..XXXXXXX.XXXXXX.XXXX.###..XXXXX",
+  "XXX..XXXX~~~~~~XXXXXXXXXXX###XXXXXXX..#XX##############XX#..~~~~..XXXXXX..XXXXXX.XXXXX###X.XXXXX",
+  "XXX..XXXX~~~~~~XXXXXXXXXX.###.XXXXXX.X#XX##############XX#..~~~~..XXXXXX.XXXXXXX.XXXX.###....XXX",
+  "XXX..XXXXXXXXXXXXXXXXXXXX.###.XXXXXX..####################..~~~~.XXXXXXX..XXXXXX.XXXX.###..XXXXX",
+  "XXX..XXXXXXXXXXXXXXXXXXXX.###.XXXXXX..####################..~~~~..XXXXXX..XXXXXX.XXXX.###..XXXXX",
+  "XXX.......XX.....XX.......###........X########XXXX########XXXXXXXX......XX............###....XXX",
+  "XXX....XX.....XX....XX....####################XXXX#######################################....XXX",
+  "XXX....XX.....XX....XX.XX.####################XXXX#######################################....XXX",
+  "XXXXX..................XX.####################XXXX#######################################.XX.XXX",
+  "XXXXX..XXXXXXXXXXXXXX.....###........X####################XXXXXXXX....................###.XX.XXX",
+  "XXX....XXXXXXXXXXXXXX.....###.XXXXXX..####################..~~~~...XXXXXXXXXXXXXXXX...###....XXX",
+  "XXX.X..XXXXXXXXXXXXXX..X..###.XXXXXX..####################..~~~~.XXXXXXXXXXXXXXXXXXXX.###....XXX",
+  "XXX....XXXXXXXXXXXXXX.....###.XXXXXX.X#XXX############XXX#..~~~~~XXXXXXXXXXXXXXXXXXXX.###....XXX",
+  "XXX....XXXXXXXXXXXXXX....X###XXXXXXX..#XXX############XXX#..~~~~~XXXXXXXXXXXXXXXXXX..X###X.XXXXX",
+  "XXX....XXXXXXXXXXXXXX.....###.XXXXXX..#XXX############XXX#..~~~~~XXXXXXXXXXXXXXXXXX...###..XXXXX",
+  "XXX.X..XXXXXXXXXXXXXX...X.###.XXXXXX.X........####..........~~~~.XXXXXXXXXXXXXXXXXXXX.###....XXX",
+  "XXX....XXXXXXEEXXXXXX.....###.XXXXXX....XXXXXX####XXXXXX....~~~~...XXXXXXXEEXXXXXXXXX.###..XXXXX",
+  "XXX......X########X.......###.XXXXXXX.........####..........~~~~....XX.########.XX....###..XXXXX",
+  "XXX...X...########...X....###........X........####........XXXXXXX...XXX########X......###....XXX",
+  "XXX##########################################################################################XXX",
+  "XXX##########################################################################################XXX",
+  "XXX##########################################################################################XXX",
+  "XXX..................X........X..............X....X........XXXXXX.X.................X........XXX",
+  "XXX..XXXXXXXXXXXXX..X....XX......~~~~~~~~~....XX............~~~~.............................XXX",
+  "XXX..XXXXXXXXXXXXX...XX..XX...XX.~~~~~~~~~.XX.XX..XX...X.XX.~~~~.XX.XX.XX..XX..XX..X.X.....XXXXX",
+  "XXX..XXXXXXXXXXXXX............XX.~~~~~~~~~.XX.....XX.....XX.~~~~.XX.XX.XX..XX..XX..........XXXXX",
+  "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX~~~~XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+  "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX~~~~XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+  "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX~~~~XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+ ]
+}
