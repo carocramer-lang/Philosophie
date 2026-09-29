@@ -6,11 +6,11 @@ Topdown-Lernspiel zur Philosophie der fruehen Aufklaerung. Jonny will in die Aka
 Spielbare Oberwelt: Jonny laeuft durch die Stadt, betritt die Lernorte in der Reihenfolge der Geschichte, der Fortschritt steht oben links. Innenraeume und Aufgaben folgen.
 
 ## Spielen
- im Browser oeffnen (auch per Doppelklick, kein Server noetig).
+`index.html` im Browser oeffnen (auch per Doppelklick, kein Server noetig).
 - Pfeiltasten oder WASD: gehen. Am Handy erscheint ein Steuerkreuz.
--  oder Knopf "Karte": ganze Welt anzeigen.
+- `M` oder Knopf "Karte": ganze Welt anzeigen.
 - Der goldene Pfeil zeigt zum naechsten Lernort. Tueren oeffnen sich beim Hineinlaufen.
-- Jonny ist vorerst im Code gezeichnet (Funktion  in ). Ein eigenes Spritesheet laesst sich dort spaeter einsetzen.
+- Jonny ist vorerst im Code gezeichnet (Funktion `sprite` in `index.html`). Ein eigenes Spritesheet laesst sich dort spaeter einsetzen.
 
 ## Oberwelt (`welt/`)
 - `welt.png`: 1536 x 864 px, 96 x 54 Kacheln a 16 px
@@ -18,6 +18,7 @@ Spielbare Oberwelt: Jonny laeuft durch die Stadt, betritt die Lernorte in der Re
 - `welt_kollision.png`: Vorschlag fuer die Begehbarkeit als Overlay
   - gruen Weg/Platz, gelb Wiese (optional sperren), rot Hindernis, blau Wasser, magenta Eingang
 - `welt.json`: dasselbe als Raster (`#` Weg, `.` Wiese, `X` Hindernis, `~` Wasser, `E` Tuer), dazu Startpunkt, Tueren und Vorplaetze der Lernorte
+- `welt_daten.js`: dieselben Daten als Skript, damit das Spiel auch ohne Server laeuft
 - `generator.py`: erzeugt alles neu, reines Python ohne Pakete: `python3 welt/generator.py`
 
 ## Lernorte (Reihenfolge der Geschichte)
@@ -32,4 +33,4 @@ Spielbare Oberwelt: Jonny laeuft durch die Stadt, betritt die Lernorte in der Re
 Start ist der Zentralplatz suedlich des Brunnens. Alle Tueren liegen an der Unterkante der Gebaeude, davor ein gepflasterter Vorplatz direkt an einer Strasse.
 
 ## Test
-`npm test` prueft, ob jede Tuer vom Start aus ueber Wege erreichbar ist.
+`npm test` prueft, ob jede Tuer vom Start aus ueber Wege erreichbar ist, und testet die Spiellogik (Kollision, Tueren, Reihenfolge) ohne Browser.
