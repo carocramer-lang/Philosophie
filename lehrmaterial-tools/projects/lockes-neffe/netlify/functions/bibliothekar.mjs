@@ -10,6 +10,11 @@ import Anthropic from "@anthropic-ai/sdk";
 import { GoogleGenAI, ApiError } from "@google/genai";
 import { SYSTEM, pruefe, nachrichten, antworttext } from "../lib/bibliothekar-kern.mjs";
 
+// Umgebungsvariablen ueber Netlify.env (auf Netlify), sonst process.env (lokale Tests)
+function env(name) {
+  return globalThis.Netlify && globalThis.Netlify.env ? globalThis.Netlify.env.get(name) : process.env[name];
+}
+
 function antwort(status, daten) {
   return new Response(JSON.stringify(daten), {
     status,
@@ -20,12 +25,12 @@ function antwort(status, daten) {
 // ---------- Google Gemini
 async function mitGemini(msgs) {
   const ai = new GoogleGenAI({
-    apiKey: process.env.GEMINI_API_KEY,
-    httpOptions: process.env.GEMINI_BASE_URL ? { baseUrl: process.env.GEMINI_BASE_URL } : undefined, // nur fuer Tests
+    apiKey: env("GEMINI_API_KEY"),
+    httpOptions: env("GEMINI_BASE_URL") ? { baseUrl: env("GEMINI_BASE_URL") } : undefined, // nur fuer Tests
   });
   try {
     const r = await ai.models.generateContent({
-      model: process.env.GEMINI_MODELL || "gemini-flash-latest",
+      model: env("GEMINI_MODELL") || "gemini-flash-latest",
       contents: msgs.map((m) => ({ role: m.role === "assistant" ? "model" : "user", parts: [{ text: m.content }] })),
       config: { systemInstruction: SYSTEM, maxOutputTokens: 4096, temperature: 0.6 },
     });
@@ -41,8 +46,8 @@ async function mitGemini(msgs) {
 
 // ---------- Anthropic Claude
 async function mitClaude(msgs) {
-  const client = new Anthropic();
-  const modell = process.env.BIBLIOTHEKAR_MODELL || "claude-opus-5-5";
+  const client = new Anthropic({ apiKey: env("ANTHROPIC_API_KEY") });
+  const modell = env("BIBLIOTHEKAR_MODELL") || "claude-opus-5-5";
   // Claude Opus 5 und neuer: Fallback bei Ablehnungen serverseitig, Denktiefe fuer ein Gespraech niedrig
   const neu = /^claude-(opus-5|sonnet-5-5|fable)/.test(modell);
   const anfrage = {
@@ -71,7 +76,7 @@ async function mitClaude(msgs) {
 export default async (req) => {
   if (req.method !== "POST") return antwort(405, { fehler: "Nur POST" });
 
-  const erlaubt = (process.env.ERLAUBTE_URSPRUENGE || "").split(",").map((s) => s.trim()).filter(Boolean);
+  const erlaubt = (env("ERLAUBTE_URSPRUENGE") || "").split(",").map((s) => s.trim()).filter(Boolean);
   const herkunft = req.headers.get("origin");
   if (erlaubt.length && herkunft && !erlaubt.includes(herkunft)) return antwort(403, { fehler: "Herkunft nicht erlaubt" });
 
@@ -83,8 +88,8 @@ export default async (req) => {
   }
   const msgs = nachrichten(eingabe);
 
-  if (process.env.GEMINI_API_KEY) return mitGemini(msgs);
-  if (process.env.ANTHROPIC_API_KEY) return mitClaude(msgs);
+  if (env("GEMINI_API_KEY")) return mitGemini(msgs);
+  if (env("ANTHROPIC_API_KEY")) return mitClaude(msgs);
   // Ohne Schluessel: 503, das Spiel antwortet dann mit der eingebauten Fassung
   return antwort(503, { fehler: "Kein API-Schlüssel hinterlegt" });
 };
