@@ -41,7 +41,7 @@ Zwei Quellen, das Spiel waehlt automatisch:
 Beide folgen denselben Regeln: sokratisch fragen statt Loesungen liefern. Die Musterloesung gibt es erst nach einem ausdruecklichen Angebot mit dem Hinweis, dass fertige Loesungen dem Lernen weniger nuetzen, und nur, wenn Jonny zustimmt. Rollenbeschreibung, Locke-Text und Musterloesung stehen in `netlify/lib/bibliothekar-kern.mjs`.
 
 **Einrichten auf Netlify**
-1. Bei Netlify die Seite aus dem GitHub-Repository anlegen, Base directory: `lehrmaterial-tools/projects/lockes-neffe` (`netlify.toml` erledigt den Rest).
+1. Bei Netlify die Seite aus dem GitHub-Repository anlegen. Base directory leer lassen, das `netlify.toml` im Wurzelverzeichnis des Repositorys setzt es. Production branch muss der Branch sein, auf dem das Spiel liegt.
 2. Einen API-Schluessel in den Environment variables hinterlegen. Die Function nimmt, was da ist:
    - `GEMINI_API_KEY` (Google AI Studio, Rechnungskonto hinterlegen). Modell ueber `GEMINI_MODELL`, Standard `gemini-flash-latest`.
    - oder `ANTHROPIC_API_KEY` (platform.claude.com, Ausgabenlimit setzen). Modell ueber `BIBLIOTHEKAR_MODELL`, Standard `claude-opus-5-5`.
