@@ -27,6 +27,7 @@ for (const [name, o] of Object.entries(d.lernorte)) {
 // ---------- Spiel: Inline-Skript aus index.html mit Browser-Attrappen in Node ausfuehren
 const vm = require("vm");
 const innen = JSON.parse(fs.readFileSync(path.join(__dirname, "innen", "observatorium.json"), "utf8"));
+const saal = JSON.parse(fs.readFileSync(path.join(__dirname, "innen", "lesesaal.json"), "utf8"));
 const html = fs.readFileSync(path.join(__dirname, "index.html"), "utf8");
 const code = html.match(/<script>\n([\s\S]*?)<\/script>/)[1];
 function el() {
@@ -35,7 +36,8 @@ function el() {
     classList: { add() {}, remove() {}, toggle() {}, contains() { return false; } },
     addEventListener() {}, setAttribute() {}, getAttribute() { return null; },
     appendChild() {}, removeChild() {}, focus() {}, click() {}, getContext() { return null; },
-    disabled: false, offsetWidth: 0, scrollTop: 0
+    disabled: false, offsetWidth: 0, scrollTop: 0, scrollHeight: 0, value: "", className: "papier",
+    lastChild: null, spellcheck: false
   };
 }
 const els = {}, docListeners = {};
@@ -48,13 +50,13 @@ const document = {
   addEventListener: (t, f) => { docListeners[t] = f; }
 };
 const window = {
-  WELT: d, INNEN: { observatorium: innen }, document, innerWidth: 1200, innerHeight: 800, devicePixelRatio: 1,
+  WELT: d, INNEN: { observatorium: innen, lesesaal: saal }, document, innerWidth: 1200, innerHeight: 800, devicePixelRatio: 1,
   addEventListener() {}, matchMedia: () => ({ matches: false }),
   requestAnimationFrame: () => 0
 };
 window.window = window;
 function Image() {}
-vm.runInNewContext(code, { window, document, Image, Math, Object, Array, Uint8ClampedArray, setTimeout: () => 0, clearTimeout() {} });
+vm.runInNewContext(code, { window, document, Image, Math, Object, Array, Uint8ClampedArray, setTimeout: f => { Promise.resolve().then(f); return 0; }, clearTimeout() {}, Promise, String, RegExp, JSON });
 const G = window.__game;
 check("Spiel: Test-Hook vorhanden", !!G);
 // Laeuft, bis sich die Szene aendert (hoechstens sek Sekunden)
@@ -125,6 +127,66 @@ async function materialAblauf() {
   check("Spiel: Rueckweg fuehrt zurueck vor die Tuer", G.state.szene === "welt" && Math.floor(G.state.y / 16) === 17);
   lauf("left", 1);
   check("Spiel: draussen weiter begehbar", G.state.szene === "welt" && !G.state.dialog);
+  await lesesaalAblauf();
+}
+
+// ---------- Lesesaal: Text holen, Rolle schreiben, Bibliothekar
+const GUT = "In seinem Werk An Essay Concerning Human Understanding von 1690 untersucht John Locke, woher unsere Ideen stammen " +
+  "und wie weit unser Wissen reicht. Locke erläutert zunächst, dass der Geist bei der Geburt einem unbeschriebenen Blatt gleicht. " +
+  "Alle Ideen gelangen erst durch Erfahrung in den Verstand. Er unterscheidet zwei Quellen: die Sensation, also die Wahrnehmung " +
+  "äußerer Dinge durch die Sinne, und die Reflexion, die Wahrnehmung der Tätigkeiten des eigenen Geistes wie Denken oder Zweifeln. " +
+  "Im zweiten Text bestimmt Locke Erkenntnis als Wahrnehmung der Übereinstimmung oder des Widerstreits zwischen Ideen. " +
+  "Daraus folgert er, dass unser Wissen nicht weiter reicht als unsere Ideen und sogar noch enger begrenzt ist.";
+async function lesesaalAblauf() {
+  G.teleport(14, 17); bisWechsel("up", 2);
+  check("Lesesaal: Tuer fuehrt nach Etappe 1 hinein", G.state.szene === "lesesaal" && !G.state.dialog);
+  check("Lesesaal: Eintritt auf der Eintrittsstelle", saal.raster[Math.floor((G.state.y - 2) / 16)][Math.floor(G.state.x / 16)] === "S");
+  lauf("up", 3.5);
+  check("Lesesaal: Hauptweg fuehrt gerade zum Schreibpult", G.state.aktion === "schreibpult");
+  G.benutzen();
+  check("Lesesaal: Schreibpult gesperrt ohne Text", G.state.dialog === "Das Schreibpult" && !G.state.fenster);
+  G.schliessen();
+  G.teleport(19, 21); bisWechsel("down", 2);
+  check("Lesesaal: Tuer gesperrt ohne Aufgabe", G.state.szene === "lesesaal");
+
+  G.teleport(29, 19); G.tick(1 / 60);
+  check("Lesesaal: Lesepult bietet Interaktion", G.state.aktion === "lesepult");
+  G.benutzen();
+  check("Lesesaal: Lesepult oeffnet Lockes Text", G.state.material === "lesepult");
+  await G.herunterladen(); G.materialSchliessen();
+  check("Lesesaal: Text gesichert", G.state.gesehen.lesepult && G.state.geladen.lesepult);
+
+  G.teleport(19, 7); G.tick(1 / 60); G.benutzen();
+  check("Lesesaal: Schreibpult oeffnet die Papierrolle", G.state.fenster === "rolle");
+  document.getElementById("rolleText").value = "Locke sagt viel.";
+  G.state.rolle = "Locke sagt viel.";
+  check("Lesesaal: zu kurze Rolle wird nicht angenommen", (await G.abgeben()) === false && G.state.fenster === "rolle");
+  G.state.rolle = GUT;
+  const ok = await G.abgeben();
+  check("Lesesaal: Abgabe ruft den Bibliothekar", ok === true && G.state.fenster === "gespraech" && G.state.bibSeit != null);
+  const erste = G.state.verlauf[G.state.verlauf.length - 1];
+  check("Lesesaal: Rueckmeldung vom Bibliothekar", erste.wer === "bib" && /gelingt dir/.test(erste.text));
+  check("Lesesaal: Rueckmeldung lobt konkret", /unbeschriebenen Blatt|Erfahrung/.test(erste.text));
+  G.state.fenster = "gespraech";
+  const vorTuer = G.state.stufe;
+  await G.antworten("Was bedeutet Sensation?");
+  check("Lesesaal: Bibliothekar erklaert Begriffe", /äußere Wahrnehmung/.test(G.state.verlauf[G.state.verlauf.length - 1].text));
+  G.gespraechBeenden();
+  check("Lesesaal: Gespraech beenden siegelt die Rolle", G.state.lesesaalFertig && G.state.stufe === 2 && vorTuer === 1);
+  G.schliessen();
+  G.teleport(19, 21); bisWechsel("down", 2);
+  check("Lesesaal: danach ist die Tuer offen", G.state.szene === "welt" && Math.floor(G.state.y / 16) === 17);
+
+  // Rueckmeldungen der eingebauten Fassung
+  const u1 = G.urteil(GUT);
+  check("Bibliothekar: gute Rolle erfuellt alle Kernpunkte", u1.fehlt.length === 0);
+  const u2 = G.urteil("Locke war der Meinung, dass alles aus der Erfahrung kommt. Ich finde das überzeugend. Er hatte recht.");
+  const ids2 = u2.fehlt.map(k => k.id);
+  check("Bibliothekar: fehlende Reflexion erkannt", ids2.includes("reflexion") && ids2.includes("tabula"));
+  check("Bibliothekar: Wertung erkannt", u2.form.some(f => /wertest/.test(f)));
+  check("Bibliothekar: Praeteritum erkannt", u2.form.some(f => /Präsens/.test(f)));
+  const u3 = G.urteil("Locke schreibt: Ich antworte darauf mit einem einzigen Worte: aus der Erfahrung.");
+  check("Bibliothekar: woertliche Uebernahme erkannt", !!u3.zitat);
 }
 
 // Innenraum-Raster
@@ -148,6 +210,24 @@ for (const stelle of innen.interaktionen) {
 check("Innen: Ausgang erreichbar", innen.ausgang.every(a => seenI.has(a.x + "," + a.y)));
 let offen = 0; for (let y = 0; y < innen.hoehe; y++) for (let x = 0; x < innen.breite; x++) if (ia(x, y) !== "X" && !seenI.has(x + "," + y)) offen++;
 check("Innen: keine abgeschnittenen Bodenflaechen", offen === 0);
+
+// Lesesaal-Raster: alles vom Eintritt aus erreichbar
+{
+  const a = (x, y) => saal.raster[y][x];
+  const seen = new Set([saal.eintritt.x + "," + saal.eintritt.y]), q = [[saal.eintritt.x, saal.eintritt.y]];
+  while (q.length) {
+    const [x, y] = q.shift();
+    for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+      const nx = x + dx, ny = y + dy, k = nx + "," + ny;
+      if (ny >= 0 && ny < saal.hoehe && nx >= 0 && nx < saal.breite && a(nx, ny) !== "X" && !seen.has(k)) { seen.add(k); q.push([nx, ny]); }
+    }
+  }
+  check("Lesesaal-Raster: vollstaendig", saal.raster.length === saal.hoehe && saal.raster.every(r => r.length === saal.breite));
+  for (const s of saal.interaktionen) check("Lesesaal-Raster: " + s.id + " erreichbar", seen.has(s.flaeche.x0 + "," + s.flaeche.y0));
+  check("Lesesaal-Raster: Ausgang erreichbar", saal.ausgang.every(o => seen.has(o.x + "," + o.y)));
+  let rest = 0; for (let y = 0; y < saal.hoehe; y++) for (let x = 0; x < saal.breite; x++) if (a(x, y) !== "X" && !seen.has(x + "," + y)) rest++;
+  check("Lesesaal-Raster: keine abgeschnittenen Bodenflaechen", rest === 0);
+}
 
 // Materialdateien vorhanden
 const src = fs.readFileSync(path.join(__dirname, "index.html"), "utf8");

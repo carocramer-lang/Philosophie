@@ -3,7 +3,7 @@
 Topdown-Lernspiel zur Philosophie der fruehen Aufklaerung. Jonny will in die Akademie der Wissenschaften aufgenommen werden.
 
 ## Status
-Spielbare Oberwelt mit begehbarem Observatorium. Die uebrigen Innenraeume, das Material am Teleskop und der Startbildschirm folgen.
+Spielbare Oberwelt mit begehbarem Observatorium und Lesesaal. Salon, Druckerei, Akademie und der Startbildschirm folgen.
 
 ## Spielen
 `index.html` im Browser oeffnen (auch per Doppelklick, kein Server noetig).
@@ -24,6 +24,15 @@ Observatorium: 40 x 24 Kacheln a 16 px, erzeugt mit `python3 innen/observatorium
 - Ablauf: Jede Stelle muss angesehen und heruntergeladen werden. Erst nach allen drei Infografiken leuchtet das Teleskop, dort liegt Lockes Text (Text 1 und 2) mit dem Arbeitsblatt als PDF. Vorher ist die Tuer gesperrt, ein Hinweis leuchtet auf. Alles gesichert = Etappe 1.
 - Download: online ueber die Download-Funktion der Plattform (mit Bestaetigung), auf einem Webserver als normaler Download, lokal per Doppelklick oeffnet sich die Datei in einem neuen Tab.
 - Aufbau: Tuer unten Mitte, roter Laeufer gerade nach Norden ueber die Kompassrose zum Teleskop-Podest. Links Bibliothek, rechts Instrumentenkammer, beide ueber einen breiten Querweg erreichbar.
+
+Lesesaal: 40 x 24 Kacheln, erzeugt mit `python3 innen/lesesaal.py` (nutzt die Bausteine aus `observatorium.py`).
+- Aufbau: Mittelschiff mit Saeulen, roter Laeufer gerade zum Schreibpult auf dem Podest. Links drei Lesetische, rechts Buecherstapel und der Tisch des Bibliothekars, vorne rechts das Kettenpult mit Kerze.
+- Ablauf: Am Lesepult (`lesepult`) Lockes Text ansehen und herunterladen. Dann leuchtet das Schreibpult (`schreibpult`): Papierrolle mit Auftrag, Hinweisen zur Zusammenfassung, Reiter mit Lockes Text und Wortzaehler (mindestens 60 Woerter). Nach der Abgabe erscheint der Bibliothekar neben dem Pult und gibt Rueckmeldung. Jonny kann antworten, nachfragen oder ueberarbeiten. "Gespraech beenden" siegelt die Rolle = Etappe 2. Vorher bleibt die Tuer zu.
+- Der Entwurf wird im Browser gemerkt (`localStorage`, Schluessel `lockes-neffe_v1`). "Rolle als Datei sichern" speichert Zusammenfassung und Gespraech als Textdatei.
+
+### Bibliothekar (Rueckmeldung)
+Eingebaut ist eine regelbasierte Fassung ohne Internet und ohne Datenweitergabe. Sie prueft sieben Kernpunkte (Einleitungssatz, tabula rasa, Erfahrung, Sensation, Reflexion, Erkenntnis als Uebereinstimmung der Ideen, Grenzen des Wissens) und die Form (Wertung, woertliche Uebernahmen, Praeteritum, Redewiedergabe, Laenge). Sie lobt konkret, nennt hoechstens drei Verbesserungen und stellt Rueckfragen mit gestuften Hilfen.
+Ein echter Chatbot laesst sich ohne Umbau anschliessen: `window.LESESAAL_BIBLIOTHEKAR = function ({ zusammenfassung, verlauf, quelle, art }) { return Promise<string> }`. Liefert er nichts oder schlaegt fehl, springt die eingebaute Fassung ein.
 
 ## Oberwelt (`welt/`)
 - `welt.png`: 1536 x 864 px, 96 x 54 Kacheln a 16 px

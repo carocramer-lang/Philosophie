@@ -19,6 +19,7 @@ Fehlt fuer eine Umsetzung eine Information, wird gezielt nachgefragt statt selbs
 - Tastatur: Pfeiltasten und WASD zum Gehen, E fuer Interaktionen.
 - E und der Aktionsknopf loesen nur vorgesehene Interaktionen aus (z. B. Teleskop). Sonst passiert nichts.
 - Dialoge liegen zwischen Steuerkreuz und Aktionsknopf und verdecken keins von beiden.
+- Schreib- und Gespraechsfenster (z. B. Papierrolle und Bibliothekar im Lesesaal) werden wie ein Quiz behandelt: Steuerkreuz und E-Knopf sind nur waehrend des geoeffneten Fensters ausgeblendet und erscheinen beim Schliessen sofort wieder.
 - Quiz (spaeter): Das Steuerkreuz wird nur waehrend eines geoeffneten Quiz ausgeblendet und erscheint beim Schliessen sofort wieder. Positionen und Funktionen der Steuerung bleiben unveraendert.
 
 ## Startbildschirm (noch nicht gebaut)
