@@ -154,6 +154,11 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
 #materialInhalt .text h3 { font-family: var(--display); font-weight: 400; font-size: 21px; margin: 18px 0 6px; }
 #materialInhalt .text h3:first-child { margin-top: 0; }
 #materialInhalt .text p { margin: 0 0 10px; }
+#materialInhalt .text:has(.zeilen), .quelltext .text:has(.zeilen) { max-width: none; }
+.zeilen { font-size: 15.5px; line-height: 1.55; }
+.zeilen div { display: grid; grid-template-columns: 2.2em 1fr; column-gap: .5em; }
+.zeilen div.neu { margin-top: .6em; }
+.zeilen .nr { font-size: 13px; color: var(--ink-soft); text-align: right; padding-top: .25em; font-variant-numeric: tabular-nums; }
 #materialInhalt .quelle { font-style: italic; font-size: 15px; color: var(--ink-soft); }
 #materialFuss { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; justify-content: space-between; }
 #materialStatus { font-style: italic; font-size: 15px; color: var(--ink-soft); flex: 1 1 200px; min-width: 0; }
@@ -245,6 +250,8 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
   .auftrag { font-size: 14px; }
   #rolleText { font-size: 17px; line-height: 26px; background-image: repeating-linear-gradient(transparent 0, transparent 25px, rgba(120, 90, 50, .18) 25px, rgba(120, 90, 50, .18) 26px); }
   .msg { font-size: 15px; }
+  #materialInhalt .text h3, .quelltext h3 { font-size: 17px; margin-top: 8px; }
+  #materialInhalt .quelle { font-size: 13px; }
 }
 
 #fehler { position: fixed; inset: 0; display: grid; place-items: center; padding: 16px; }
@@ -300,22 +307,17 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
     <h2 id="rolleTitel">Deine Papierrolle</h2>
     <div class="reiter" role="tablist">
       <button id="tabRolle" type="button" role="tab" aria-selected="true">Rolle</button>
-      <button id="tabText" type="button" role="tab" aria-selected="false">Lockes Text</button>
+      <button id="tabText" type="button" role="tab" aria-selected="false">Leibniz' Text</button>
     </div>
   </div>
   <div class="auftrag">
-    Fasse Lockes Texte 1 und 2 in eigenen Worten zusammen (Anforderungsbereich I).
+    <span id="rolleAuftrag"></span>
     <details>
-      <summary>So gelingt die Zusammenfassung</summary>
-      <ul>
-        <li>Einleitungssatz: Autor, Titel, Jahr und Thema</li>
-        <li>Kernaussagen in eigenen Worten, sachlich und knapp</li>
-        <li>Präsens und Redewiedergabe, z. B. „Locke erläutert, dass …“</li>
-        <li>Keine eigene Wertung. Deine Meinung gehört in die Buchdruckerei.</li>
-      </ul>
+      <summary>Hinweise zur Bearbeitung</summary>
+      <ul id="rolleHinweise"></ul>
     </details>
   </div>
-  <div id="rolleBereich" class="papier"><textarea id="rolleText" aria-label="Deine Zusammenfassung" spellcheck="true"></textarea></div>
+  <div id="rolleBereich" class="papier"><textarea id="rolleText" aria-label="Deine Darstellung" spellcheck="true"></textarea></div>
   <div class="fuss">
     <span id="rolleZaehler">0 Wörter</span>
     <div class="knoepfe"><button id="rolleZu" type="button">Schließen</button><button id="rolleAbgeben" class="haupt" type="button">Dem Bibliothekar übergeben</button></div>
@@ -323,7 +325,7 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
 </div>
 
 <div id="gespraech" class="karte fenster" role="dialog" aria-modal="true" aria-labelledby="gespraechTitel" hidden>
-  <div class="kopf"><canvas id="portrait" width="18" height="18" aria-hidden="true"></canvas><h2 id="gespraechTitel">Der Bibliothekar</h2></div>
+  <div class="kopf"><canvas id="portrait" width="22" height="22" aria-hidden="true"></canvas><h2 id="gespraechTitel">Der Bibliothekar</h2></div>
   <div id="verlauf" class="verlauf" aria-live="polite"></div>
   <form id="antwortForm" class="antwort">
     <input id="antwortFeld" type="text" autocomplete="off" aria-label="Deine Antwort an den Bibliothekar" placeholder="Antworte dem Bibliothekar …">
@@ -350,6 +352,7 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
 <script src="welt/welt_daten.js"></script>
 <script src="innen/observatorium_daten.js"></script>
 <script src="innen/lesesaal_daten.js"></script>
+<script src="material/leibniz_daten.js"></script>
 <script>
 (function () {
   "use strict";
@@ -357,7 +360,8 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
   var D = window.WELT;
   var INNEN = window.INNEN || {};
   var $ = function (id) { return document.getElementById(id); };
-  if (!D || !INNEN.observatorium || !INNEN.lesesaal) { $("fehler").hidden = false; return; }
+  var LEIBNIZ = window.LEIBNIZ;
+  if (!D || !INNEN.observatorium || !INNEN.lesesaal || !LEIBNIZ) { $("fehler").hidden = false; return; }
 
   var REIHE = ["observatorium", "lesesaal", "salon", "druckerei", "akademie"];
   var ORTE = {
@@ -408,8 +412,8 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
     },
     // Lesesaal: der Text, den Jonny zusammenfasst
     lesepult: {
-      titel: "John Locke: Der Ursprung der Ideen", art: "text",
-      datei: "material/arbeitsblatt_locke_erkenntnistheorie.pdf", name: "Arbeitsblatt_Locke_Erkenntnistheorie.pdf"
+      titel: "Leibniz: Die Debatte um die Tabula Rasa", art: "text", html: "leibniz",
+      datei: "material/arbeitsblatt_leibniz_tabula_rasa.pdf", name: "Arbeitsblatt_Leibniz_Tabula_Rasa.pdf"
     }
   };
   var INFOGRAFIKEN = ["regal_links", "regal_rechts", "kartentisch"];
@@ -425,6 +429,14 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
     '<p>Da der Geist keine anderen unmittelbaren Objekte seiner Betrachtung hat als seine eigenen Ideen, so ist es klar, dass unsere Erkenntnis nur auf diese bezogen ist. Erkenntnis ist nichts anderes als die Wahrnehmung des Zusammenhangs und der Übereinstimmung oder des Widerstreits zwischen unseren Ideen.</p>' +
     '<p>Daraus folgt unmittelbar: Erstens: Unser Wissen reicht nicht weiter als unsere Ideen. Zweitens: Unser Wissen ist noch enger als unsere Ideen, weil wir nicht immer die Übereinstimmung oder Nichtübereinstimmung zwischen ihnen wahrnehmen können. Wir besitzen keine intuitive oder demonstrative Gewissheit über die unendliche Natur der Dinge. Unser sensitives Wissen erstreckt sich nicht einmal so weit wie unsere Vorstellungen selbst. Wir tappen in vielen Bereichen der Wirklichkeit völlig im Dunkeln.</p>' +
     '</div>';
+
+  function esc(t) { return String(t).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
+  var LEIBNIZ_HTML = '<div class="text"><p class="quelle">Leibniz antwortet hier auf Lockes Versuch über den menschlichen Verstand. ' +
+    'Einleitung und Aufgabe stehen auf dem Arbeitsblatt, das du herunterlädst.</p><h3>' + esc(LEIBNIZ.quelle) + '</h3><div class="zeilen">' +
+    LEIBNIZ.zeilen.map(function (z, i) {
+      var neu = i > 0 && LEIBNIZ.absatzAnfang.indexOf(i) >= 0 ? ' class="neu"' : "";
+      return '<div' + neu + '><span class="nr">' + ((i + 1) % 5 ? "" : i + 1) + '</span><span>' + esc(z) + '</span></div>';
+    }).join("") + '</div></div>';
 
   // ---------- Szenen: Oberwelt und begehbare Innenraeume
   var SZENEN = {
@@ -458,7 +470,8 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
   function allesFertig() { return ALLE_MATERIALIEN.every(fertig); }
   function anzahlFertig(liste) { return liste.filter(fertig).length; }
   // ---------- Raumlogik: was leuchtet, wohin zeigt der Pfeil, wann ist die Tuer offen
-  var MIN_WOERTER = 60;
+  var MIN_WOERTER = 80;
+  var EMPFOHLEN = [150, 300];
   var RAUM = {
     observatorium: {
       index: 0,
@@ -500,8 +513,8 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
       },
       darfRaus: function () { return st.lesesaalFertig || st.stufe > 1; },
       sperre: function () {
-        if (!fertig("lesepult")) return "Hol dir zuerst Lockes Text am Lesepult mit der Kerze und lade ihn herunter.";
-        if (!st.abgegeben) return "Deine Zusammenfassung fehlt noch. Schreib sie am Schreibpult auf die Papierrolle.";
+        if (!fertig("lesepult")) return "Hol dir zuerst das Arbeitsblatt am Lesepult mit der Kerze und lade es herunter.";
+        if (!st.abgegeben) return "Deine Darstellung fehlt noch. Schreib sie am Schreibpult auf die Papierrolle.";
         return "Der Bibliothekar wartet noch auf dich. Beende das Gespräch mit ihm am Schreibpult.";
       },
       ziel: function () {
@@ -514,7 +527,7 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
         if (id === "schreibpult") {
           if (!fertig("lesepult")) {
             zeigeDialog("Das Schreibpult",
-              "Die Papierrolle ist noch leer. Worüber willst du schreiben? Hol dir zuerst den Text am Lesepult mit der Kerze.",
+              "Die Papierrolle ist noch leer. Worüber willst du schreiben? Hol dir zuerst das Arbeitsblatt am Lesepult mit der Kerze.",
               "Ansehen und herunterladen, dann geht es hier weiter.", null);
             return;
           }
@@ -674,7 +687,7 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
       img.src = m.datei; img.alt = m.alt;
       inhalt.appendChild(img);
     } else {
-      inhalt.innerHTML = LOCKE_TEXT;
+      inhalt.innerHTML = m.html === "leibniz" ? LEIBNIZ_HTML : LOCKE_TEXT;
     }
     inhalt.scrollTop = 0;
     $("laden").textContent = m.art === "bild" ? "Infografik herunterladen" : "Arbeitsblatt herunterladen (PDF)";
@@ -738,7 +751,7 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
     } else if (fertig(id) && INFOGRAFIKEN.indexOf(id) >= 0 && infografikenFertig() && !fertig("teleskop")) {
       zeigeToast("Das Teleskop leuchtet", "Alle drei Infografiken sind gesichert. Jetzt wartet Lockes Text am Teleskop.");
     } else if (id === "lesepult" && fertig(id) && !st.abgegeben) {
-      zeigeToast("Das Schreibpult wartet", "Oben am Podest liegt eine leere Papierrolle für deine Zusammenfassung.");
+      zeigeToast("Das Schreibpult wartet", "Oben am Podest liegt eine leere Papierrolle für deine Darstellung.");
     }
     hudAktualisieren();
   }
@@ -758,6 +771,11 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
     try { window.localStorage.setItem(SPEICHER, JSON.stringify({ rolle: st.rolle })); } catch (e) { /* ohne Speicher weiter */ }
   }
   st.rolle = entwurfLaden();
+
+  $("rolleAuftrag").textContent = LEIBNIZ.aufgabeKopf + ": " + LEIBNIZ.aufgabe;
+  LEIBNIZ.hinweise.forEach(function (h) {
+    var li = document.createElement("li"); li.textContent = h; $("rolleHinweise").appendChild(li);
+  });
 
   function woerter(t) { return (String(t).match(/[A-Za-zÄÖÜäöüß0-9]+/g) || []).length; }
 
@@ -779,12 +797,12 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
     var bereich = $("rolleBereich");
     if (text) {
       bereich.className = "quelltext";
-      bereich.innerHTML = LOCKE_TEXT;
+      bereich.innerHTML = LEIBNIZ_HTML;
     } else if (bereich.className !== "papier") {
       bereich.className = "papier";
       bereich.innerHTML = "";
       var ta = document.createElement("textarea");
-      ta.id = "rolleText"; ta.setAttribute("aria-label", "Deine Zusammenfassung"); ta.spellcheck = true;
+      ta.id = "rolleText"; ta.setAttribute("aria-label", "Deine Darstellung"); ta.spellcheck = true;
       ta.value = st.rolle;
       ta.addEventListener("input", rolleEingabe);
       bereich.appendChild(ta);
@@ -799,7 +817,8 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
     var n = woerter(st.rolle), ok = n >= MIN_WOERTER;
     var el = $("rolleZaehler");
     el.textContent = n + (n === 1 ? " Wort" : " Wörter") +
-      (n < MIN_WOERTER ? " · mindestens " + MIN_WOERTER : n < 80 ? " · empfohlen sind 80 bis 200" : n <= 220 ? " · gute Länge" : " · eher zu lang");
+      (n < MIN_WOERTER ? " · mindestens " + MIN_WOERTER : n < EMPFOHLEN[0] ? " · empfohlen sind " + EMPFOHLEN[0] + " bis " + EMPFOHLEN[1] :
+        n <= EMPFOHLEN[1] + 20 ? " · gute Länge" : " · eher zu lang");
     el.classList.toggle("ok", ok);
     $("rolleAbgeben").disabled = !ok;
   }
@@ -819,7 +838,7 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
     if (st.bibSeit == null) st.bibSeit = window.performance ? window.performance.now() : 0;
     $("rolle").hidden = true;
     st.fenster = "gespraech"; st.dialog = "gespraech";
-    st.verlauf.push({ wer: "jonny", text: erneut ? "Hier ist meine überarbeitete Rolle." : "Ich habe meine Zusammenfassung geschrieben." });
+    st.verlauf.push({ wer: "jonny", text: erneut ? "Hier ist meine überarbeitete Rolle." : "Ich habe meine Darstellung geschrieben." });
     zeigeGespraech();
     return bibliothekarSpricht({ art: "urteil", erneut: erneut }).then(function () {
       st.rueckmeldung = true;
@@ -915,7 +934,7 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
     var extern = window.LESESAAL_BIBLIOTHEKAR || serverBibliothekar();
     var p = typeof extern === "function"
       ? Promise.resolve().then(function () {
-          return extern({ zusammenfassung: st.rolle, verlauf: st.verlauf.slice(), quelle: LOCKE_PLAIN, art: anlass.art });
+          return extern({ zusammenfassung: st.rolle, verlauf: st.verlauf.slice(), quelle: QUELLE_PLAIN, art: anlass.art });
         }).then(function (txt) { if (!txt) throw new Error("leer"); return String(txt); })
           .catch(function () { return BIBLIOTHEKAR.sprich(anlass); })
       : new Promise(function (ok) { setTimeout(function () { ok(BIBLIOTHEKAR.sprich(anlass)); }, ruhig ? 50 : 700); });
@@ -941,23 +960,23 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
       st.lesesaalFertig = true;
       if (st.stufe === 1) st.stufe = 2;
       zeigeDialog("Deine Rolle ist gesiegelt",
-        "Der Bibliothekar drückt sein Wachssiegel auf die Rolle und legt sie zu den Schriften der Akademie. Die Fakten sind geordnet, jetzt kannst du sie analysieren.",
+        "Der Bibliothekar drückt sein Wachssiegel auf die Rolle und legt sie zu den Schriften der Akademie. Du hast Leibniz' Einwand gegen deinen Onkel sauber dargestellt, jetzt kannst du ihn analysieren.",
         "Nächstes Ziel: Historischer Salon.", null);
     }
     hudAktualisieren();
   }
 
   function rolleAlsDatei() {
-    var teile = ["Lockes Neffe – Zusammenfassung im Lesesaal", "", "Meine Zusammenfassung:", st.rolle, "", "Gespräch mit dem Bibliothekar:"];
+    var teile = ["Lockes Neffe – Lesesaal: Leibniz' Kritik an der tabula rasa", "", "Meine Darstellung:", st.rolle, "", "Gespräch mit dem Bibliothekar:"];
     st.verlauf.forEach(function (m) { teile.push("", (m.wer === "bib" ? "Bibliothekar: " : "Jonny: ") + m.text); });
     var daten = teile.join("\n");
     if (dl) {
-      return dl.save({ filename: "Zusammenfassung_Locke.txt", data: daten }).then(function () { return true; }, function () { return false; });
+      return dl.save({ filename: "Darstellung_Leibniz.txt", data: daten }).then(function () { return true; }, function () { return false; });
     }
     try {
       var url = URL.createObjectURL(new Blob([daten], { type: "text/plain;charset=utf-8" }));
       var a = document.createElement("a");
-      a.href = url; a.download = "Zusammenfassung_Locke.txt";
+      a.href = url; a.download = "Darstellung_Leibniz.txt";
       document.body.appendChild(a); a.click(); document.body.removeChild(a);
       setTimeout(function () { URL.revokeObjectURL(url); }, 2000);
       return Promise.resolve(true);
@@ -975,73 +994,118 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
   $("gSichern").addEventListener("click", function () { rolleAlsDatei(); });
 
   // ---------- Eingebauter Bibliothekar: regelbasierte Rueckmeldung nach Lockes Kernbegriffen und den Regeln fuer AFB I
-  var MUSTERLOESUNG = "In seinem Werk „An Essay Concerning Human Understanding“ (1690) untersucht John Locke, woher unsere Ideen stammen und wie weit menschliches Wissen reicht. Im ersten Textauszug erläutert Locke, dass der Geist zu Beginn einem unbeschriebenen Blatt (tabula rasa) gleicht und keine angeborenen Ideen enthält. Alles Material des Denkens stammt nach Locke aus der Erfahrung. Er unterscheidet dabei zwei Quellen: Die Sensation liefert über die Sinne Ideen von äußeren Gegenständen, etwa von Farben, Temperaturen oder Geschmäckern. Die Reflexion ist die innere Wahrnehmung der Tätigkeiten des eigenen Geistes, zum Beispiel des Denkens, Zweifelns oder Wollens. Im zweiten Auszug bestimmt Locke Erkenntnis als Wahrnehmung der Übereinstimmung oder des Widerstreits zwischen Ideen. Daraus folgert er, dass unser Wissen nicht weiter reicht als unsere Ideen. Es ist sogar noch enger, weil wir die Beziehungen zwischen Ideen nicht immer erkennen. In vielen Bereichen der Wirklichkeit bleibt der Mensch daher im Dunkeln.";
-  var LOCKE_PLAIN = LOCKE_TEXT.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+  var MUSTERLOESUNG = "1. Problemstellung und Gegenüberstellung der Grundpositionen\n• Abgrenzung von Lockes empiristischer These, dass die Seele bei der Geburt einer leeren Tafel (tabula rasa) gleicht.\n• Entfaltung der eigenen rationalistischen Gegenposition: Die Seele enthält von Natur aus grundlegende Begriffe und Prinzipien (Innatismus), die durch Sinneseindrücke lediglich „aufgeweckt“ werden.\n2. Kritik an der rein empirischen Induktion\n• Sinneserfahrungen liefern stets nur Einzelfälle und Beobachtungen der Vergangenheit.\n• Aus wiederholten Einzelfällen lässt sich keine logische Notwendigkeit oder allgemeine Gültigkeit für die Zukunft ableiten.\n• Notwendige und universelle Wahrheiten (wie in Mathematik, Arithmetik und Geometrie) können daher nicht allein auf der Erfahrung gründen, auch wenn die Sinne den Anstoß geben, nach ihnen zu suchen.\n3. Veranschaulichung durch das Marmorblock-Gleichnis\n• Die Seele gleicht weder einer leeren Tafel noch einem völlig ungestalteten Stein.\n• Sie ähnelt einem Marmorblock, dessen Äderung bereits die Konturen einer Figur (z. B. Herkules) vorgibt.\n• Die Sinneserfahrung entspricht der Arbeit des Bildhauers: Sie schafft die Figur nicht neu, sondern legt die bereits angelegten Strukturen bloß und bringt sie zur Klarheit.\nEs müssen nicht alle Aspekte genannt werden. Eine gute Lösung erfasst den Kern der Sache.";
+  var QUELLE_PLAIN = LEIBNIZ.zeilen.join(" ");
+  // Zeilenangaben direkt aus dem Arbeitsblatttext, damit sie immer stimmen
+  function zeileVon(wort) {
+    for (var i = 0; i < LEIBNIZ.zeilen.length; i++) if (LEIBNIZ.zeilen[i].toLowerCase().indexOf(wort.toLowerCase()) >= 0) return i + 1;
+    return null;
+  }
+  function zz(von, bis) {
+    var a = zeileVon(von), b = bis ? zeileVon(bis) : a;
+    if (!a) return "";
+    return b && b !== a ? "Z. " + a + "–" + b : "Z. " + a;
+  }
   var BIBLIOTHEKAR = (function () {
+    // bereich: 1 Problemstellung, 2 Kritik an der Induktion, 3 Marmorblock-Gleichnis, 0 Einleitung
+    // kern: ein Bereich gilt als erfasst, sobald einer seiner Kernpunkte da ist (Erwartungshorizont der Lehrkraft)
     var KRIT = [
-      { id: "einleitung",
-        test: function (t) { return /locke/i.test(t) && /(essay|1690|human understanding|menschlichen verstand)/i.test(t); },
+      { id: "einleitung", bereich: 0,
+        test: function (t) { return /leibniz/i.test(t) && /(neue[n]? abhandlung|1704|menschlichen verstand)/i.test(t); },
         lob: "Dein Einleitungssatz nennt Autor und Werk. So weiß jeder Leser sofort, worum es geht.",
         mangel: "Ein Einleitungssatz mit Autor, Titel, Jahr und Thema fehlt noch.",
-        frage: "Was gehört in den ersten Satz einer Zusammenfassung?",
-        erkennt: /(autor|titel|jahr|thema|werk|locke|1690|essay)/i,
+        frage: "Was gehört in den ersten Satz einer Darstellung?",
+        erkennt: /(autor|titel|jahr|thema|werk|leibniz|1704|abhandlung)/i,
         wo: "Denk an das, was ein Leser zuerst wissen muss: wer, was, wann, worüber.",
-        hilfe: "Autor, Titel, Erscheinungsjahr und Thema: John Locke, An Essay Concerning Human Understanding, 1690, über Ursprung und Grenzen unserer Ideen." },
-      { id: "tabula",
-        test: /tabula rasa|unbeschrieben|leere[sn]? (blatt|tafel)/i,
-        lob: "Du hast Lockes Bild vom unbeschriebenen Blatt aufgegriffen.",
-        mangel: "Lockes Bild vom Geist vor aller Erfahrung fehlt.",
-        frage: "Mit welchem Bild beschreibt Locke den Geist, bevor er irgendetwas erfahren hat?",
-        erkennt: /tabula|unbeschrieben|leer|blatt|tafel/i,
-        wo: "Schau in die ersten drei Zeilen von Text 1.",
-        hilfe: "Locke vergleicht den Geist mit einem unbeschriebenen Blatt, einer tabula rasa (Text 1, Z. 1–3)." },
-      { id: "erfahrung",
-        test: /erfahrung/i,
-        lob: "Du hältst fest, dass für Locke alle Erkenntnis aus der Erfahrung stammt.",
-        mangel: "Lockes zentrale Antwort auf die Frage nach dem Ursprung der Ideen fehlt.",
-        frage: "Woher bekommt der Geist laut Locke all sein Material? Er antwortet mit einem einzigen Wort.",
-        erkennt: /erfahrung/i,
-        wo: "Suche in Text 1 nach der Stelle, an der Locke ankündigt, mit einem einzigen Wort zu antworten.",
-        hilfe: "Lockes Antwort lautet: aus der Erfahrung (Text 1, Z. 6–8)." },
-      { id: "sensation",
-        test: /sensation|(ä|ae)u(ß|ss)ere[rnms]? (sinnlich|wahrnehmung|objekt|ding|gegenst)|sinne|sinnes/i,
-        lob: "Die erste Quelle, die Sensation, hast du benannt.",
-        mangel: "Die erste Quelle der Erkenntnis, die nach außen gerichtet ist, fehlt.",
-        frage: "Welche Quelle der Erkenntnis richtet sich nach außen, auf Dinge wie Gelb, Warm oder Süß?",
-        erkennt: /sensation|sinne|(ä|ae)u(ß|ss)er|wahrnehm/i,
-        wo: "Lies noch einmal die Stelle mit „Erstens“ in Text 1.",
-        hilfe: "Das ist die Sensation: Unsere Sinne führen dem Geist Ideen äußerer Dinge zu (Text 1, Z. 13–17)." },
-      { id: "reflexion",
-        test: /reflexion|innere[rnms]? (wahrnehmung|operation|t(ä|ae)tigkeit|vorg(ä|ae)ng)|operationen des geistes|t(ä|ae)tigkeit(en)? (des|unseres) (eigenen )?geist/i,
-        lob: "Auch die Reflexion, also die Wahrnehmung der eigenen Geistestätigkeit, ist dabei.",
-        mangel: "Die zweite Quelle, der Blick des Geistes nach innen, fehlt.",
-        frage: "Und die zweite Quelle? Was nimmt der Geist wahr, wenn er nach innen schaut?",
-        erkennt: /reflexion|inner|denken|zweifeln|wollen|schlie(ß|ss)en|glauben/i,
-        wo: "Lies die Stelle mit „Zweitens“ am Ende von Text 1.",
-        hilfe: "Das ist die Reflexion: die Wahrnehmung der Operationen des eigenen Geistes wie Denken, Zweifeln oder Wollen (Text 1, Z. 17–19)." },
-      { id: "erkenntnis",
-        test: /(ü|ue)bereinstimm|widerstreit|zusammenhang|verh(ä|ae)ltnis/i,
-        lob: "Du gibst Lockes Bestimmung von Erkenntnis als Wahrnehmung des Verhältnisses zwischen Ideen wieder.",
-        mangel: "Lockes Bestimmung, was Erkenntnis überhaupt ist, fehlt noch (Text 2).",
-        frage: "Was ist Erkenntnis nach Text 2? Es geht um das Verhältnis der Ideen zueinander.",
-        erkennt: /(ü|ue)bereinstimm|widerstreit|zusammenhang|verh(ä|ae)ltnis|vergleich|beziehung/i,
-        wo: "Schau in die ersten fünf Zeilen von Text 2.",
-        hilfe: "Erkenntnis ist für Locke die Wahrnehmung der Übereinstimmung oder des Widerstreits zwischen unseren Ideen (Text 2, Z. 3–5)." },
-      { id: "grenzen",
-        test: /grenze|begrenzt|reicht nicht weiter|nicht weiter als|enger als|im dunkeln|beschr(ä|ae)nkt/i,
-        lob: "Die Grenzen unseres Wissens aus Text 2 hast du nicht vergessen.",
-        mangel: "Die Grenzen unseres Wissens aus Text 2 fehlen.",
-        frage: "Wie weit reicht unser Wissen nach Text 2?",
-        erkennt: /grenz|begrenzt|nicht weiter|enger|nur (bis|so weit)|dunkel|beschr(ä|ae)nkt/i,
-        wo: "Lies ab „Daraus folgt unmittelbar“ in Text 2.",
-        hilfe: "Unser Wissen reicht nicht weiter als unsere Ideen und ist sogar noch enger (Text 2, Z. 6–8)." }
+        hilfe: "Autor, Titel, Jahr und Thema: Gottfried Wilhelm Leibniz, Neue Abhandlungen über den menschlichen Verstand, 1704, seine Kritik an Lockes Empirismus." },
+      { id: "locke", bereich: 1,
+        test: function (t) { return /(locke|empiris)/i.test(t) && /(tabula rasa|leer|unbeschrieben)/i.test(t); },
+        lob: "Du grenzt Leibniz sauber von Lockes tabula rasa ab.",
+        mangel: "Mach deutlich, wogegen Leibniz sich wendet: Lockes These von der Seele als leerer Tafel.",
+        frage: "Gegen welche These Lockes schreibt Leibniz an?",
+        erkennt: /tabula|leer|tafel|blatt|erfahrung/i,
+        wo: "Schau in die ersten Zeilen (" + zz("ganz leer", "tabula rasa") + ").",
+        hilfe: "Locke meint, die Seele sei bei der Geburt eine leere Tafel, eine tabula rasa (" + zz("ganz leer", "tabula rasa") + ")." },
+      { id: "angeboren", bereich: 1, kern: true,
+        test: /angeboren|innatis|von natur aus|urspr(ü|ue)nglich|innewohn|prinzipien|veranlag/i,
+        lob: "Leibniz' Gegenposition, die angeborenen Prinzipien, hast du klar herausgestellt.",
+        mangel: "Leibniz' eigene Gegenposition fehlt: Was trägt die Seele nach ihm schon in sich?",
+        frage: "Was enthält die Seele nach Leibniz schon von Anfang an?",
+        erkennt: /angeboren|prinzip|begriff|lehrs(ä|ae)tz|natur|urspr/i,
+        wo: "Lies noch einmal " + zz("Prinzipien mehrerer", "aufgeweckt") + ".",
+        hilfe: "Nach Leibniz enthält die Seele ursprünglich Prinzipien von Begriffen und Lehrsätzen (" + zz("Prinzipien mehrerer") + ")." },
+      { id: "aufgeweckt", bereich: 1,
+        test: /geweckt|wecken/i,
+        lob: "Du zeigst, dass die Sinne diese Prinzipien nur aufwecken.",
+        mangel: "Welche Rolle bleibt den äußeren Gegenständen, wenn die Prinzipien schon in der Seele liegen?",
+        frage: "Welche Rolle bleibt den äußeren Gegenständen, wenn die Prinzipien schon in der Seele liegen?",
+        erkennt: /weck|ansto(ß|ss)|anlass|anreg|ausl(ö|oe)s/i,
+        wo: "Achte auf das Verb in " + zz("aufgeweckt") + ".",
+        hilfe: "Die äußeren Gegenstände wecken diese Prinzipien bloß auf, sie erzeugen sie nicht (" + zz("aufgeweckt") + ")." },
+      { id: "einzelfaelle", bereich: 2, kern: true,
+        test: /einzel|induktion|beispiel|wiederhol|wiederkehr|vergangen|beobacht/i,
+        lob: "Du gibst Leibniz' Kritik an der Induktion wieder: Die Sinne liefern nur Einzelfälle.",
+        mangel: "Leibniz' Kritik an der bloßen Erfahrung fehlt: Was liefern uns die Sinne eigentlich?",
+        frage: "Was geben uns die Sinne nach Leibniz, und warum reicht das nicht?",
+        erkennt: /einzel|beispiel|induktion|wiederhol|besonder/i,
+        wo: "Lies " + zz("Induktion", "Einzelnes") + ".",
+        hilfe: "Die Sinne liefern nur Beispiele, also Wahrheiten über Einzelnes (" + zz("Einzelnes") + ")." },
+      { id: "notwendigkeit", bereich: 2, kern: true,
+        test: /notwendig|allgemeing(ü|ue)ltig|allgemeine g(ü|ue)ltigkeit|universell|immer so|zukunft/i,
+        lob: "Du erklärst, warum aus Einzelfällen keine Notwendigkeit folgt.",
+        mangel: "Warum reichen viele Beispiele nicht aus? Der Schritt zur Notwendigkeit fehlt.",
+        frage: "Folgt aus vielen gleichen Beobachtungen, dass es immer so sein muss?",
+        erkennt: /nein|nicht|notwendig|allgemein|zukunft|immer/i,
+        wo: "Lies das Ende des zweiten Absatzes (" + zz("geschehen ist", "geschehen muss") + ").",
+        hilfe: "Daraus, dass etwas oft geschehen ist, folgt nicht, dass es immer so geschehen muss (" + zz("geschehen ist", "geschehen muss") + ")." },
+      { id: "mathematik", bereich: 2,
+        test: /mathemati|arithmetik|geometrie/i,
+        lob: "Das Beispiel der Mathematik hast du treffend eingesetzt.",
+        mangel: "Welches Wissensgebiet nennt Leibniz als Beispiel für notwendige Wahrheiten?",
+        frage: "Welches Wissensgebiet nennt Leibniz als Beispiel für notwendige Wahrheiten?",
+        erkennt: /mathe|arithm|geometr|rechn|zahl/i,
+        wo: "Schau in " + zz("reinen Mathematik", "Geometrie") + ".",
+        hilfe: "Die reine Mathematik, also Arithmetik und Geometrie (" + zz("reinen Mathematik", "Geometrie") + ")." },
+      { id: "anstoss", bereich: 2,
+        test: /ansto(ß|ss)|anlass|ohne (die )?sinne|anreg|ausl(ö|oe)s/i,
+        lob: "Fein beobachtet: Die Sinne geben bei Leibniz den Anstoß, aber nicht den Beweis.",
+        mangel: "Brauchen wir die Sinne dann gar nicht, um solche Wahrheiten zu finden?",
+        frage: "Brauchen wir die Sinne dann gar nicht, um solche Wahrheiten zu finden?",
+        erkennt: /ansto(ß|ss)|anlass|such|anreg|doch|ohne|brauch/i,
+        wo: "Lies den Nebensatz mit „obgleich“ (" + zz("obgleich ohne") + ").",
+        hilfe: "Ohne die Sinne hätte niemand nach diesen Wahrheiten gesucht. Sie geben den Anstoß, begründen sie aber nicht (" + zz("obgleich ohne", "sie zu suchen") + ")." },
+      { id: "marmor", bereich: 3, kern: true,
+        test: /marmor|adern|(ä|ae)derung|herkules|bildhauer/i,
+        lob: "Das Gleichnis vom geäderten Marmorblock hast du aufgegriffen.",
+        mangel: "Das Gleichnis vom Marmorblock fehlt, dabei verlangt die Aufgabe es ausdrücklich.",
+        frage: "Mit welchem Bild aus der Bildhauerei beschreibt Leibniz die Seele?",
+        erkennt: /marmor|stein|ader|herkules|bildhau/i,
+        wo: "Lies den letzten Absatz ab " + zz("Marmorblock") + ".",
+        hilfe: "Die Seele gleicht einem Marmorblock, dessen Adern schon die Gestalt des Herkules andeuten (" + zz("Marmorblock", "Herkules") + ")." },
+      { id: "unterschied", bereich: 3,
+        test: /(nicht|weder|kein)[^.]{0,50}(leer|tafel|ungestalt|beliebig)|vorgegeben|vorgezeichnet|im voraus|angelegt|vorbestimm/i,
+        lob: "Du erklärst den Unterschied zu Lockes leerer Tafel.",
+        mangel: "Worin genau unterscheidet sich der Marmorblock von einer leeren Tafel?",
+        frage: "Worin genau unterscheidet sich der Marmorblock von einer leeren Tafel?",
+        erkennt: /vorgeg|vorgezeich|schon|bereits|angelegt|bestimm|nicht leer|struktur|form|ader/i,
+        wo: "Achte auf " + zz("ungestalteten", "im Voraus") + ".",
+        hilfe: "Anders als eine leere Tafel oder eine ungestaltete Masse ist der Stein durch seine Adern im Voraus bestimmt (" + zz("ungestalteten", "Voraus") + ")." },
+      { id: "arbeit", bereich: 3,
+        test: /freileg|frei zu leg|blo(ß|ss) ?(zu ?)?leg|politur|polier|zur klarheit|herausarbeit/i,
+        lob: "Auch die Arbeit, die die Adern erst freilegt, hast du erklärt.",
+        mangel: "Wenn Herkules schon im Stein angelegt ist, wozu braucht es dann noch Arbeit?",
+        frage: "Wenn Herkules schon im Stein angelegt ist, wozu braucht es dann noch Arbeit?",
+        erkennt: /frei|blo(ß|ss)|polier|politur|arbeit|klar|sichtbar/i,
+        wo: "Lies die letzten Zeilen (" + zz("Arbeit bedürfte", "Klarheit") + ").",
+        hilfe: "Die Adern müssen durch Arbeit bloßgelegt und durch Politur zur Klarheit gebracht werden (" + zz("Arbeit bedürfte", "Klarheit") + ")." }
     ];
-    var REDE = /(locke|der autor|der philosoph|er)\s+(\w+\s+)?(erl(ä|ae)utert|erkl(ä|ae)rt|behauptet|beschreibt|stellt|f(ü|ue)hrt|betont|unterscheidet|zeigt|legt|vertritt|vergleicht|definiert|bestimmt|begr(ü|ue)ndet|kommt|nennt|geht|folgert|schlie(ß|ss)t)/i;
+    var BEREICHE = { 1: "die Gegenüberstellung von tabula rasa und angeborenen Prinzipien", 2: "die Kritik an der Induktion", 3: "das Marmorblock-Gleichnis" };
+    var REDE = /(leibniz|locke|der autor|der philosoph|er)\s+(\w+\s+)?(kritisiert|erl(ä|ae)utert|erkl(ä|ae)rt|behauptet|beschreibt|stellt|f(ü|ue)hrt|betont|unterscheidet|zeigt|legt|vertritt|vergleicht|definiert|bestimmt|begr(ü|ue)ndet|kommt|nennt|geht|folgert|schlie(ß|ss)t|wendet|h(ä|ae)lt|argumentiert|veranschaulicht|verdeutlicht|fragt|bestreitet|entgegnet|setzt|meint|sieht)/i;
     var WERTUNG = /\b(ich finde|finde ich|meiner meinung|meines erachtens|ich denke|ich glaube|gef(ä|ae)llt mir|(ü|ue)berzeugt mich|zu recht|zu unrecht)\b/i;
-    var PRAETERITUM = /\b(war|waren|hatte|hatten|sagte|meinte|beschrieb|erkl(ä|ae)rte|behauptete|schrieb|dachte|glaubte|stellte|zeigte)\b/gi;
+    var PRAETERITUM = /\b(war|waren|hatte|hatten|sagte|meinte|beschrieb|erkl(ä|ae)rte|behauptete|schrieb|dachte|glaubte|stellte|zeigte|kritisierte)\b/gi;
 
     function norm(t) { return String(t).toLowerCase().replace(/[^a-zäöüß0-9 ]+/g, " ").split(/\s+/).filter(Boolean); }
-    var QUELLE = norm(LOCKE_PLAIN), N = 7, GRAMME = {};
+    var QUELLE = norm(QUELLE_PLAIN), N = 7, GRAMME = {};
     for (var i = 0; i + N <= QUELLE.length; i++) GRAMME[QUELLE.slice(i, i + N).join(" ")] = true;
     function woertlich(t) {
       var w = norm(t);
@@ -1055,21 +1119,36 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
     function urteil(t) {
       var treffer = KRIT.filter(function (k) { return trifft(k, t); });
       var fehlt = KRIT.filter(function (k) { return !trifft(k, t); });
+      var bereiche = {};
+      [1, 2, 3].forEach(function (b) {
+        bereiche[b] = treffer.some(function (k) { return k.bereich === b && k.kern; });
+      });
+      // je fehlendem Kernbereich der erste Kernpunkt als Hinweis
+      var kernFehlt = [1, 2, 3].filter(function (b) { return !bereiche[b]; }).map(function (b) {
+        return KRIT.filter(function (k) { return k.bereich === b && k.kern; })[0];
+      });
       var form = [];
       var n = woerter(t);
-      if (WERTUNG.test(t)) form.push("Du wertest an einer Stelle selbst. Eine Zusammenfassung bleibt sachlich, deine Meinung gehört in die Buchdruckerei.");
+      if (WERTUNG.test(t)) form.push("Du wertest an einer Stelle selbst. Eine Darstellung bleibt sachlich, deine Meinung gehört in die Buchdruckerei.");
       var zitat = woertlich(t);
-      if (zitat) form.push("Du übernimmst Passagen wörtlich, etwa „" + zitat + " …“. Formuliere mit eigenen Worten.");
-      if ((t.match(PRAETERITUM) || []).length >= 2) form.push("Du erzählst in der Vergangenheit. Zusammenfassungen stehen im Präsens.");
-      if (!REDE.test(t)) form.push("Mach deutlicher, dass du Locke wiedergibst, zum Beispiel mit „Locke erläutert, dass …“ oder „Er unterscheidet …“.");
-      if (n < 80) form.push("Deine Rolle ist noch recht knapp. Achtzig bis zweihundert Wörter reichen für beide Texte gut aus.");
-      if (n > 220) form.push("Deine Rolle ist lang geraten. Eine Zusammenfassung verdichtet: Streiche Beispiele und Wiederholungen.");
-      return { treffer: treffer, fehlt: fehlt, form: form, woerter: n, zitat: zitat, redeOk: REDE.test(t) };
+      if (zitat) form.push("Du übernimmst Passagen wörtlich, etwa „" + zitat + " …“. Gib den Gedankengang mit eigenen Worten wieder.");
+      if ((t.match(PRAETERITUM) || []).length >= 2) form.push("Du erzählst in der Vergangenheit. Darstellungen stehen im Präsens.");
+      if (!REDE.test(t)) form.push("Mach deutlicher, dass du Leibniz wiedergibst, zum Beispiel mit „Leibniz kritisiert, dass …“ oder „Er veranschaulicht …“.");
+      if (n < EMPFOHLEN[0]) form.push("Deine Darstellung ist noch knapp. Für diese Aufgabe sind etwa " + EMPFOHLEN[0] + " bis " + EMPFOHLEN[1] + " Wörter angemessen.");
+      if (n > EMPFOHLEN[1] + 20) form.push("Deine Darstellung ist lang geraten. Verdichte: Streiche Wiederholungen und Nebensächliches.");
+      return {
+        treffer: treffer, fehlt: fehlt, kernFehlt: kernFehlt, bereiche: bereiche,
+        kernErfasst: !kernFehlt.length, form: form, woerter: n, zitat: zitat, redeOk: REDE.test(t)
+      };
     }
+    function anzahlBereiche(u) { return [1, 2, 3].filter(function (b) { return u.bereiche[b]; }).length; }
 
+    // Reihenfolge der Rueckfragen: fehlende Kernbereiche, Einleitung, dann Vertiefungen
     function naechsteFrage() {
       var u = urteil(st.rolle);
-      for (var i = 0; i < u.fehlt.length; i++) if (!st.gefragt[u.fehlt[i].id]) return u.fehlt[i];
+      var reihe = u.kernFehlt.concat(u.fehlt.filter(function (k) { return k.id === "einleitung"; }))
+        .concat(u.fehlt.filter(function (k) { return !k.kern && k.id !== "einleitung"; }));
+      for (var i = 0; i < reihe.length; i++) if (!st.gefragt[reihe[i].id]) return reihe[i];
       return null;
     }
     function stelle(k) {
@@ -1079,18 +1158,21 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
     }
 
     var GLOSSAR = [
-      [/tabula|unbeschrieben/i, "Tabula rasa heißt „abgeschabte Tafel“. Locke meint: Wir bringen keine angeborenen Ideen mit, erst die Erfahrung beschreibt das Blatt."],
-      [/sensation/i, "Sensation ist die äußere Wahrnehmung: Die Sinne liefern Ideen wie Gelb, Warm oder Süß."],
-      [/reflexion/i, "Reflexion ist die innere Wahrnehmung: Der Geist beobachtet sein eigenes Tun, also Denken, Zweifeln, Wollen."],
-      [/idee/i, "Eine Idee ist bei Locke alles, was der Geist unmittelbar vor sich hat, wenn er denkt oder wahrnimmt. Das Wort ist weiter als unser heutiges „Einfall“."],
-      [/pr(ä|ae)sens|zeitform/i, "Zusammenfassungen stehen im Präsens, weil der Text jetzt vor uns liegt: „Locke erläutert …“, nicht „Locke erläuterte …“."],
+      [/tabula|unbeschrieben|leere tafel/i, "Tabula rasa heißt „abgeschabte Tafel“. Locke meint: Wir bringen keine angeborenen Ideen mit, erst die Erfahrung beschreibt die Tafel. Genau das bestreitet Leibniz."],
+      [/induktion/i, "Induktion heißt: von vielen Einzelfällen auf eine allgemeine Regel schließen. Wer tausend weiße Schwäne sieht, schließt, alle Schwäne seien weiß. Sicher ist das nie."],
+      [/notwendig/i, "Eine notwendige Wahrheit kann gar nicht anders sein, etwa 2 + 2 = 4. Erfahrung zeigt nur, was bisher so war, nicht was so sein muss."],
+      [/angeboren|innat/i, "Angeborene Ideen oder Prinzipien bringt der Geist schon mit, bevor er etwas erfährt. Das ist die Gegenthese zu Lockes tabula rasa."],
+      [/rationalis/i, "Rationalisten wie Descartes und Leibniz meinen, dass sichere Erkenntnis aus der Vernunft selbst stammt, nicht allein aus der Erfahrung."],
+      [/empiris/i, "Empiristen wie Locke meinen, dass alle Erkenntnis letztlich aus der Erfahrung stammt."],
+      [/sensation|reflexion/i, "Bei Locke ist Sensation die äußere Wahrnehmung durch die Sinne, Reflexion die innere Wahrnehmung der eigenen Geistestätigkeit."],
+      [/pr(ä|ae)sens|zeitform/i, "Darstellungen stehen im Präsens, weil der Text jetzt vor uns liegt: „Leibniz kritisiert …“, nicht „Leibniz kritisierte …“."],
       [/eigene worte|zitat|w(ö|oe)rtlich|abschreib/i, "Eigene Worte zeigen, dass du den Gedanken verstanden hast. Lies einen Absatz, leg den Text weg und schreib auf, was hängen geblieben ist."],
-      [/einleitung|anfang|erste[rn]? satz/i, "Der erste Satz nennt Autor, Titel, Jahr und Thema. Danach folgen die Kernaussagen in der Reihenfolge des Textes."],
-      [/meinung|werten|wertung|bewerten/i, "In der Zusammenfassung hältst du dich mit deiner Meinung zurück. Die hebst du dir für die Buchdruckerei auf, dort schreibst du deinen Kommentar."],
-      [/wie lang|wie viele w(ö|oe)rter|l(ä|ae)nge/i, "Achtzig bis zweihundert Wörter genügen für beide Texte. Weniger ist hier oft mehr."]
+      [/einleitung|anfang|erste[rn]? satz/i, "Der erste Satz nennt Autor, Titel, Jahr und Thema. Danach folgt der Argumentationsgang in der Reihenfolge des Textes."],
+      [/meinung|werten|wertung|bewerten/i, "In der Darstellung hältst du dich mit deiner Meinung zurück. Die hebst du dir für die Buchdruckerei auf, dort schreibst du deinen Kommentar."],
+      [/wie lang|wie viele w(ö|oe)rter|l(ä|ae)nge/i, "Für diese Aufgabe sind etwa " + EMPFOHLEN[0] + " bis " + EMPFOHLEN[1] + " Wörter angemessen. Es müssen nicht alle Einzelheiten hinein, aber der Kern jedes Gedankens."]
     ];
 
-    var MUSTER_WUNSCH = /muster|l(ö|oe)sung|beispieltext|vorlage/i;
+    var MUSTER_WUNSCH = /muster|l(ö|oe)sung|beispieltext|vorlage|erwartung/i;
     var ZUSTIMMUNG = /^\s*(ja|jawohl|gern|gerne|bitte|zeig|okay|ok)\b/i;
     function musterAngebot(vorspann) {
       st.musterAngebot = true;
@@ -1104,8 +1186,8 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
         st.musterAngebot = false;
         if (ZUSTIMMUNG.test(anlass.eingabe || "")) {
           st.musterGezeigt = true;
-          return "Nun gut. So könnte eine gelungene Rolle aussehen:\n\n" + MUSTERLOESUNG +
-            "\n\nVergleiche sie Satz für Satz mit deiner eigenen. Was fehlt dir, was hast du anders gelöst? Schreib sie bitte nicht ab.";
+          return "Nun gut. Das erwartet deine Lehrkraft von einer gelungenen Darstellung:\n\n" + MUSTERLOESUNG +
+            "\n\nVergleiche Punkt für Punkt mit deiner Rolle. Was fehlt dir, was hast du anders gelöst? Schreib bitte nicht ab.";
         }
         return "Eine weise Entscheidung. Überarbeite deine Rolle selbst, ich lese sie gern noch einmal.";
       }
@@ -1115,27 +1197,33 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
       if (anlass.art === "urteil") {
         var u = urteil(st.rolle), teile = [];
         var vorher = st.letzteTreffer;
-        st.letzteTreffer = u.treffer.length;
+        st.letzteTreffer = { bereiche: anzahlBereiche(u), punkte: u.treffer.length };
         st.gefragt = {};
-        if (anlass.erneut && vorher != null) {
-          teile.push(u.treffer.length > vorher
-            ? "Du hast nachgebessert! Jetzt finde ich " + u.treffer.length + " von " + KRIT.length + " Kernpunkten, vorher waren es " + vorher + "."
-            : "Ich habe deine neue Fassung gelesen. Es sind " + u.treffer.length + " von " + KRIT.length + " Kernpunkten.");
+        if (anlass.erneut && vorher) {
+          teile.push(u.treffer.length > vorher.punkte
+            ? "Du hast nachgebessert! Jetzt sind " + anzahlBereiche(u) + " von 3 Kernbereichen erfasst und " + u.treffer.length + " Einzelaspekte, vorher waren es " + vorher.punkte + "."
+            : "Ich habe deine neue Fassung gelesen: " + anzahlBereiche(u) + " von 3 Kernbereichen.");
         } else {
-          teile.push("Ah, eine frisch beschriebene Rolle! Lass sehen …");
+          teile.push("Ah, eine frisch beschriebene Rolle! Lass sehen, was du über Leibniz zu berichten hast …");
         }
-        var lob = u.treffer.slice(0, 2).map(function (k) { return k.lob; });
-        if (u.redeOk && lob.length < 2) lob.push("Du machst sauber deutlich, dass du Locke wiedergibst.");
+        var lob = u.treffer.filter(function (k) { return k.kern; }).concat(u.treffer.filter(function (k) { return !k.kern; }))
+          .slice(0, 2).map(function (k) { return k.lob; });
+        if (u.redeOk && lob.length < 2) lob.push("Du machst sauber deutlich, dass du Leibniz wiedergibst.");
         if (lob.length) teile.push("Das gelingt dir schon:\n" + lob.map(function (l) { return "• " + l; }).join("\n"));
-        var tipps = u.fehlt.slice(0, 2).map(function (k) { return k.mangel; }).concat(u.form).slice(0, 3);
+        var tipps = u.kernFehlt.slice(0, 2).map(function (k) { return k.mangel; });
+        if (u.fehlt.some(function (k) { return k.id === "einleitung"; })) tipps.push(KRIT[0].mangel);
+        tipps = tipps.concat(u.form).slice(0, 3);
         if (tipps.length) teile.push("Daran würde ich noch feilen:\n" + tipps.map(function (l) { return "• " + l; }).join("\n"));
+        if (u.kernErfasst) {
+          teile.push("Du hast den Kern der Sache erfasst: " + BEREICHE[1] + ", " + BEREICHE[2] + " und " + BEREICHE[3] + ". Nicht jede Einzelheit muss hinein.");
+        }
         var k = naechsteFrage();
-        if (k) teile.push("Eine Frage an dich: " + stelle(k));
+        if (k) teile.push((u.kernErfasst ? "Wenn du vertiefen willst, eine Frage: " : "Eine Frage an dich: ") + stelle(k));
         else {
           stelle(null);
           teile.push(u.form.length
-            ? "Inhaltlich ist alles beisammen. Wenn du die Form noch glättest, ist die Rolle vortrefflich. Du kannst sie überarbeiten oder das Gespräch beenden."
-            : "Vortrefflich, alle Kernpunkte und eine saubere Form! Du kannst das Gespräch beenden, ich siegle deine Rolle.");
+            ? "Wenn du die Form noch glättest, ist die Rolle vortrefflich. Du kannst sie überarbeiten oder das Gespräch beenden."
+            : "Vortrefflich! Du kannst das Gespräch beenden, ich siegle deine Rolle.");
         }
         return teile.join("\n\n");
       }
@@ -1145,7 +1233,7 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
       if (k) {
         if (k.erkennt.test(e)) {
           var weiter = naechsteFrage();
-          var lobText = "Genau so. Nimm das in deine Rolle auf, dann wird sie vollständiger.";
+          var lobText = "Genau so. Nimm das in deine Rolle auf, dann wird sie runder.";
           if (weiter) return lobText + "\n\nNächste Frage: " + stelle(weiter);
           stelle(null);
           if (!st.musterGezeigt) return musterAngebot(lobText + " Mehr habe ich nicht zu fragen. Überarbeite deine Rolle mit diesen Punkten.");
@@ -1162,8 +1250,8 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
       }
       for (var i = 0; i < GLOSSAR.length; i++) if (GLOSSAR[i][0].test(e)) return GLOSSAR[i][1];
       if (/danke/i.test(e)) return "Gern geschehen. Ein Gelehrter fragt, bis er verstanden hat.";
-      if (/\?/.test(e)) return "Eine gute Frage. Darauf weiß ich keine sichere Antwort. Frag deine Lehrkraft, und schau dazu in Lockes Text.";
-      return "Ich höre dir zu. Du kannst mich nach Begriffen wie tabula rasa, Sensation, Reflexion oder Idee fragen, oder deine Rolle überarbeiten.";
+      if (/\?/.test(e)) return "Eine gute Frage. Darauf weiß ich keine sichere Antwort. Frag deine Lehrkraft, und schau dazu in Leibniz' Text.";
+      return "Ich höre dir zu. Du kannst mich nach Begriffen wie tabula rasa, Induktion, notwendige Wahrheit oder angeborene Ideen fragen, oder deine Rolle überarbeiten.";
     }
 
     return { urteil: urteil, sprich: sprich, kriterien: KRIT };
@@ -1300,48 +1388,21 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
     g.putImageData(img, 0, 0);
     return cnv;
   }
-  // Bibliothekar: dunkelgruener Talar, Barett, Brille, grauer Bart, Beffchen
-  function bibliothekarSprite() {
-    var cnv = document.createElement("canvas");
-    cnv.width = 18; cnv.height = 26;
-    var g = cnv.getContext && cnv.getContext("2d");
-    if (!g) return null;
-    function p(x, y, w, h, c) { g.fillStyle = c; g.fillRect(x + 1, y + 1, w, h); }
-    var robe = "#2f5a44", robeD = "#1f3b2d", robeL = "#44785c", grau = "#b8b4ae", grauD = "#8e8a84";
-    p(5, 22, 2, 2, C.shoe); p(9, 22, 2, 2, C.shoe);
-    p(3, 10, 10, 12, robe); p(2, 14, 12, 8, robe);
-    p(2, 14, 1, 8, robeD); p(13, 14, 1, 8, robeD); p(7, 12, 1, 10, robeD);
-    p(2, 21, 12, 1, C.gold);
-    p(2, 10, 2, 7, robeL); p(12, 10, 2, 7, robeD);
-    p(2, 16, 2, 2, C.skin); p(12, 16, 2, 2, C.skin);
-    p(12, 12, 1, 5, "#f4f2ec");
-    p(6, 9, 4, 1, "#f4f2ec"); p(7, 10, 1, 3, "#f4f2ec"); p(8, 10, 1, 3, "#e0ddd4");
-    p(5, 3, 6, 6, C.skin); p(10, 3, 1, 6, C.skinS);
-    p(3, 3, 2, 5, grau); p(11, 3, 2, 5, grauD);
-    p(5, 6, 6, 3, grau); p(6, 7, 4, 1, grauD); p(7, 8, 2, 1, C.mouth);
-    p(5, 4, 2, 2, C.lens); p(9, 4, 2, 2, C.lens); p(7, 4, 2, 1, C.rim);
-    p(4, 0, 8, 3, "#2a2430"); p(3, 2, 10, 1, "#2a2430"); p(6, 0, 3, 1, "#4a4450");
-    var img = g.getImageData(0, 0, 18, 26), d = img.data, out = new Uint8ClampedArray(d);
-    for (var y = 0; y < 26; y++) for (var x = 0; x < 18; x++) {
-      var i = (y * 18 + x) * 4;
-      if (d[i + 3]) continue;
-      var nb = [[1, 0], [-1, 0], [0, 1], [0, -1]].some(function (o) {
-        var X = x + o[0], Y = y + o[1];
-        return X >= 0 && Y >= 0 && X < 18 && Y < 26 && d[(Y * 18 + X) * 4 + 3];
-      });
-      if (nb) { out[i] = 28; out[i + 1] = 22; out[i + 2] = 36; out[i + 3] = 255; }
-    }
-    img.data.set(out);
-    g.putImageData(img, 0, 0);
-    return cnv;
-  }
-  var BIB_SPRITE = bibliothekarSprite();
+  // Bibliothekar: Pixel-Sprite aus figuren/ (erzeugt mit figuren/bibliothekar.py), Dreiviertelansicht nach links
+  var BIB_SPRITE = null, BIB_GROSS = null;
+  (function () {
+    var klein = new Image(), gross = new Image();
+    klein.onload = function () { BIB_SPRITE = klein; };
+    gross.onload = function () { BIB_GROSS = gross; malePortrait(); };
+    klein.src = "figuren/bibliothekar_16x24.png";
+    gross.src = "figuren/bibliothekar_32x48.png";
+  })();
   function malePortrait() {
     var c = $("portrait"), g = c.getContext && c.getContext("2d");
-    if (!g || !BIB_SPRITE) return;
+    if (!g || !BIB_GROSS) return;
     g.imageSmoothingEnabled = false;
-    g.clearRect(0, 0, 18, 18);
-    g.drawImage(BIB_SPRITE, 0, 0, 18, 18, 0, 0, 18, 18);
+    g.clearRect(0, 0, c.width, c.height);
+    g.drawImage(BIB_GROSS, 5, 0, 22, 22, 0, 0, 22, 22);
   }
 
   var FRAMES = {};
@@ -1430,7 +1491,7 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
       ctx.globalAlpha = alpha;
       ctx.fillStyle = "rgba(0,0,0,.28)";
       ctx.beginPath(); ctx.ellipse(bx + 1, by - 1, 6, 2.5, 0, 0, Math.PI * 2); ctx.fill();
-      ctx.drawImage(BIB_SPRITE, bx - 9, by - 25);
+      ctx.drawImage(BIB_SPRITE, bx - 8, by - 24);
       ctx.restore();
       if (!ruhig && alter < 1.4) {
         ctx.fillStyle = "rgba(255,236,170," + Math.max(0, 1 - alter / 1.4).toFixed(2) + ")";

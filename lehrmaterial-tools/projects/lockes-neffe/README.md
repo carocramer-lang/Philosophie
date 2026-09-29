@@ -27,7 +27,10 @@ Observatorium: 40 x 24 Kacheln a 16 px, erzeugt mit `python3 innen/observatorium
 
 Lesesaal: 40 x 24 Kacheln, erzeugt mit `python3 innen/lesesaal.py` (nutzt die Bausteine aus `observatorium.py`).
 - Aufbau: Mittelschiff mit Saeulen, roter Laeufer gerade zum Schreibpult auf dem Podest. Links drei Lesetische, rechts Buecherstapel und der Tisch des Bibliothekars, vorne rechts das Kettenpult mit Kerze.
-- Ablauf: Am Lesepult (`lesepult`) Lockes Text ansehen und herunterladen. Dann leuchtet das Schreibpult (`schreibpult`): Papierrolle mit Auftrag, Hinweisen zur Zusammenfassung, Reiter mit Lockes Text und Wortzaehler (mindestens 60 Woerter). Nach der Abgabe erscheint der Bibliothekar neben dem Pult und gibt Rueckmeldung. Jonny kann antworten, nachfragen oder ueberarbeiten. "Gespraech beenden" siegelt die Rolle = Etappe 2. Vorher bleibt die Tuer zu.
+- Material: Arbeitsblatt „Die Debatte um die Tabula Rasa“ (Leibniz, Neue Abhandlungen, 1704), Aufgabe 1 (AFB I). Quelle fuer alles ist `material/arbeitsblatt_leibniz.py`: erzeugt HTML, PDF (`node material/drucke_pdf.js`), `material/leibniz_daten.js` fuers Spiel und `netlify/lib/leibniz.json` fuer den Server. Zeilennummern im Spiel und im Bibliothekar stimmen mit dem PDF ueberein.
+- Bibliothekar-Kriterien nach dem Erwartungshorizont der Lehrkraft: drei Kernbereiche (Problemstellung tabula rasa vs. angeborene Prinzipien, Kritik an der Induktion, Marmorblock-Gleichnis). Ein Bereich gilt als erfasst, sobald sein Kern da ist; Einzelaspekte fragt er nur als Vertiefung ab. Mindestens 80, empfohlen 150 bis 300 Woerter.
+- Figur: `figuren/bibliothekar.py` zeichnet den Bibliothekar (32 x 48 und 16 x 24, transparent, dazu Vorschau auf Weiss).
+- Ablauf: Am Lesepult (`lesepult`) das Arbeitsblatt ansehen und herunterladen. Dann leuchtet das Schreibpult (`schreibpult`): Papierrolle mit Auftrag, Hinweisen zur Zusammenfassung, Reiter mit Lockes Text und Wortzaehler (mindestens 60 Woerter). Nach der Abgabe erscheint der Bibliothekar neben dem Pult und gibt Rueckmeldung. Jonny kann antworten, nachfragen oder ueberarbeiten. "Gespraech beenden" siegelt die Rolle = Etappe 2. Vorher bleibt die Tuer zu.
 - Der Entwurf wird im Browser gemerkt (`localStorage`, Schluessel `lockes-neffe_v1`). "Rolle als Datei sichern" speichert Zusammenfassung und Gespraech als Textdatei.
 
 ### Bibliothekar (Rueckmeldung)

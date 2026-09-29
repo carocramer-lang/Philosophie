@@ -28,6 +28,7 @@ for (const [name, o] of Object.entries(d.lernorte)) {
 const vm = require("vm");
 const innen = JSON.parse(fs.readFileSync(path.join(__dirname, "innen", "observatorium.json"), "utf8"));
 const saal = JSON.parse(fs.readFileSync(path.join(__dirname, "innen", "lesesaal.json"), "utf8"));
+const leibniz = JSON.parse(fs.readFileSync(path.join(__dirname, "netlify", "lib", "leibniz.json"), "utf8"));
 const html = fs.readFileSync(path.join(__dirname, "index.html"), "utf8");
 const code = html.match(/<script>\n([\s\S]*?)<\/script>/)[1];
 function el() {
@@ -50,7 +51,7 @@ const document = {
   addEventListener: (t, f) => { docListeners[t] = f; }
 };
 const window = {
-  WELT: d, INNEN: { observatorium: innen, lesesaal: saal }, document, innerWidth: 1200, innerHeight: 800, devicePixelRatio: 1,
+  WELT: d, INNEN: { observatorium: innen, lesesaal: saal }, LEIBNIZ: leibniz, document, innerWidth: 1200, innerHeight: 800, devicePixelRatio: 1,
   addEventListener() {}, matchMedia: () => ({ matches: false }),
   requestAnimationFrame: () => 0
 };
@@ -131,12 +132,13 @@ async function materialAblauf() {
 }
 
 // ---------- Lesesaal: Text holen, Rolle schreiben, Bibliothekar
-const GUT = "In seinem Werk An Essay Concerning Human Understanding von 1690 untersucht John Locke, woher unsere Ideen stammen " +
-  "und wie weit unser Wissen reicht. Locke erläutert zunächst, dass der Geist bei der Geburt einem unbeschriebenen Blatt gleicht. " +
-  "Alle Ideen gelangen erst durch Erfahrung in den Verstand. Er unterscheidet zwei Quellen: die Sensation, also die Wahrnehmung " +
-  "äußerer Dinge durch die Sinne, und die Reflexion, die Wahrnehmung der Tätigkeiten des eigenen Geistes wie Denken oder Zweifeln. " +
-  "Im zweiten Text bestimmt Locke Erkenntnis als Wahrnehmung der Übereinstimmung oder des Widerstreits zwischen Ideen. " +
-  "Daraus folgert er, dass unser Wissen nicht weiter reicht als unsere Ideen und sogar noch enger begrenzt ist.";
+const GUT = "In der Vorrede zu seinen Neuen Abhandlungen über den menschlichen Verstand von 1704 kritisiert Gottfried Wilhelm Leibniz " +
+  "Lockes empiristische Erkenntnistheorie. Leibniz stellt zunächst die Streitfrage dar: Locke hält die Seele für eine leere Tafel, eine tabula rasa. " +
+  "Leibniz vertritt dagegen die Auffassung, dass die Seele ursprünglich Prinzipien von Begriffen enthält, die durch äußere Gegenstände nur geweckt werden. " +
+  "Anschließend kritisiert er die Induktion: Die Sinne liefern nur Einzelfälle. Aus vielen Fällen folgt keine allgemeine Notwendigkeit. " +
+  "Notwendige Wahrheiten wie in der Mathematik haben daher Prinzipien, die nicht von den Sinnen abhängen, auch wenn die Sinne den Anstoß geben, nach ihnen zu suchen. " +
+  "Zur Veranschaulichung vergleicht Leibniz die Seele mit einem Marmorblock, dessen Adern die Gestalt des Herkules bereits vorgeben. " +
+  "Anders als eine leere Tafel ist der Stein im Voraus bestimmt. Die Figur muss aber noch durch Arbeit freigelegt und poliert werden.";
 async function lesesaalAblauf() {
   G.teleport(14, 17); bisWechsel("up", 2);
   check("Lesesaal: Tuer fuehrt nach Etappe 1 hinein", G.state.szene === "lesesaal" && !G.state.dialog);
@@ -152,7 +154,7 @@ async function lesesaalAblauf() {
   G.teleport(29, 19); G.tick(1 / 60);
   check("Lesesaal: Lesepult bietet Interaktion", G.state.aktion === "lesepult");
   G.benutzen();
-  check("Lesesaal: Lesepult oeffnet Lockes Text", G.state.material === "lesepult");
+  check("Lesesaal: Lesepult oeffnet das Leibniz-Arbeitsblatt", G.state.material === "lesepult");
   await G.herunterladen(); G.materialSchliessen();
   check("Lesesaal: Text gesichert", G.state.gesehen.lesepult && G.state.geladen.lesepult);
 
@@ -166,11 +168,12 @@ async function lesesaalAblauf() {
   check("Lesesaal: Abgabe ruft den Bibliothekar", ok === true && G.state.fenster === "gespraech" && G.state.bibSeit != null);
   const erste = G.state.verlauf[G.state.verlauf.length - 1];
   check("Lesesaal: Rueckmeldung vom Bibliothekar", erste.wer === "bib" && /gelingt dir/.test(erste.text));
-  check("Lesesaal: Rueckmeldung lobt konkret", /unbeschriebenen Blatt|Erfahrung/.test(erste.text));
+  check("Lesesaal: Rueckmeldung lobt konkret", /Gegenposition|Induktion|Marmorblock/.test(erste.text));
+  check("Lesesaal: gute Rolle erfasst den Kern", /Kern der Sache erfasst/.test(erste.text));
   G.state.fenster = "gespraech";
   const vorTuer = G.state.stufe;
-  await G.antworten("Was bedeutet Sensation?");
-  check("Lesesaal: Bibliothekar erklaert Begriffe", /äußere Wahrnehmung/.test(G.state.verlauf[G.state.verlauf.length - 1].text));
+  await G.antworten("Was bedeutet Induktion?");
+  check("Lesesaal: Bibliothekar erklaert Begriffe", /Einzelfällen auf eine allgemeine Regel/.test(G.state.verlauf[G.state.verlauf.length - 1].text));
   G.gespraechBeenden();
   check("Lesesaal: Gespraech beenden siegelt die Rolle", G.state.lesesaalFertig && G.state.stufe === 2 && vorTuer === 1);
   G.schliessen();
@@ -179,14 +182,17 @@ async function lesesaalAblauf() {
 
   // Rueckmeldungen der eingebauten Fassung
   const u1 = G.urteil(GUT);
-  check("Bibliothekar: gute Rolle erfuellt alle Kernpunkte", u1.fehlt.length === 0);
-  const u2 = G.urteil("Locke war der Meinung, dass alles aus der Erfahrung kommt. Ich finde das überzeugend. Er hatte recht.");
-  const ids2 = u2.fehlt.map(k => k.id);
-  check("Bibliothekar: fehlende Reflexion erkannt", ids2.includes("reflexion") && ids2.includes("tabula"));
+  check("Bibliothekar: gute Rolle erfuellt alle Einzelaspekte", u1.fehlt.length === 0 && u1.kernErfasst);
+  const knapp = G.urteil("Leibniz meint in den Neuen Abhandlungen (1704), dass es angeborene Ideen gibt. Er vergleicht die Seele mit einem Marmorblock. Das Wissen aus Einzelfällen ist nicht notwendig.");
+  check("Bibliothekar: Kern genuegt, Einzelheiten nicht zwingend", knapp.kernErfasst && knapp.fehlt.length > 0);
+  const u2 = G.urteil("Leibniz war der Meinung, dass die Seele angeborene Ideen hat. Ich finde das überzeugend. Er hatte recht, denn Locke irrt.");
+  check("Bibliothekar: fehlende Kernbereiche erkannt", u2.kernFehlt.map(k => k.bereich).join() === "2,3");
   check("Bibliothekar: Wertung erkannt", u2.form.some(f => /wertest/.test(f)));
   check("Bibliothekar: Praeteritum erkannt", u2.form.some(f => /Präsens/.test(f)));
-  const u3 = G.urteil("Locke schreibt: Ich antworte darauf mit einem einzigen Worte: aus der Erfahrung.");
+  const u3 = G.urteil("Leibniz schreibt: die angeborenen Begriffe bilden die Seele wie die Adern den Marmorblock bilden.");
   check("Bibliothekar: woertliche Uebernahme erkannt", !!u3.zitat);
+  const hinweis = G.urteil("x").kernFehlt.map(k => k.hilfe).join(" ");
+  check("Bibliothekar: Zeilenangaben aus dem Arbeitsblatt", /Z\. \d/.test(hinweis) && !/\(\)/.test(hinweis));
 }
 
 // Innenraum-Raster
@@ -242,15 +248,16 @@ async function musterUndKern() {
   await G.antworten("Kann ich eine Musterlösung sehen?");
   check("Muster: erst Warnung und Rueckfrage", /lernt weniger/.test(ende()) && /Möchtest du sie trotzdem sehen/.test(ende()) && G.state.musterAngebot);
   await G.antworten("Nein, ich versuche es selbst.");
-  check("Muster: Ablehnung zeigt keine Loesung", !/So könnte eine gelungene Rolle/.test(ende()) && !G.state.musterGezeigt);
+  check("Muster: Ablehnung zeigt keine Loesung", !/erwartet deine Lehrkraft/.test(ende()) && !G.state.musterGezeigt);
   await G.antworten("Doch, zeig mir bitte die Musterlösung");
   await G.antworten("Ja");
-  check("Muster: nach Zustimmung wird sie gezeigt", /So könnte eine gelungene Rolle/.test(ende()) && G.state.musterGezeigt);
-  check("Muster: erfuellt alle Kernpunkte", G.urteil(ende()).fehlt.length === 0);
+  check("Muster: nach Zustimmung wird sie gezeigt", /erwartet deine Lehrkraft/.test(ende()) && G.state.musterGezeigt);
+  check("Muster: erfasst alle Kernbereiche", G.urteil(ende()).kernErfasst);
   G.gespraechBeenden();
 
   const kern = await import(path.join(__dirname, "netlify", "lib", "bibliothekar-kern.mjs"));
-  check("Kern: Musterloesung identisch mit dem Spiel", /So könnte eine gelungene Rolle aussehen:\n\n/.test(ende()) && ende().includes(kern.MUSTERLOESUNG));
+  check("Kern: Musterloesung identisch mit dem Spiel", ende().includes(kern.MUSTERLOESUNG));
+  check("Kern: Leibniz-Text mit Zeilennummern", /\[Z\. 28\] Klarheit zu bringen/.test(kern.QUELLTEXT) && kern.SYSTEM.includes("Marmorblock"));
   check("Kern: Systemtext enthaelt Regeln zur Musterloesung", /Musterlösung \(streng einhalten\)/.test(kern.SYSTEM) && kern.SYSTEM.includes(kern.MUSTERLOESUNG));
   const v = [{ wer: "jonny", text: "Ich habe meine Zusammenfassung geschrieben." }, { wer: "bib", text: "Lass sehen." },
              { wer: "jonny", text: "Was ist Reflexion?" }, { wer: "jonny", text: "Und Sensation?" }];
