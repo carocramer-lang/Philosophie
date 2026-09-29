@@ -20,6 +20,7 @@ Observatorium: 40 x 24 Kacheln a 16 px, erzeugt mit `python3 innen/observatorium
 - `observatorium.png`, `observatorium_2x.png`: Grafik ohne Schrift
 - `observatorium_kollision.png`: gruen Boden, rot Wand/Moebel, cyan Eintrittsstelle, magenta Ausgang, orange Flaeche vor dem Teleskop
 - `observatorium.json` und `observatorium_daten.js`: Raster (`#`, `X`, `S`, `A`, `I`), Eintritt, Ausgang, Interaktionen
+- Materialstellen: zwei Buecherregale links unten (`regal_links`, `regal_rechts`) und der Sternkartentisch rechts (`kartentisch`). Kennzeichen: eine einzelne brennende Kerze auf dem Moebel und ein Lichtschein davor. Im Spiel leuchtet der Schein, bis die Stelle geoeffnet wurde. Das Material wird in `index.html` im Objekt `MATERIAL` verknuepft.
 - Aufbau: Tuer unten Mitte, roter Laeufer gerade nach Norden ueber die Kompassrose zum Teleskop-Podest. Links Bibliothek, rechts Instrumentenkammer, beide ueber einen breiten Querweg erreichbar.
 
 ## Oberwelt (`welt/`)

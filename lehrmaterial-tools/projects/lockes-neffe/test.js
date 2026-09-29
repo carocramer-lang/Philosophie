@@ -91,6 +91,18 @@ check("Spiel: Rueckweg fuehrt zurueck vor die Tuer", G.state.szene === "welt" &&
 lauf("left", 1);
 check("Spiel: draussen weiter begehbar", G.state.szene === "welt" && !G.state.dialog);
 
+// Materialstellen: Regal links unten
+G.teleport(47, 18); bisWechsel("up", 2);
+G.teleport(3, 19); G.tick(1 / 60);
+check("Spiel: Regal links bietet Interaktion", G.state.aktion === "regal_links");
+G.benutzen();
+check("Spiel: Regal oeffnet Material-Karte ohne Etappe", !!G.state.dialog && G.state.stufe === 1 && G.state.besucht.regal_links === true);
+G.schliessen();
+G.teleport(36, 8); G.tick(1 / 60);
+check("Spiel: Kartentisch bietet Interaktion", G.state.aktion === "kartentisch");
+G.teleport(24, 12); G.tick(1 / 60);
+check("Spiel: freie Flaeche bietet keine Interaktion", G.state.aktion === null);
+
 // Innenraum-Raster
 check("Innen: Raster vollstaendig", innen.raster.length === innen.hoehe && innen.raster.every(r => r.length === innen.breite));
 const ia = (x, y) => innen.raster[y][x];
@@ -102,8 +114,13 @@ while (qI.length) {
     if (ny >= 0 && ny < innen.hoehe && nx >= 0 && nx < innen.breite && ia(nx, ny) !== "X" && !seenI.has(k)) { seenI.add(k); qI.push([nx, ny]); }
   }
 }
-const fl = innen.interaktionen[0].flaeche;
-check("Innen: Teleskop-Flaeche erreichbar", seenI.has(fl.x0 + "," + fl.y0));
+for (const stelle of innen.interaktionen) {
+  const f = stelle.flaeche;
+  check("Innen: Flaeche " + stelle.id + " erreichbar", seenI.has(f.x0 + "," + f.y0));
+  let allesI = true;
+  for (let y = f.y0; y <= f.y1; y++) for (let x = f.x0; x <= f.x1; x++) if (ia(x, y) !== "I") allesI = false;
+  check("Innen: Flaeche " + stelle.id + " markiert", allesI);
+}
 check("Innen: Ausgang erreichbar", innen.ausgang.every(a => seenI.has(a.x + "," + a.y)));
 let offen = 0; for (let y = 0; y < innen.hoehe; y++) for (let x = 0; x < innen.breite; x++) if (ia(x, y) !== "X" && !seenI.has(x + "," + y)) offen++;
 check("Innen: keine abgeschnittenen Bodenflaechen", offen === 0);

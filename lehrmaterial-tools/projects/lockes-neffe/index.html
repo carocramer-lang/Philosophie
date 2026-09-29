@@ -218,6 +218,26 @@ button:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
     }
   };
 
+  // ---------- Materialstellen (Kerze + Lichtschein). Hier spaeter das Material verknuepfen:
+  // "material" kann z. B. ein Link oder ein eigener Text werden, sobald er feststeht.
+  var MATERIAL = {
+    regal_links: {
+      titel: "Bücherregal",
+      text: "Zwischen zwei schweren Folianten klemmt ein versiegelter Zettel.",
+      material: null
+    },
+    regal_rechts: {
+      titel: "Bücherregal",
+      text: "Hinter der vorderen Buchreihe liegt eine Mappe mit Abschriften.",
+      material: null
+    },
+    kartentisch: {
+      titel: "Sternkartentisch",
+      text: "Unter der großen Sternkarte liegen Skizzen und Notizen eines Gelehrten.",
+      material: null
+    }
+  };
+
   // ---------- Szenen: Oberwelt und begehbare Innenraeume
   var SZENEN = {
     welt: { d: D, src: "welt/welt.png", begehbar: { "#": 1, ".": 1, "E": 1 } },
@@ -238,7 +258,7 @@ button:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
     szene: "welt", x: D.start.x * T + 8, y: D.start.y * T + 12,
     dir: "up", schritt: 0, animZeit: 0, laeuft: false,
     stufe: 0, dialog: null, dialogRueck: null, aktion: null,
-    rueck: null, uebersicht: false, bewegt: false
+    rueck: null, uebersicht: false, bewegt: false, besucht: {}
   };
   var keys = { up: false, down: false, left: false, right: false };
   var grob = !!(window.matchMedia && window.matchMedia("(pointer: coarse)").matches);
@@ -289,7 +309,19 @@ button:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
     } else if (fuss === "A" && st.laeuft) {
       hinausgehen();
     }
-    setzeAktion(sz.id === "observatorium" && kachel(st.x, st.y - 2) === "I" ? "teleskop" : null);
+    setzeAktion(interaktionAn(st.x, st.y - 2));
+  }
+
+  // Welche Interaktion gehoert zur Kachel unter Jonnys Fuessen?
+  function interaktionAn(px, py) {
+    var liste = sz.d.interaktionen;
+    if (!liste || kachel(px, py) !== "I") return null;
+    var tx = Math.floor(px / T), ty = Math.floor(py / T);
+    for (var i = 0; i < liste.length; i++) {
+      var f = liste[i].flaeche;
+      if (tx >= f.x0 && tx <= f.x1 && ty >= f.y0 && ty <= f.y1) return liste[i].id;
+    }
+    return null;
   }
 
   function setzeAktion(a) {
@@ -365,6 +397,12 @@ button:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
           "Der Himmel ist klar. Deine Notizen aus dem Observatorium hast du schon beisammen.",
           "Nächstes Ziel: " + zielName() + ".", null);
       }
+      return;
+    }
+    var m = MATERIAL[st.aktion];
+    if (m) {
+      st.besucht[st.aktion] = true;
+      zeigeDialog(m.titel, m.text, m.material ? m.material : "Material folgt.", null);
     }
   }
 
@@ -525,6 +563,22 @@ button:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
     ctx.setTransform(z, 0, 0, z, -cx * z, -cy * z);
     ctx.drawImage(sz.bild, 0, 0);
 
+    (sz.d.interaktionen || []).forEach(function (ia) {
+      if (!ia.markiert || st.besucht[ia.id]) return;
+      var f = ia.flaeche, o = ia.objekt;
+      var gx = (f.x0 + f.x1 + 1) * T / 2, gy = (o.y1 + 1) * T;
+      var r = Math.max(f.x1 - f.x0 + 1, 3) * T * 0.75;
+      var g = ctx.createRadialGradient(gx, gy, 2, gx, gy, r);
+      g.addColorStop(0, "rgba(255,190,90,.55)");
+      g.addColorStop(0.6, "rgba(255,170,70,.2)");
+      g.addColorStop(1, "rgba(255,170,70,0)");
+      ctx.save();
+      ctx.globalCompositeOperation = "lighter";
+      ctx.fillStyle = g;
+      ctx.fillRect(gx - r, gy - r, 2 * r, 2 * r);
+      ctx.restore();
+    });
+
     var px = Math.round(st.x), py = Math.round(st.y);
     ctx.fillStyle = "rgba(0,0,0,.28)";
     ctx.beginPath(); ctx.ellipse(px + 1, py - 1, 6, 2.5, 0, 0, Math.PI * 2); ctx.fill();
@@ -627,13 +681,13 @@ button:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
     if (daten && typeof daten.x === "number") {
       st.stufe = daten.stufe || 0; st.dir = daten.dir || "up"; st.rueck = daten.rueck || null;
       if (daten.szene && SZENEN[daten.szene] && (daten.szene === "welt" || st.rueck)) { sz = SZENEN[daten.szene]; st.szene = daten.szene; }
-      st.x = daten.x; st.y = daten.y;
+      st.x = daten.x; st.y = daten.y; st.besucht = daten.besucht || {};
     }
     hudAktualisieren();
     window.requestAnimationFrame(schleife);
   }
   var hot = window.claude && window.claude.hot;
-  if (hot && hot.snapshot) hot.snapshot(function () { return { x: st.x, y: st.y, stufe: st.stufe, dir: st.dir, szene: st.szene, rueck: st.rueck }; });
+  if (hot && hot.snapshot) hot.snapshot(function () { return { x: st.x, y: st.y, stufe: st.stufe, dir: st.dir, szene: st.szene, rueck: st.rueck, besucht: st.besucht }; });
   if (hot && hot.ready) hot.ready(start); else start(hot && hot.data ? hot.data : {});
 
   // Test-Hook

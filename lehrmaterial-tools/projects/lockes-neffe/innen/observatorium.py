@@ -36,7 +36,14 @@ for wx in (13, 26):                 # Trennwaende mit breitem Durchgang (Zeilen 
     fill(wx, 3, wx, 9, "X")
     fill(wx, 16, wx, 21, "X")
 fill(16, 3, 23, 7, "X")             # Podest mit Teleskop
-fill(17, 8, 22, 9, "I")             # Platz vor dem Teleskop
+# Interaktionspunkte: Objekt (blockiert) und freie Flaeche davor (begehbar, 'I').
+# "markiert": Kerze und Lichtschein zeigen, dass hier Material liegt.
+INTERAKTIONEN = [
+    {"id": "teleskop", "objekt": (16, 3, 23, 7), "flaeche": (17, 8, 22, 9), "markiert": False},
+    {"id": "regal_links", "objekt": (2, 17, 5, 18), "flaeche": (2, 19, 5, 19), "markiert": True},
+    {"id": "regal_rechts", "objekt": (8, 17, 11, 18), "flaeche": (8, 19, 11, 19), "markiert": True},
+    {"id": "kartentisch", "objekt": (35, 5, 37, 7), "flaeche": (35, 8, 37, 9), "markiert": True},
+]
 fill(18, 20, 21, 20, "S")           # Eintrittsstelle hinter der Tuer
 
 objs = []
@@ -408,7 +415,7 @@ def reading_table(tx, ty, tw):
         cv.rect(tx0 + 21, ly, 5, 1, (150, 140, 120))
     cv.rect(tx0 + tw0 - 30, y + 7, 10, 14, (60, 90, 160))        # Buecherstapel
     cv.rect(tx0 + tw0 - 30, y + 11, 10, 4, (170, 50, 50))
-    candle(tx0 + tw0 // 2 + 4, y + 12)
+    cv.ellipse(tx0 + tw0 // 2 + 6, y + 12, 3, 3, (30, 30, 40))   # Tintenfass statt Kerze
 
 def candle(cx, cy):
     glow(cx, cy - 4, 26, 1.28)
@@ -416,6 +423,31 @@ def candle(cx, cy):
     cv.rect(cx - 1, cy - 4, 3, 7, (246, 240, 224))
     cv.rect(cx, cy - 7, 1, 3, (255, 214, 90))
     cv.set(cx, cy - 8, (255, 250, 200))
+
+def marker_candle(cx, cy):
+    """Brennende Kerze im Messinghalter mit weitem Lichtschein: hier liegt Material."""
+    glow(cx, cy - 6, 44, 1.45)
+    cv.ellipse(cx, cy + 3, 6, 2.5, (150, 110, 40))
+    cv.ellipse(cx, cy + 2, 5, 2, (230, 190, 80))
+    cv.rect(cx - 2, cy - 9, 5, 11, (248, 242, 226))
+    cv.rect(cx + 2, cy - 9, 1, 11, (214, 204, 184))
+    cv.rect(cx - 2, cy - 9, 5, 1, (255, 255, 250))
+    cv.rect(cx, cy - 11, 1, 2, (60, 40, 30))
+    cv.rect(cx - 1, cy - 16, 3, 5, (255, 186, 60))
+    cv.rect(cx, cy - 18, 1, 3, (255, 236, 150))
+    cv.set(cx, cy - 13, (255, 255, 230))
+
+def floor_glow(fl):
+    x0, y0, x1, y1 = fl
+    cx = (x0 + x1 + 1) * T / 2
+    cy = (y0 + y1 + 1) * T / 2
+    rx = (x1 - x0 + 1) * T / 2 + 4
+    ry = (y1 - y0 + 1) * T / 2 + 5
+    for py in range(int(cy - ry), int(cy + ry) + 1):
+        for px in range(int(cx - rx), int(cx + rx) + 1):
+            d = ((px - cx) / rx) ** 2 + ((py - cy) / ry) ** 2
+            if d < 1:
+                cv.shade(px, py, 1 + 0.28 * (1 - d))
 
 def globe(tx, ty):
     cx, b = tx * T + 16, ty * T + 30
@@ -502,7 +534,8 @@ def writing_desk(tx, ty, tw):
         cv.rect(x + 10, ly, 11, 1, (120, 110, 100))
     cv.ellipse(x + 32, y + 10, 3, 3, (30, 30, 40))
     cv.line(x + 32, y + 9, x + 40, y + 2, (246, 246, 240), 2)
-    candle(x + w - 12, y + 10)
+    cv.rect(x + w - 16, y + 6, 8, 10, (60, 90, 160))           # Buch statt Kerze
+    cv.rect(x + w - 16, y + 6, 8, 2, (90, 120, 190))
 
 def quadrant(tx, ty):
     cx, b = tx * T + 16, ty * T + 28
@@ -597,6 +630,13 @@ block(38, 16, 1, 4, mk(map_chest, 38, 16, 4))
 block(35, 20, 2, 2, mk(small_telescope, 35, 20))
 block(27, 20, 1, 1, mk(plant, 27, 20))
 
+for ia in INTERAKTIONEN:
+    x0, y0, x1, y1 = ia["flaeche"]
+    for y in range(y0, y1 + 1):
+        for x in range(x0, x1 + 1):
+            assert grid[y][x] == "#", ("Interaktionsflaeche belegt", ia["id"], x, y)
+    fill(x0, y0, x1, y1, "I")
+
 
 def render():
     floor_pass()
@@ -610,8 +650,20 @@ def render():
     front_wall()
     dividers()
     dais()
+    for ia in INTERAKTIONEN:
+        if ia["markiert"]:
+            floor_glow(ia["flaeche"])
     for _, f in sorted(objs, key=lambda o: o[0]):
         f()
+    # Kerzen zuletzt, damit sie ueber Regalkante und Tisch stehen
+    for ia in INTERAKTIONEN:
+        if ia["markiert"]:
+            x0, y0, x1, y1 = ia["objekt"]
+            cx = (x0 + x1 + 1) * T // 2
+            cy = y0 * T - 6 if ia["id"].startswith("regal") else y0 * T + 12
+            if ia["id"] == "kartentisch":
+                cx = (x1 + 1) * T - 8
+            marker_candle(cx, cy)
 
 
 COLL = {"#": (40, 200, 80), "X": (220, 40, 40), "A": (230, 40, 220), "S": (40, 210, 230), "I": (250, 150, 30)}
@@ -633,11 +685,13 @@ def export():
         "name": "observatorium",
         "kachelgroesse": T, "breite": W, "hoehe": H,
         "legende": {"#": "Boden, begehbar", "X": "Wand oder Moebel", "A": "Ausgang (Tuer nach draussen)",
-                    "S": "Eintrittsstelle, begehbar", "I": "Interaktionsflaeche vor dem Teleskop, begehbar"},
+                    "S": "Eintrittsstelle, begehbar", "I": "Interaktionsflaeche vor einem Objekt, begehbar"},
         "eintritt": {"x": 19, "y": 20, "blick": "up"},
         "ausgang": [{"x": x, "y": 22} for x in range(18, 22)],
-        "interaktionen": [{"id": "teleskop", "flaeche": {"x0": 17, "y0": 8, "x1": 22, "y1": 9},
-                           "objekt": {"x0": 16, "y0": 3, "x1": 23, "y1": 7}}],
+        "interaktionen": [{"id": ia["id"], "markiert": ia["markiert"],
+                           "flaeche": dict(zip(("x0", "y0", "x1", "y1"), ia["flaeche"])),
+                           "objekt": dict(zip(("x0", "y0", "x1", "y1"), ia["objekt"]))}
+                          for ia in INTERAKTIONEN],
         "raster": ["".join(r) for r in grid],
     }
     with open(os.path.join(HERE, "observatorium.json"), "w", encoding="utf-8") as f:

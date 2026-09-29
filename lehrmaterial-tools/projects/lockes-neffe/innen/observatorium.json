@@ -8,7 +8,7 @@
   "X": "Wand oder Moebel",
   "A": "Ausgang (Tuer nach draussen)",
   "S": "Eintrittsstelle, begehbar",
-  "I": "Interaktionsflaeche vor dem Teleskop, begehbar"
+  "I": "Interaktionsflaeche vor einem Objekt, begehbar"
  },
  "eintritt": {
   "x": 19,
@@ -36,6 +36,7 @@
  "interaktionen": [
   {
    "id": "teleskop",
+   "markiert": false,
    "flaeche": {
     "x0": 17,
     "y0": 8,
@@ -46,6 +47,54 @@
     "x0": 16,
     "y0": 3,
     "x1": 23,
+    "y1": 7
+   }
+  },
+  {
+   "id": "regal_links",
+   "markiert": true,
+   "flaeche": {
+    "x0": 2,
+    "y0": 19,
+    "x1": 5,
+    "y1": 19
+   },
+   "objekt": {
+    "x0": 2,
+    "y0": 17,
+    "x1": 5,
+    "y1": 18
+   }
+  },
+  {
+   "id": "regal_rechts",
+   "markiert": true,
+   "flaeche": {
+    "x0": 8,
+    "y0": 19,
+    "x1": 11,
+    "y1": 19
+   },
+   "objekt": {
+    "x0": 8,
+    "y0": 17,
+    "x1": 11,
+    "y1": 18
+   }
+  },
+  {
+   "id": "kartentisch",
+   "markiert": true,
+   "flaeche": {
+    "x0": 35,
+    "y0": 8,
+    "x1": 37,
+    "y1": 9
+   },
+   "objekt": {
+    "x0": 35,
+    "y0": 5,
+    "x1": 37,
     "y1": 7
    }
   }
@@ -59,8 +108,8 @@
   "X#XXXX##XXXX#X##XXXXXXXX##X##XXXX##XXX#X",
   "X#XXXX##XXXX#X##XXXXXXXX##X##XXXX##XXX#X",
   "X############X##XXXXXXXX##X##XXXX##XXX#X",
-  "X##XXXXXXXX##X###IIIIII###X##XXXX######X",
-  "X##XXXXXXXX##X###IIIIII###X############X",
+  "X##XXXXXXXX##X###IIIIII###X##XXXX##III#X",
+  "X##XXXXXXXX##X###IIIIII###X########III#X",
   "X######################################X",
   "X######################################X",
   "X######################################X",
@@ -70,7 +119,7 @@
   "X############X############X###########XX",
   "X#XXXX##XXXX#X############X#XXXX##XX##XX",
   "X#XXXX##XXXX#X############X#XXXX##XX##XX",
-  "X############X############X###########XX",
+  "X#IIII##IIII#X############X###########XX",
   "XXX########X#XX###SSSS###XXX#######XX##X",
   "XXX########X#X############X########XX##X",
   "XXXXXXXXXXXXXXXXXXAAAAXXXXXXXXXXXXXXXXXX",
