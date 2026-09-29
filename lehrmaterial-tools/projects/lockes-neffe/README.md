@@ -42,9 +42,13 @@ Beide folgen denselben Regeln: sokratisch fragen statt Loesungen liefern. Die Mu
 
 **Einrichten auf Netlify**
 1. Bei Netlify die Seite aus dem GitHub-Repository anlegen, Base directory: `lehrmaterial-tools/projects/lockes-neffe` (`netlify.toml` erledigt den Rest).
-2. API-Schluessel auf platform.claude.com anlegen, dort ein monatliches Ausgabenlimit setzen.
-3. In Netlify unter Environment variables `ANTHROPIC_API_KEY` eintragen. Optional: `BIBLIOTHEKAR_MODELL` (anderes Modell), `ERLAUBTE_URSPRUENGE` (nur die eigene Adresse darf fragen).
-4. Neu deployen. Faellt der Server aus, antwortet automatisch die eingebaute Fassung.
+2. Einen API-Schluessel in den Environment variables hinterlegen. Die Function nimmt, was da ist:
+   - `GEMINI_API_KEY` (Google AI Studio, Rechnungskonto hinterlegen). Modell ueber `GEMINI_MODELL`, Standard `gemini-flash-latest`.
+   - oder `ANTHROPIC_API_KEY` (platform.claude.com, Ausgabenlimit setzen). Modell ueber `BIBLIOTHEKAR_MODELL`, Standard `claude-opus-5-5`.
+   - Optional `ERLAUBTE_URSPRUENGE`: nur die eigene Spieladresse darf fragen.
+3. Neu deployen. Ohne Schluessel oder bei einem Fehler antwortet automatisch die eingebaute Fassung.
+
+Achtung Gemini: Die Gemini API Additional Terms verlangen, dass Nutzer 18 oder aelter sind, und untersagen den Einsatz in Diensten, die sich an Minderjaehrige richten oder von ihnen wahrscheinlich genutzt werden. Vor dem Einsatz mit Schuelerinnen und Schuelern unter 18 klaeren. In der kostenlosen Stufe darf Google Eingaben zur Produktverbesserung nutzen, auch mit menschlicher Pruefung.
 
 Eigene Anbindung ohne Netlify: `window.LESESAAL_BIBLIOTHEKAR = function ({ zusammenfassung, verlauf, quelle, art }) { return Promise<string> }`.
 
