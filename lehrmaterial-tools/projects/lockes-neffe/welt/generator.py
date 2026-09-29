@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # Oberwelt fuer das Lernspiel "Lockes Neffe": Pixel-Art, Topdown, 96 x 54 Kacheln a 16 px.
 # Reines Python ohne Zusatzpakete. Aufruf: python3 generator.py
-# Ausgabe: welt.png (1x), welt_2x.png, welt_kollision.png (Vorschlag), welt.json (Kachelraster)
+# Ausgabe: welt.png (1x), welt_2x.png, welt_kollision.png (Vorschlag), welt.json und welt_daten.js (Kachelraster)
 
 import json, math, os, random, struct, zlib
 
@@ -1620,6 +1620,9 @@ def export():
     }
     with open(os.path.join(OUT, "welt.json"), "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=1)
+    # Als Skript, damit index.html die Daten auch ohne Server (file://) laden kann
+    with open(os.path.join(OUT, "welt_daten.js"), "w", encoding="utf-8") as f:
+        f.write("window.WELT = " + json.dumps(data, ensure_ascii=False) + ";\n")
 
 
 if __name__ == "__main__":

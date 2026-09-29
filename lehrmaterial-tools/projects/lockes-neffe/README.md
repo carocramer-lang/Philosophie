@@ -3,7 +3,14 @@
 Topdown-Lernspiel zur Philosophie der fruehen Aufklaerung. Jonny will in die Akademie der Wissenschaften aufgenommen werden.
 
 ## Status
-Oberwelt fertig (Grafik und Kachelraster). Innenraeume, Sprites und Spiellogik folgen.
+Spielbare Oberwelt: Jonny laeuft durch die Stadt, betritt die Lernorte in der Reihenfolge der Geschichte, der Fortschritt steht oben links. Innenraeume und Aufgaben folgen.
+
+## Spielen
+ im Browser oeffnen (auch per Doppelklick, kein Server noetig).
+- Pfeiltasten oder WASD: gehen. Am Handy erscheint ein Steuerkreuz.
+-  oder Knopf "Karte": ganze Welt anzeigen.
+- Der goldene Pfeil zeigt zum naechsten Lernort. Tueren oeffnen sich beim Hineinlaufen.
+- Jonny ist vorerst im Code gezeichnet (Funktion  in ). Ein eigenes Spritesheet laesst sich dort spaeter einsetzen.
 
 ## Oberwelt (`welt/`)
 - `welt.png`: 1536 x 864 px, 96 x 54 Kacheln a 16 px
