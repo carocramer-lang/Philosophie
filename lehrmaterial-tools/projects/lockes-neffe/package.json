@@ -1,0 +1,8 @@
+{
+  "name": "lockes-neffe",
+  "private": true,
+  "description": "Lernspiel Lockes Neffe mit Netlify Function fuer den Bibliothekar",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.129.0"
+  }
+}

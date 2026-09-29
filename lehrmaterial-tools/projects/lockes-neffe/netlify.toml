@@ -1,0 +1,7 @@
+# Netlify: Basisverzeichnis dieses Projekts ist lehrmaterial-tools/projects/lockes-neffe
+[build]
+  publish = "."
+  functions = "netlify/functions"
+
+[functions]
+  node_bundler = "esbuild"

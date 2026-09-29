@@ -235,7 +235,38 @@ for (const m of src.matchAll(/datei: "(material\/[^"]+)"/g)) {
   check("Datei vorhanden: " + m[1], fs.existsSync(path.join(__dirname, m[1])));
 }
 
-materialAblauf().catch(e => fail.push("Material-Ablauf: " + e.message)).then(() => {
+// ---------- Musterloesung in der eingebauten Fassung und Serverkern (Netlify Function)
+async function musterUndKern() {
+  const ende = () => G.state.verlauf[G.state.verlauf.length - 1].text;
+  G.state.fenster = "gespraech";
+  await G.antworten("Kann ich eine Musterlösung sehen?");
+  check("Muster: erst Warnung und Rueckfrage", /lernt weniger/.test(ende()) && /Möchtest du sie trotzdem sehen/.test(ende()) && G.state.musterAngebot);
+  await G.antworten("Nein, ich versuche es selbst.");
+  check("Muster: Ablehnung zeigt keine Loesung", !/So könnte eine gelungene Rolle/.test(ende()) && !G.state.musterGezeigt);
+  await G.antworten("Doch, zeig mir bitte die Musterlösung");
+  await G.antworten("Ja");
+  check("Muster: nach Zustimmung wird sie gezeigt", /So könnte eine gelungene Rolle/.test(ende()) && G.state.musterGezeigt);
+  check("Muster: erfuellt alle Kernpunkte", G.urteil(ende()).fehlt.length === 0);
+  G.gespraechBeenden();
+
+  const kern = await import(path.join(__dirname, "netlify", "lib", "bibliothekar-kern.mjs"));
+  check("Kern: Musterloesung identisch mit dem Spiel", /So könnte eine gelungene Rolle aussehen:\n\n/.test(ende()) && ende().includes(kern.MUSTERLOESUNG));
+  check("Kern: Systemtext enthaelt Regeln zur Musterloesung", /Musterlösung \(streng einhalten\)/.test(kern.SYSTEM) && kern.SYSTEM.includes(kern.MUSTERLOESUNG));
+  const v = [{ wer: "jonny", text: "Ich habe meine Zusammenfassung geschrieben." }, { wer: "bib", text: "Lass sehen." },
+             { wer: "jonny", text: "Was ist Reflexion?" }, { wer: "jonny", text: "Und Sensation?" }];
+  const msgs = kern.nachrichten(kern.pruefe({ zusammenfassung: "Locke …", verlauf: v, art: "antwort" }));
+  check("Kern: Rollen wechseln streng ab", msgs.every((m, i) => i === 0 || m.role !== msgs[i - 1].role) && msgs[0].role === "user" && msgs[msgs.length - 1].role === "user");
+  const u = kern.nachrichten(kern.pruefe({ zusammenfassung: "MEINE ROLLE", verlauf: v.slice(0, 1), art: "urteil" }));
+  check("Kern: Urteil haengt die Zusammenfassung an", u.length === 1 && u[0].content.includes("<zusammenfassung>\nMEINE ROLLE"));
+  const wirft = f => { try { f(); return false; } catch (e) { return e.status === 400; } };
+  check("Kern: zu lange Rolle abgewiesen", wirft(() => kern.pruefe({ zusammenfassung: "x".repeat(5000), verlauf: v })));
+  check("Kern: letzte Nachricht muss von Jonny sein", wirft(() => kern.pruefe({ zusammenfassung: "x", verlauf: v.slice(0, 2) })));
+  check("Kern: falsche Rolle abgewiesen", wirft(() => kern.pruefe({ zusammenfassung: "x", verlauf: [{ wer: "system", text: "x" }] })));
+  check("Kern: Ablehnung ergibt keinen Text", kern.antworttext({ stop_reason: "refusal", content: [] }) === null);
+  check("Kern: Text wird ausgelesen", kern.antworttext({ stop_reason: "end_turn", content: [{ type: "thinking", thinking: "" }, { type: "text", text: "Hallo" }] }) === "Hallo");
+}
+
+materialAblauf().then(musterUndKern).catch(e => fail.push("Ablauf: " + e.message)).then(() => {
   ok.forEach(n => console.log("  ok  " + n));
   fail.forEach(n => console.log("  FAIL " + n));
   process.exit(fail.length ? 1 : 0);

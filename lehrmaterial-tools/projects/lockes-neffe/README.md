@@ -31,8 +31,19 @@ Lesesaal: 40 x 24 Kacheln, erzeugt mit `python3 innen/lesesaal.py` (nutzt die Ba
 - Der Entwurf wird im Browser gemerkt (`localStorage`, Schluessel `lockes-neffe_v1`). "Rolle als Datei sichern" speichert Zusammenfassung und Gespraech als Textdatei.
 
 ### Bibliothekar (Rueckmeldung)
-Eingebaut ist eine regelbasierte Fassung ohne Internet und ohne Datenweitergabe. Sie prueft sieben Kernpunkte (Einleitungssatz, tabula rasa, Erfahrung, Sensation, Reflexion, Erkenntnis als Uebereinstimmung der Ideen, Grenzen des Wissens) und die Form (Wertung, woertliche Uebernahmen, Praeteritum, Redewiedergabe, Laenge). Sie lobt konkret, nennt hoechstens drei Verbesserungen und stellt Rueckfragen mit gestuften Hilfen.
-Ein echter Chatbot laesst sich ohne Umbau anschliessen: `window.LESESAAL_BIBLIOTHEKAR = function ({ zusammenfassung, verlauf, quelle, art }) { return Promise<string> }`. Liefert er nichts oder schlaegt fehl, springt die eingebaute Fassung ein.
+Zwei Quellen, das Spiel waehlt automatisch:
+1. **Auf Netlify:** `netlify/functions/bibliothekar.mjs` fragt die Claude API (Standardmodell `claude-opus-5-5`). Der API-Schluessel bleibt auf dem Server.
+2. **Sonst** (lokal, Vorschau auf claude.ai, Server nicht erreichbar): die eingebaute regelbasierte Fassung. Sie prueft sieben Kernpunkte und die Form (Wertung, woertliche Uebernahmen, Praeteritum, Redewiedergabe, Laenge) und fuehrt mit Rueckfragen und gestuften Hilfen.
+
+Beide folgen denselben Regeln: sokratisch fragen statt Loesungen liefern. Die Musterloesung gibt es erst nach einem ausdruecklichen Angebot mit dem Hinweis, dass fertige Loesungen dem Lernen weniger nuetzen, und nur, wenn Jonny zustimmt. Rollenbeschreibung, Locke-Text und Musterloesung stehen in `netlify/lib/bibliothekar-kern.mjs`.
+
+**Einrichten auf Netlify**
+1. Bei Netlify die Seite aus dem GitHub-Repository anlegen, Base directory: `lehrmaterial-tools/projects/lockes-neffe` (`netlify.toml` erledigt den Rest).
+2. API-Schluessel auf platform.claude.com anlegen, dort ein monatliches Ausgabenlimit setzen.
+3. In Netlify unter Environment variables `ANTHROPIC_API_KEY` eintragen. Optional: `BIBLIOTHEKAR_MODELL` (anderes Modell), `ERLAUBTE_URSPRUENGE` (nur die eigene Adresse darf fragen).
+4. Neu deployen. Faellt der Server aus, antwortet automatisch die eingebaute Fassung.
+
+Eigene Anbindung ohne Netlify: `window.LESESAAL_BIBLIOTHEKAR = function ({ zusammenfassung, verlauf, quelle, art }) { return Promise<string> }`.
 
 ## Oberwelt (`welt/`)
 - `welt.png`: 1536 x 864 px, 96 x 54 Kacheln a 16 px

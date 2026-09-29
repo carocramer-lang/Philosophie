@@ -450,7 +450,8 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
     rueck: null, uebersicht: false, bewegt: false,
     material: null, gesehen: {}, geladen: {},
     fenster: null, rolle: "", abgegeben: false, rueckmeldung: false, lesesaalFertig: false,
-    verlauf: [], bibSeit: null, frage: null, versuche: 0, gefragt: {}, letzteTreffer: null
+    verlauf: [], bibSeit: null, frage: null, versuche: 0, gefragt: {}, letzteTreffer: null,
+    musterAngebot: false, musterGezeigt: false
   };
   function fertig(id) { return !!(st.gesehen[id] && st.geladen[id]); }
   function infografikenFertig() { return INFOGRAFIKEN.every(fertig); }
@@ -881,6 +882,29 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
     return bibliothekarSpricht({ art: "antwort", eingabe: text }).then(function () { return true; });
   }
 
+  // Auf Netlify beantwortet die Function /.netlify/functions/bibliothekar (Claude API) die Nachrichten.
+  // Ist sie nicht erreichbar (lokal, Vorschau, Fehler), antwortet fuer den Rest der Sitzung die eingebaute Fassung.
+  var BIBLIOTHEKAR_URL = "/.netlify/functions/bibliothekar";
+  var serverAus = false;
+  function serverBibliothekar() {
+    var loc = window.location;
+    if (serverAus || !window.fetch || !loc || !/^https?:$/.test(loc.protocol) || /claude\.ai$|claudeusercontent|^localhost$|^127\./.test(loc.hostname)) return null;
+    return function (daten) {
+      var abbruch = window.AbortController ? new AbortController() : null;
+      var uhr = abbruch ? setTimeout(function () { abbruch.abort(); }, 30000) : null;
+      return window.fetch(BIBLIOTHEKAR_URL, {
+        method: "POST", headers: { "content-type": "application/json" },
+        body: JSON.stringify({ zusammenfassung: daten.zusammenfassung, verlauf: daten.verlauf, art: daten.art }),
+        signal: abbruch ? abbruch.signal : undefined
+      }).then(function (r) {
+        if (uhr) clearTimeout(uhr);
+        if (r.status === 404 || r.status === 405 || r.status >= 500) serverAus = true;
+        if (!r.ok) throw new Error("Server " + r.status);
+        return r.json();
+      }).then(function (j) { return j.text; }, function (e) { serverAus = serverAus || e.name !== "AbortError"; throw e; });
+    };
+  }
+
   // Antwortquelle: ein spaeter angeschlossener Chatbot (window.LESESAAL_BIBLIOTHEKAR) oder die eingebaute Fassung.
   // Schnittstelle: function ({ zusammenfassung, verlauf, quelle, art }) -> Promise<string>
   var warten = false;
@@ -888,7 +912,7 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
     warten = true;
     $("antwortSenden").disabled = true;
     renderVerlauf(true);
-    var extern = window.LESESAAL_BIBLIOTHEKAR;
+    var extern = window.LESESAAL_BIBLIOTHEKAR || serverBibliothekar();
     var p = typeof extern === "function"
       ? Promise.resolve().then(function () {
           return extern({ zusammenfassung: st.rolle, verlauf: st.verlauf.slice(), quelle: LOCKE_PLAIN, art: anlass.art });
@@ -951,6 +975,7 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
   $("gSichern").addEventListener("click", function () { rolleAlsDatei(); });
 
   // ---------- Eingebauter Bibliothekar: regelbasierte Rueckmeldung nach Lockes Kernbegriffen und den Regeln fuer AFB I
+  var MUSTERLOESUNG = "In seinem Werk „An Essay Concerning Human Understanding“ (1690) untersucht John Locke, woher unsere Ideen stammen und wie weit menschliches Wissen reicht. Im ersten Textauszug erläutert Locke, dass der Geist zu Beginn einem unbeschriebenen Blatt (tabula rasa) gleicht und keine angeborenen Ideen enthält. Alles Material des Denkens stammt nach Locke aus der Erfahrung. Er unterscheidet dabei zwei Quellen: Die Sensation liefert über die Sinne Ideen von äußeren Gegenständen, etwa von Farben, Temperaturen oder Geschmäckern. Die Reflexion ist die innere Wahrnehmung der Tätigkeiten des eigenen Geistes, zum Beispiel des Denkens, Zweifelns oder Wollens. Im zweiten Auszug bestimmt Locke Erkenntnis als Wahrnehmung der Übereinstimmung oder des Widerstreits zwischen Ideen. Daraus folgert er, dass unser Wissen nicht weiter reicht als unsere Ideen. Es ist sogar noch enger, weil wir die Beziehungen zwischen Ideen nicht immer erkennen. In vielen Bereichen der Wirklichkeit bleibt der Mensch daher im Dunkeln.";
   var LOCKE_PLAIN = LOCKE_TEXT.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
   var BIBLIOTHEKAR = (function () {
     var KRIT = [
@@ -1065,7 +1090,28 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
       [/wie lang|wie viele w(ö|oe)rter|l(ä|ae)nge/i, "Achtzig bis zweihundert Wörter genügen für beide Texte. Weniger ist hier oft mehr."]
     ];
 
+    var MUSTER_WUNSCH = /muster|l(ö|oe)sung|beispieltext|vorlage/i;
+    var ZUSTIMMUNG = /^\s*(ja|jawohl|gern|gerne|bitte|zeig|okay|ok)\b/i;
+    function musterAngebot(vorspann) {
+      st.musterAngebot = true;
+      return (vorspann ? vorspann + "\n\n" : "") +
+        "Ich könnte dir eine Musterlösung zeigen. Bedenke aber: Wer nur liest, lernt weniger, als wer selbst verbessert. " +
+        "Möchtest du sie trotzdem sehen? Dann antworte mit „Ja“.";
+    }
+
     function sprich(anlass) {
+      if (anlass.art === "antwort" && st.musterAngebot) {
+        st.musterAngebot = false;
+        if (ZUSTIMMUNG.test(anlass.eingabe || "")) {
+          st.musterGezeigt = true;
+          return "Nun gut. So könnte eine gelungene Rolle aussehen:\n\n" + MUSTERLOESUNG +
+            "\n\nVergleiche sie Satz für Satz mit deiner eigenen. Was fehlt dir, was hast du anders gelöst? Schreib sie bitte nicht ab.";
+        }
+        return "Eine weise Entscheidung. Überarbeite deine Rolle selbst, ich lese sie gern noch einmal.";
+      }
+      if (anlass.art === "antwort" && MUSTER_WUNSCH.test(anlass.eingabe || "")) {
+        return musterAngebot(st.musterGezeigt ? "Du kennst sie schon, aber gern noch einmal." : "");
+      }
       if (anlass.art === "urteil") {
         var u = urteil(st.rolle), teile = [];
         var vorher = st.letzteTreffer;
@@ -1102,6 +1148,7 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
           var lobText = "Genau so. Nimm das in deine Rolle auf, dann wird sie vollständiger.";
           if (weiter) return lobText + "\n\nNächste Frage: " + stelle(weiter);
           stelle(null);
+          if (!st.musterGezeigt) return musterAngebot(lobText + " Mehr habe ich nicht zu fragen. Überarbeite deine Rolle mit diesen Punkten.");
           return lobText + "\n\nMehr habe ich nicht zu fragen. Überarbeite deine Rolle mit diesen Punkten oder beende das Gespräch.";
         }
         st.versuche++;
@@ -1110,6 +1157,7 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
         var aufl = "Ich helfe dir: " + k.hilfe;
         if (danach) return aufl + "\n\nNächste Frage: " + stelle(danach);
         stelle(null);
+        if (!st.musterGezeigt) return musterAngebot(aufl);
         return aufl + "\n\nÜberarbeite deine Rolle damit, oder beende das Gespräch.";
       }
       for (var i = 0; i < GLOSSAR.length; i++) if (GLOSSAR[i][0].test(e)) return GLOSSAR[i][1];
