@@ -134,6 +134,49 @@ button:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
   #drehen { display: grid; }
 }
 
+#material {
+  position: fixed; left: 50%; transform: translateX(-50%);
+  top: calc(env(safe-area-inset-top, 0px) + 10px);
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 10px);
+  width: min(760px, calc(100vw - 32px));
+  box-sizing: border-box; padding: 12px 16px;
+  display: grid; grid-template-rows: auto minmax(0, 1fr) auto; gap: 8px;
+}
+body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(--rand) + 14px))); }
+#material h2 { margin: 0; font-family: var(--display); font-weight: 400; font-size: 24px; line-height: 1.1; text-wrap: balance; }
+#materialInhalt {
+  overflow: auto; min-height: 0; background: #fbf5e6; border: 1px solid var(--ink-soft);
+  touch-action: pan-x pan-y; -webkit-overflow-scrolling: touch;
+}
+#materialInhalt:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+#materialInhalt img { display: block; width: 100%; height: auto; }
+#materialInhalt .text { padding: 14px 18px 18px; font-size: 18px; line-height: 1.5; max-width: 65ch; }
+#materialInhalt .text h3 { font-family: var(--display); font-weight: 400; font-size: 21px; margin: 18px 0 6px; }
+#materialInhalt .text h3:first-child { margin-top: 0; }
+#materialInhalt .text p { margin: 0 0 10px; }
+#materialInhalt .quelle { font-style: italic; font-size: 15px; color: var(--ink-soft); }
+#materialFuss { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; justify-content: space-between; }
+#materialStatus { font-style: italic; font-size: 15px; color: var(--ink-soft); flex: 1 1 200px; min-width: 0; }
+#materialStatus.fertig { color: #2f6b3a; font-style: normal; }
+.knoepfe { display: flex; gap: 10px; }
+#zu, #laden { font-family: var(--display); font-size: 17px; padding: 5px 16px; min-height: 44px; cursor: pointer; }
+#laden { background: var(--ink); color: var(--parchment); }
+#laden:hover { background: var(--seal); border-color: var(--seal); }
+#laden:disabled { opacity: .6; cursor: wait; }
+
+#toast {
+  position: fixed; left: 50%; transform: translateX(-50%); top: 24vh;
+  width: min(440px, calc(100vw - 32px)); box-sizing: border-box;
+  padding: 12px 16px; font-size: 18px; line-height: 1.35; text-align: center;
+  border-color: var(--seal);
+}
+#toast strong { font-family: var(--display); font-weight: 400; color: var(--seal); font-size: 21px; display: block; }
+#toast.leuchten { animation: aufleuchten 1.2s ease-out 2; }
+@keyframes aufleuchten {
+  0% { box-shadow: 0 0 0 3px var(--parchment-deep), 0 0 0 5px var(--seal), 0 0 0 0 rgba(255, 196, 90, .9); }
+  100% { box-shadow: 0 0 0 3px var(--parchment-deep), 0 0 0 5px var(--seal), 0 0 0 22px rgba(255, 196, 90, 0); }
+}
+
 #fehler { position: fixed; inset: 0; display: grid; place-items: center; padding: 16px; }
 #fehler div { padding: 16px 20px; max-width: 420px; font-size: 18px; }
 
@@ -145,6 +188,7 @@ button:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
 }
 @media (prefers-reduced-motion: reduce) {
   #hinweis { transition: none; }
+  #toast.leuchten { animation: none; }
 }
 </style>
 <!--HEAD-END-->
@@ -169,6 +213,17 @@ button:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
   <p id="dialogNotiz" class="notiz"></p>
   <div class="zeile"><button id="weiter" type="button">Weiter</button></div>
 </div>
+
+<div id="material" class="karte" role="dialog" aria-modal="true" aria-labelledby="materialTitel" hidden>
+  <h2 id="materialTitel"></h2>
+  <div id="materialInhalt" tabindex="0"></div>
+  <div id="materialFuss">
+    <span id="materialStatus"></span>
+    <div class="knoepfe"><button id="zu" type="button">Schließen</button><button id="laden" type="button">Herunterladen</button></div>
+  </div>
+</div>
+
+<div id="toast" class="karte" role="status" hidden></div>
 
 <div id="pad" hidden>
   <button type="button" data-dir="up" aria-label="Nach oben">▲</button>
@@ -218,25 +273,42 @@ button:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
     }
   };
 
-  // ---------- Materialstellen (Kerze + Lichtschein). Hier spaeter das Material verknuepfen:
-  // "material" kann z. B. ein Link oder ein eigener Text werden, sobald er feststeht.
+  // ---------- Material im Observatorium. Jede Stelle muss angesehen UND heruntergeladen werden.
+  // Die drei Infografiken schalten das Teleskop frei, dort liegt Lockes Text.
   var MATERIAL = {
     regal_links: {
-      titel: "Bücherregal",
-      text: "Zwischen zwei schweren Folianten klemmt ein versiegelter Zettel.",
-      material: null
+      titel: "Platons Theätet", art: "bild",
+      datei: "material/infografik_theaetet.jpg", name: "Infografik_Platon_Theaetet.jpg",
+      alt: "Infografik: Platons Theätet und die Suche nach dem Wesen des Wissens"
     },
     regal_rechts: {
-      titel: "Bücherregal",
-      text: "Hinter der vorderen Buchreihe liegt eine Mappe mit Abschriften.",
-      material: null
+      titel: "Vom bloßen Meinen zum gesicherten Wissen", art: "bild",
+      datei: "material/infografik_meinen_und_wissen.jpg", name: "Infografik_Meinen_und_Wissen_Gettier.jpg",
+      alt: "Infografik: Platons Theätet und das Gettier-Problem"
     },
     kartentisch: {
-      titel: "Sternkartentisch",
-      text: "Unter der großen Sternkarte liegen Skizzen und Notizen eines Gelehrten.",
-      material: null
+      titel: "Rationalismus vs. Empirismus", art: "bild",
+      datei: "material/infografik_rationalismus_empirismus.jpg", name: "Infografik_Rationalismus_Empirismus.jpg",
+      alt: "Infografik: Grundlagen der Erkenntnistheorie, Descartes und Locke"
+    },
+    teleskop: {
+      titel: "John Locke: Der Ursprung der Ideen", art: "text",
+      datei: "material/arbeitsblatt_locke_erkenntnistheorie.pdf", name: "Arbeitsblatt_Locke_Erkenntnistheorie.pdf"
     }
   };
+  var INFOGRAFIKEN = ["regal_links", "regal_rechts", "kartentisch"];
+  var ALLE_MATERIALIEN = INFOGRAFIKEN.concat(["teleskop"]);
+  var LOCKE_TEXT =
+    '<div class="text">' +
+    '<p class="quelle">John Locke (1632–1704): An Essay Concerning Human Understanding, 1690. Das vollständige Arbeitsblatt mit den Arbeitsaufträgen lädst du unten herunter.</p>' +
+    '<h3>Text 1: Der Ursprung der Ideen (Buch II, Kapitel 1)</h3>' +
+    '<p>Nehmen wir also an, der Geist sei, wie man sagt, ein unbeschriebenes Blatt (tabula rasa), ohne alle Schriftzeichen, frei von allen Ideen. Wie werden ihm diese zugeführt? Wie gelangt er zu dem gewaltigen Vorrat an Ideen, den die geschäftige Phantasie des Menschen mit einer fast unbegrenzten Abwechslung auf ihn hinmalt? Woher hat er all das Material für seine Vernunft und seine Erkenntnis? Ich antworte darauf mit einem einzigen Worte: aus der Erfahrung. Auf sie gründet sich unsere gesamte Erkenntnis, von ihr leitet sie sich letztlich her.</p>' +
+    '<p>Unsere Beobachtung, die entweder auf äußere sinnlich wahrnehmbare Objekte gerichtet ist oder auf innere Operationen des Geistes, liefert unserem Verstand das gesamte Material des Denkens. Dies sind die beiden Quellen der Erkenntnis.</p>' +
+    '<p>Erstens: SENSATION. Unsere Sinne, die auf äußere Objekte gerichtet sind, führen dem Geist verschiedene Ideen von Dingen zu, wie Gelb, Weiß, Warm, Kalt, Weich, Hart, Bitter und Süß. Diese Quelle nennen wir Sensation. Zweitens: REFLEXION. Die andere Quelle ist die Wahrnehmung der Operationen unseres eigenen Geistes im Innern, wie Denken, Zweifeln, Glauben, Schließen, Wollen. Diese Quelle nennen wir Reflexion.</p>' +
+    '<h3>Text 2: Der Umfang und die Grenzen unseres Wissens (Buch IV, Kapitel 3)</h3>' +
+    '<p>Da der Geist keine anderen unmittelbaren Objekte seiner Betrachtung hat als seine eigenen Ideen, so ist es klar, dass unsere Erkenntnis nur auf diese bezogen ist. Erkenntnis ist nichts anderes als die Wahrnehmung des Zusammenhangs und der Übereinstimmung oder des Widerstreits zwischen unseren Ideen.</p>' +
+    '<p>Daraus folgt unmittelbar: Erstens: Unser Wissen reicht nicht weiter als unsere Ideen. Zweitens: Unser Wissen ist noch enger als unsere Ideen, weil wir nicht immer die Übereinstimmung oder Nichtübereinstimmung zwischen ihnen wahrnehmen können. Wir besitzen keine intuitive oder demonstrative Gewissheit über die unendliche Natur der Dinge. Unser imperatives Wissen erstreckt sich nicht einmal so weit wie unsere Vorstellungen selbst. Wir tappen in vielen Bereichen der Wirklichkeit völlig im Dunkeln.</p>' +
+    '</div>';
 
   // ---------- Szenen: Oberwelt und begehbare Innenraeume
   var SZENEN = {
@@ -258,8 +330,13 @@ button:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
     szene: "welt", x: D.start.x * T + 8, y: D.start.y * T + 12,
     dir: "up", schritt: 0, animZeit: 0, laeuft: false,
     stufe: 0, dialog: null, dialogRueck: null, aktion: null,
-    rueck: null, uebersicht: false, bewegt: false, besucht: {}
+    rueck: null, uebersicht: false, bewegt: false,
+    material: null, gesehen: {}, geladen: {}
   };
+  function fertig(id) { return !!(st.gesehen[id] && st.geladen[id]); }
+  function infografikenFertig() { return INFOGRAFIKEN.every(fertig); }
+  function allesFertig() { return ALLE_MATERIALIEN.every(fertig); }
+  function anzahlFertig(liste) { return liste.filter(fertig).length; }
   var keys = { up: false, down: false, left: false, right: false };
   var grob = !!(window.matchMedia && window.matchMedia("(pointer: coarse)").matches);
   var hochMq = window.matchMedia ? window.matchMedia("(orientation: portrait) and (pointer: coarse)") : { matches: false };
@@ -307,7 +384,13 @@ button:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
       if (ort === "observatorium") hineingehen(ort, ty);
       else if (ort) betreten(ort, ty);
     } else if (fuss === "A" && st.laeuft) {
-      hinausgehen();
+      if (sz.id === "observatorium" && !allesFertig()) {
+        st.y = 22 * T - 3; st.dir = "up"; tastenLos();
+        zeigeToast("Halt!", "Du hast noch nicht alle Materialien angesehen und heruntergeladen. Gesichert: " +
+          anzahlFertig(ALLE_MATERIALIEN) + " von " + ALLE_MATERIALIEN.length + ".");
+      } else {
+        hinausgehen();
+      }
     }
     setzeAktion(interaktionAn(st.x, st.y - 2));
   }
@@ -386,29 +469,118 @@ button:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
   // Interaktion: nur ausloesbar, wenn Jonny auf der Flaeche vor dem Objekt steht
   function benutzen() {
     if (!st.aktion || st.dialog) return;
-    if (st.aktion === "teleskop") {
-      if (st.stufe === 0) {
-        st.stufe = 1;
-        zeigeDialog("Das große Teleskop",
-          "Du blickst durch das Okular. Hier findest du bald die Texte und Übersichten, die du für deine Prüfung sammelst.",
-          "Material folgt. Danach führt dein Weg zum Lesesaal.", null);
-      } else {
-        zeigeDialog("Das große Teleskop",
-          "Der Himmel ist klar. Deine Notizen aus dem Observatorium hast du schon beisammen.",
-          "Nächstes Ziel: " + zielName() + ".", null);
-      }
+    if (st.aktion === "teleskop" && !infografikenFertig()) {
+      zeigeDialog("Das große Teleskop",
+        "Die Linse ist noch abgedeckt. Sieh dir zuerst die drei Stellen mit den Kerzen an und lade das Material dort herunter.",
+        "Gesichert: " + anzahlFertig(INFOGRAFIKEN) + " von 3.", null);
       return;
     }
-    var m = MATERIAL[st.aktion];
-    if (m) {
-      st.besucht[st.aktion] = true;
-      zeigeDialog(m.titel, m.text, m.material ? m.material : "Material folgt.", null);
+    if (MATERIAL[st.aktion]) oeffneMaterial(st.aktion);
+  }
+
+  // ---------- Materialfenster
+  function oeffneMaterial(id) {
+    var m = MATERIAL[id];
+    st.material = id; st.dialog = "material"; st.gesehen[id] = true;
+    tastenLos();
+    $("materialTitel").textContent = m.titel;
+    var inhalt = $("materialInhalt");
+    inhalt.innerHTML = "";
+    if (m.art === "bild") {
+      var img = document.createElement("img");
+      img.src = m.datei; img.alt = m.alt;
+      inhalt.appendChild(img);
+    } else {
+      inhalt.innerHTML = LOCKE_TEXT;
     }
+    inhalt.scrollTop = 0;
+    $("laden").textContent = m.art === "bild" ? "Infografik herunterladen" : "Arbeitsblatt herunterladen (PDF)";
+    materialStatus(null);
+    $("material").hidden = false;
+    $("laden").focus();
+    hudAktualisieren();
+  }
+  function materialStatus(fehler) {
+    var el = $("materialStatus"), id = st.material;
+    if (!id) return;
+    var ok = fertig(id);
+    el.classList.toggle("fertig", ok);
+    el.textContent = fehler ? fehler : ok ? "✓ Angesehen und heruntergeladen." : "Lade das Material herunter, um es zu sichern.";
+  }
+
+  // Online nutzt das Spiel die Download-Funktion der Plattform, lokal einen normalen Download-Link.
+  var dl = null;
+  if (window.claude && window.claude.use) {
+    window.claude.use("downloads").then(function (d) { dl = d; }, function () {});
+  }
+  function speichern(m) {
+    if (dl && window.fetch) {
+      return window.fetch(m.datei)
+        .then(function (r) { if (!r.ok) throw new Error("laden"); return r.blob(); })
+        .then(function (b) { return dl.save({ filename: m.name, data: b }); })
+        .then(function () { return true; }, function () { return false; });
+    }
+    try {
+      var a = document.createElement("a");
+      // target: lokal (file://) ignorieren Browser "download" und oeffnen die Datei, dann in einem neuen Tab statt im Spiel
+      a.href = m.datei; a.download = m.name; a.target = "_blank"; a.rel = "noopener";
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      return Promise.resolve(true);
+    } catch (e) {
+      return Promise.resolve(false);
+    }
+  }
+  function herunterladen() {
+    var id = st.material;
+    if (!id) return Promise.resolve(false);
+    $("laden").disabled = true;
+    return speichern(MATERIAL[id]).then(function (ok) {
+      $("laden").disabled = false;
+      if (ok) st.geladen[id] = true;
+      if (st.material === id) materialStatus(ok ? null : "Nicht gespeichert. Tippe noch einmal auf Herunterladen.");
+      hudAktualisieren();
+      return ok;
+    });
+  }
+  function materialSchliessen() {
+    var id = st.material;
+    if (!id) return;
+    st.material = null; st.dialog = null;
+    $("material").hidden = true;
+    if (id === "teleskop" && allesFertig() && st.stufe === 0) {
+      st.stufe = 1;
+      zeigeDialog("Alle Materialien gesichert",
+        "Du hast die Fakten beisammen: drei Infografiken und Lockes Text über den Ursprung der Ideen. Die Tür steht dir offen.",
+        "Nächstes Ziel: Lesesaal.", null);
+    } else if (fertig(id) && INFOGRAFIKEN.indexOf(id) >= 0 && infografikenFertig() && !fertig("teleskop")) {
+      zeigeToast("Das Teleskop leuchtet", "Alle drei Infografiken sind gesichert. Jetzt wartet Lockes Text am Teleskop.");
+    }
+    hudAktualisieren();
+  }
+
+  // ---------- Kurzer Hinweis, der aufleuchtet und von selbst verschwindet
+  var toastTimer = null;
+  function zeigeToast(titel, text) {
+    var t = $("toast");
+    t.innerHTML = "";
+    var st_ = document.createElement("strong");
+    st_.textContent = titel;
+    t.appendChild(st_);
+    t.appendChild(document.createTextNode(text));
+    t.hidden = false;
+    t.classList.remove("leuchten");
+    void t.offsetWidth;
+    t.classList.add("leuchten");
+    if (toastTimer) clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { t.hidden = true; }, 4000);
   }
 
   function zielName() {
     if (st.stufe >= REIHE.length) return "Aufnahme bestanden";
-    if (st.stufe === 0 && st.szene === "observatorium") return "Das große Teleskop";
+    if (st.stufe === 0 && st.szene === "observatorium") {
+      if (!infografikenFertig()) return "Materialstellen (" + anzahlFertig(INFOGRAFIKEN) + "/3)";
+      return "Das große Teleskop";
+    }
     return ORTE[REIHE[st.stufe]].name;
   }
   function hudAktualisieren() {
@@ -537,8 +709,18 @@ button:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
 
   function zielPunkt() {
     if (sz.id === "observatorium") {
-      var f = sz.d.interaktionen[0].flaeche;
-      if (st.stufe === 0) return { x: (f.x0 + f.x1 + 1) * T / 2, y: (f.y1 + 1) * T };
+      var offen = sz.d.interaktionen.filter(function (ia) {
+        return infografikenFertig() ? ia.id === "teleskop" && !fertig("teleskop") : INFOGRAFIKEN.indexOf(ia.id) >= 0 && !fertig(ia.id);
+      });
+      offen.sort(function (p, q) {
+        var dp = Math.hypot((p.flaeche.x0 + p.flaeche.x1 + 1) * T / 2 - st.x, (p.flaeche.y1 + 1) * T - st.y);
+        var dq = Math.hypot((q.flaeche.x0 + q.flaeche.x1 + 1) * T / 2 - st.x, (q.flaeche.y1 + 1) * T - st.y);
+        return dp - dq;
+      });
+      if (offen.length) {
+        var f = offen[0].flaeche;
+        return { x: (f.x0 + f.x1 + 1) * T / 2, y: (f.y1 + 1) * T };
+      }
       var a = sz.d.ausgang[0];
       return { x: (a.x + 2) * T, y: (a.y + 1) * T };
     }
@@ -564,7 +746,8 @@ button:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
     ctx.drawImage(sz.bild, 0, 0);
 
     (sz.d.interaktionen || []).forEach(function (ia) {
-      if (!ia.markiert || st.besucht[ia.id]) return;
+      var an = ia.id === "teleskop" ? infografikenFertig() && !fertig("teleskop") : ia.markiert && !fertig(ia.id);
+      if (!an) return;
       var f = ia.flaeche, o = ia.objekt;
       var gx = (f.x0 + f.x1 + 1) * T / 2, gy = (o.y1 + 1) * T;
       var r = Math.max(f.x1 - f.x0 + 1, 3) * T * 0.75;
@@ -633,6 +816,10 @@ button:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
     ArrowLeft: "left", KeyA: "left", ArrowRight: "right", KeyD: "right"
   };
   document.addEventListener("keydown", function (e) {
+    if (st.material) {
+      if (e.code === "Escape") { e.preventDefault(); materialSchliessen(); }
+      return;
+    }
     if (st.dialog) {
       if (e.code === "Space" || e.code === "Enter" || e.code === "Escape") { e.preventDefault(); dialogSchliessen(); }
       return;
@@ -648,6 +835,8 @@ button:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
   });
   window.addEventListener("blur", tastenLos);
   $("weiter").addEventListener("click", dialogSchliessen);
+  $("zu").addEventListener("click", materialSchliessen);
+  $("laden").addEventListener("click", herunterladen);
 
   function uebersicht(an) {
     st.uebersicht = an;
@@ -681,18 +870,19 @@ button:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
     if (daten && typeof daten.x === "number") {
       st.stufe = daten.stufe || 0; st.dir = daten.dir || "up"; st.rueck = daten.rueck || null;
       if (daten.szene && SZENEN[daten.szene] && (daten.szene === "welt" || st.rueck)) { sz = SZENEN[daten.szene]; st.szene = daten.szene; }
-      st.x = daten.x; st.y = daten.y; st.besucht = daten.besucht || {};
+      st.x = daten.x; st.y = daten.y; st.gesehen = daten.gesehen || {}; st.geladen = daten.geladen || {};
     }
     hudAktualisieren();
     window.requestAnimationFrame(schleife);
   }
   var hot = window.claude && window.claude.hot;
-  if (hot && hot.snapshot) hot.snapshot(function () { return { x: st.x, y: st.y, stufe: st.stufe, dir: st.dir, szene: st.szene, rueck: st.rueck, besucht: st.besucht }; });
+  if (hot && hot.snapshot) hot.snapshot(function () { return { x: st.x, y: st.y, stufe: st.stufe, dir: st.dir, szene: st.szene, rueck: st.rueck, gesehen: st.gesehen, geladen: st.geladen }; });
   if (hot && hot.ready) hot.ready(start); else start(hot && hot.data ? hot.data : {});
 
   // Test-Hook
   window.__game = {
     state: st, keys: keys, tick: tick, frei: frei, schliessen: dialogSchliessen, benutzen: benutzen,
+    herunterladen: herunterladen, materialSchliessen: materialSchliessen,
     teleport: function (tx, ty) { st.x = tx * T + 8; st.y = ty * T + 12; }
   };
 })();

@@ -34,13 +34,16 @@ function el() {
     style: {}, hidden: false, textContent: "", innerHTML: "",
     classList: { add() {}, remove() {}, toggle() {}, contains() { return false; } },
     addEventListener() {}, setAttribute() {}, getAttribute() { return null; },
-    appendChild() {}, focus() {}, getContext() { return null; }
+    appendChild() {}, removeChild() {}, focus() {}, click() {}, getContext() { return null; },
+    disabled: false, offsetWidth: 0, scrollTop: 0
   };
 }
 const els = {}, docListeners = {};
 const document = {
   getElementById: id => els[id] || (els[id] = el()),
   createElement: () => el(),
+  createTextNode: () => el(),
+  body: el(),
   querySelectorAll: () => [],
   addEventListener: (t, f) => { docListeners[t] = f; }
 };
@@ -51,7 +54,7 @@ const window = {
 };
 window.window = window;
 function Image() {}
-vm.runInNewContext(code, { window, document, Image, Math, Object, Array, Uint8ClampedArray });
+vm.runInNewContext(code, { window, document, Image, Math, Object, Array, Uint8ClampedArray, setTimeout: () => 0, clearTimeout() {} });
 const G = window.__game;
 check("Spiel: Test-Hook vorhanden", !!G);
 // Laeuft, bis sich die Szene aendert (hoechstens sek Sekunden)
@@ -83,25 +86,46 @@ lauf("up", 3);
 check("Spiel: Hauptweg fuehrt gerade zum Teleskop", G.state.aktion === "teleskop");
 check("Spiel: Podest blockiert", Math.floor((G.state.y - 1) / 16) >= 8);
 G.benutzen();
-check("Spiel: Teleskop benutzen zaehlt als Schritt 1", G.state.dialog && G.state.stufe === 1);
-G.benutzen(); G.schliessen();
-check("Spiel: kein doppeltes Zaehlen", G.state.stufe === 1);
-bisWechsel("down", 5);
-check("Spiel: Rueckweg fuehrt zurueck vor die Tuer", G.state.szene === "welt" && Math.floor(G.state.y / 16) === 17);
-lauf("left", 1);
-check("Spiel: draussen weiter begehbar", G.state.szene === "welt" && !G.state.dialog);
-
-// Materialstellen: Regal links unten
-G.teleport(47, 18); bisWechsel("up", 2);
-G.teleport(3, 19); G.tick(1 / 60);
-check("Spiel: Regal links bietet Interaktion", G.state.aktion === "regal_links");
-G.benutzen();
-check("Spiel: Regal oeffnet Material-Karte ohne Etappe", !!G.state.dialog && G.state.stufe === 1 && G.state.besucht.regal_links === true);
+check("Spiel: Teleskop gesperrt, solange Infografiken fehlen", G.state.dialog === "Das große Teleskop" && !G.state.material && G.state.stufe === 0);
 G.schliessen();
-G.teleport(36, 8); G.tick(1 / 60);
-check("Spiel: Kartentisch bietet Interaktion", G.state.aktion === "kartentisch");
+G.teleport(19, 21); bisWechsel("down", 2);
+check("Spiel: Tuer gesperrt ohne alle Materialien", G.state.szene === "observatorium" && Math.floor((G.state.y - 2) / 16) === 21);
 G.teleport(24, 12); G.tick(1 / 60);
 check("Spiel: freie Flaeche bietet keine Interaktion", G.state.aktion === null);
+
+async function materialAblauf() {
+  const stellen = { regal_links: [3, 19], regal_rechts: [9, 19], kartentisch: [36, 8] };
+  let erste = true;
+  for (const [id, [x, y]] of Object.entries(stellen)) {
+    G.teleport(x, y); G.tick(1 / 60);
+    check("Material: " + id + " bietet Interaktion", G.state.aktion === id);
+    G.benutzen();
+    check("Material: " + id + " oeffnet das Materialfenster", G.state.material === id && G.state.gesehen[id] === true);
+    if (erste) {
+      G.materialSchliessen();
+      check("Material: nur angesehen reicht nicht", !G.state.geladen[id]);
+      G.benutzen();
+      erste = false;
+    }
+    const ok = await G.herunterladen();
+    check("Material: " + id + " heruntergeladen", ok === true && G.state.geladen[id] === true);
+    G.materialSchliessen();
+  }
+  G.teleport(19, 8); G.tick(1 / 60);
+  G.benutzen();
+  check("Material: Teleskop zeigt nach den Infografiken Lockes Text", G.state.material === "teleskop");
+  G.teleport(19, 21);
+  await G.herunterladen();
+  G.materialSchliessen();
+  check("Material: alles gesichert schliesst Etappe 1 ab", G.state.stufe === 1 && G.state.dialog === "Alle Materialien gesichert");
+  G.schliessen();
+  G.teleport(19, 8); G.tick(1 / 60); G.benutzen(); G.materialSchliessen();
+  check("Material: kein doppeltes Zaehlen", G.state.stufe === 1);
+  G.teleport(19, 21); bisWechsel("down", 2);
+  check("Spiel: Rueckweg fuehrt zurueck vor die Tuer", G.state.szene === "welt" && Math.floor(G.state.y / 16) === 17);
+  lauf("left", 1);
+  check("Spiel: draussen weiter begehbar", G.state.szene === "welt" && !G.state.dialog);
+}
 
 // Innenraum-Raster
 check("Innen: Raster vollstaendig", innen.raster.length === innen.hoehe && innen.raster.every(r => r.length === innen.breite));
@@ -125,6 +149,14 @@ check("Innen: Ausgang erreichbar", innen.ausgang.every(a => seenI.has(a.x + "," 
 let offen = 0; for (let y = 0; y < innen.hoehe; y++) for (let x = 0; x < innen.breite; x++) if (ia(x, y) !== "X" && !seenI.has(x + "," + y)) offen++;
 check("Innen: keine abgeschnittenen Bodenflaechen", offen === 0);
 
-ok.forEach(n => console.log("  ok  " + n));
-fail.forEach(n => console.log("  FAIL " + n));
-process.exit(fail.length ? 1 : 0);
+// Materialdateien vorhanden
+const src = fs.readFileSync(path.join(__dirname, "index.html"), "utf8");
+for (const m of src.matchAll(/datei: "(material\/[^"]+)"/g)) {
+  check("Datei vorhanden: " + m[1], fs.existsSync(path.join(__dirname, m[1])));
+}
+
+materialAblauf().catch(e => fail.push("Material-Ablauf: " + e.message)).then(() => {
+  ok.forEach(n => console.log("  ok  " + n));
+  fail.forEach(n => console.log("  FAIL " + n));
+  process.exit(fail.length ? 1 : 0);
+});
