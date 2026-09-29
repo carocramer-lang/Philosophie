@@ -1,0 +1,79 @@
+{
+ "name": "observatorium",
+ "kachelgroesse": 16,
+ "breite": 40,
+ "hoehe": 24,
+ "legende": {
+  "#": "Boden, begehbar",
+  "X": "Wand oder Moebel",
+  "A": "Ausgang (Tuer nach draussen)",
+  "S": "Eintrittsstelle, begehbar",
+  "I": "Interaktionsflaeche vor dem Teleskop, begehbar"
+ },
+ "eintritt": {
+  "x": 19,
+  "y": 20,
+  "blick": "up"
+ },
+ "ausgang": [
+  {
+   "x": 18,
+   "y": 22
+  },
+  {
+   "x": 19,
+   "y": 22
+  },
+  {
+   "x": 20,
+   "y": 22
+  },
+  {
+   "x": 21,
+   "y": 22
+  }
+ ],
+ "interaktionen": [
+  {
+   "id": "teleskop",
+   "flaeche": {
+    "x0": 17,
+    "y0": 8,
+    "x1": 22,
+    "y1": 9
+   },
+   "objekt": {
+    "x0": 16,
+    "y0": 3,
+    "x1": 23,
+    "y1": 7
+   }
+  }
+ ],
+ "raster": [
+  "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+  "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+  "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+  "X###########XXXXXXXXXXXXXXX############X",
+  "X############X##XXXXXXXX##X############X",
+  "X#XXXX##XXXX#X##XXXXXXXX##X##XXXX##XXX#X",
+  "X#XXXX##XXXX#X##XXXXXXXX##X##XXXX##XXX#X",
+  "X############X##XXXXXXXX##X##XXXX##XXX#X",
+  "X##XXXXXXXX##X###IIIIII###X##XXXX######X",
+  "X##XXXXXXXX##X###IIIIII###X############X",
+  "X######################################X",
+  "X######################################X",
+  "X######################################X",
+  "X######################################X",
+  "X######################################X",
+  "X######################################X",
+  "X############X############X###########XX",
+  "X#XXXX##XXXX#X############X#XXXX##XX##XX",
+  "X#XXXX##XXXX#X############X#XXXX##XX##XX",
+  "X############X############X###########XX",
+  "XXX########X#XX###SSSS###XXX#######XX##X",
+  "XXX########X#X############X########XX##X",
+  "XXXXXXXXXXXXXXXXXXAAAAXXXXXXXXXXXXXXXXXX",
+  "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+ ]
+}
