@@ -448,6 +448,23 @@ function akademieAblauf() {
   check("Akademie: Neues Spiel leert die gespeicherten Texte", G.state.rolle === "" && G.state.salon.rolle === "" && G.state.druckerei.rolle === "");
   G.teleport(19, 21); bisWechsel("down", 2);
   check("Akademie: danach ist die Tuer offen", G.state.szene === "welt");
+  tafelnAblauf();
+}
+
+// ---------- Infotafeln: in jedem Raum und in der Oberwelt freiwillig lesbar
+function tafelnAblauf() {
+  const orte = { welt: [d, "london", /Glorious Revolution/], observatorium: [innen, "sterne", /Principia/], lesesaal: [saal, "notizen", /3\.600 Bücher/],
+    salon: [salon, "salon", /fünf oder sechs Freunde/], druckerei: [druckerei, "locke_druck", /Thomas Basset/], akademie: [akademie, "nullius", /Nullius in verba/] };
+  for (const [ort, [daten, id, inhalt]] of Object.entries(orte)) {
+    G.szene(ort);
+    const t = daten.interaktionen.find(i => i.id === "tafel");
+    check("Tafel " + ort + ": vorhanden", !!t);
+    G.teleport(t.flaeche.x0, t.flaeche.y0); G.tick(1 / 60);
+    check("Tafel " + ort + ": bietet Interaktion", G.state.aktion === "tafel");
+    G.benutzen();
+    check("Tafel " + ort + ": zeigt ihren Inhalt", G.state.material === "tafel" && inhalt.test(document.getElementById("materialInhalt").innerHTML) && G.state.tafeln[id]);
+    G.materialSchliessen();
+  }
 }
 
 // Akademie-Raster: alles vom Eintritt aus erreichbar

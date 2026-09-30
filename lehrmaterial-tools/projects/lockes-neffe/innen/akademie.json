@@ -81,6 +81,22 @@
     "x1": 29,
     "y1": 19
    }
+  },
+  {
+   "id": "tafel",
+   "markiert": false,
+   "flaeche": {
+    "x0": 15,
+    "y0": 7,
+    "x1": 16,
+    "y1": 7
+   },
+   "objekt": {
+    "x0": 15,
+    "y0": 3,
+    "x1": 16,
+    "y1": 6
+   }
   }
  ],
  "praesident": {
@@ -117,7 +133,7 @@
   "X#######XX####XXXXXXXXXXXX#############X",
   "X#######XX####XXXXXXXXXXXX#############X",
   "X#######II####XXXXXXXXXXXX#############X",
-  "X#################IIII#################X",
+  "X##############II#IIII#################X",
   "X######################################X",
   "X#XXXXXXXXXXXX############XXXXXXXXXXXX#X",
   "X#XXXXXXXXXXXX############XXXXXXXXXXXX#X",

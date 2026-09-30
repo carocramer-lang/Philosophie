@@ -157,6 +157,19 @@ button:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
 @media (max-width: 640px), (max-height: 480px) { .tafel { grid-template-columns: 1fr; } .faksimile { max-width: 240px; justify-self: center; } }
 .flugschrift .vorschau { display: grid; gap: 12px; }
 .flugschrift .vorschau img { width: 100%; max-width: 560px; margin: 0 auto; box-shadow: 0 3px 10px rgba(0, 0, 0, .3); }
+/* Bilder der Infotafeln */
+.faksimile .zeit { font-size: 13px; text-align: left; margin: 4px 2px; line-height: 1.3; }
+.faksimile .zeit b { font-family: var(--display); color: #8e2a22; margin-right: 4px; }
+.faksimile.register table { border-collapse: collapse; margin: 6px auto; font-size: 12px; }
+.faksimile.register th, .faksimile.register td { border: 1px solid #b9a67e; width: 22px; height: 18px; padding: 0; text-align: center; font-weight: 400; }
+.faksimile.register th { font-family: var(--display); color: #8e2a22; }
+.faksimile.gazette .f2 { font-size: 24px; letter-spacing: .04em; }
+.faksimile.gazette .spalten { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; height: 110px; margin-top: 6px; }
+.faksimile.gazette .spalten span { background: repeating-linear-gradient(#2a2320 0 1px, transparent 1px 6px); opacity: .45; }
+.faksimile.wappen .schild { width: 90px; height: 104px; margin: 6px auto 0; background: #2c4478; border: 3px solid #b8902e;
+  border-radius: 6px 6px 45px 45px; display: grid; place-items: center; color: #e8c860; font-size: 18px; letter-spacing: 4px; }
+.faksimile.wappen .band { margin: -10px auto 8px; position: relative; background: #f4ecd4; border: 1px solid #8e2a22; color: #8e2a22;
+  font-family: var(--display); letter-spacing: .12em; font-size: 14px; padding: 3px 8px; width: max-content; }
 .brief { background: #f7ecd0; border: 1px solid var(--ink-soft); padding: 8px 12px; margin: 0 0 14px; font-family: var(--body); }
 .brief p { margin: 0 0 6px; }
 .brief .hk { font-weight: bold; margin-top: 8px; }
@@ -537,7 +550,86 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
         '<p class="klein">Übrigens: Die englischen Wörter „uppercase“ und „lowercase“ stammen aus der Werkstatt. Die Großbuchstaben lagen im oberen Setzkasten, die kleinen im unteren.</p>' +
         '</div></div>'
     }
+    ,
+    // Oberwelt: Anschlagtafel am Brunnen
+    london: {
+      titel: "Aushang am Brunnen: London 1690",
+      html: '<div class="tafel"><div class="faksimile aushang" aria-label="Aushang mit Nachrichten aus London">' +
+        '<div class="f3">NACHRICHTEN</div><div class="f5">aus</div><div class="f2">LONDON</div><div class="flinie"></div>' +
+        '<div class="zeit"><b>1688</b> Der König flieht, das Parlament siegt</div>' +
+        '<div class="zeit"><b>1689</b> Herr Locke kehrt aus Holland heim</div>' +
+        '<div class="zeit"><b>1690</b> Seine Bücher sind in aller Munde</div>' +
+        '<div class="flinie"></div><div class="fzier">❦</div></div>' +
+        '<div class="tafeltext">' +
+        '<p><strong>Die Glorious Revolution.</strong> 1688 wird König Jakob II. gestürzt, ohne großen Bürgerkrieg. Wilhelm von Oranien und Mary werden das neue Königspaar, das Parlament wird gestärkt.</p>' +
+        '<p><strong>Heimkehr aus dem Exil.</strong> Dein Onkel war 1683 in die Niederlande geflohen. Im Februar 1689 kehrt er zurück, auf demselben Schiff wie die künftige Königin Mary.</p>' +
+        '<p><strong>Ein Jahr, drei Hauptwerke.</strong> 1689/90 erscheinen kurz nacheinander der „Brief über die Toleranz“, die „Zwei Abhandlungen über die Regierung“ und der „Versuch über den menschlichen Verstand“.</p>' +
+        '<p class="klein">Deshalb spielt Lockes Welt im Jahr 1690: Die Gedanken deines Onkels sind gerade frisch gedruckt und in aller Munde.</p>' +
+        '</div></div>'
+    },
+    // Observatorium: Messingschild am Fuss des Teleskops
+    sterne: {
+      titel: "Aus dem Observatorium: Beobachten statt glauben",
+      html: '<div class="tafel"><div class="faksimile" aria-label="Nachbildung des Titelblatts von Newtons Principia, 1687">' +
+        '<div class="f1">PHILOSOPHIÆ</div><div class="f1">NATURALIS</div><div class="f2">PRINCIPIA</div><div class="f3">MATHEMATICA.</div>' +
+        '<div class="flinie"></div><div class="f5">Autore <i>JS. NEWTON</i>, Trin. Coll. Cantab.</div><div class="flinie"></div>' +
+        '<div class="f7">IMPRIMATUR: <i>S. PEPYS</i>, Reg. Soc. PRÆSES.</div><div class="fzier">❦</div>' +
+        '<div class="f6">LONDINI,</div><div class="f7">Jussu Societatis Regiæ ac Typis <i>Josephi Streater</i>.</div><div class="f8">MDCLXXXVII.</div></div>' +
+        '<div class="tafeltext">' +
+        '<p><strong>Die neue Sternwarte.</strong> 1675 gründet König Karl II. die Sternwarte in Greenwich. Ihr erster Astronom, John Flamsteed, vermisst den Himmel so genau wie nie zuvor. Wissen soll aus Beobachtung und Messung kommen.</p>' +
+        '<p><strong>Newtons großer Wurf.</strong> 1687 erscheint Isaac Newtons „Principia“. Gedruckt wird sie im Auftrag der Royal Society, ihr Präsident Samuel Pepys unterschreibt die Druckerlaubnis.</p>' +
+        '<p><strong>Dein Onkel im Labor.</strong> Locke hilft seinem Freund Robert Boyle bei Experimenten und arbeitet als Arzt. Er vertraut dem, was sich prüfen lässt.</p>' +
+        '<p><strong>Der Handlanger.</strong> Im Vorwort seines Essays nennt Locke sich einen „Handlanger“, der den Boden freiräumt, auf dem große Forscher wie „der unvergleichliche Mr. Newton“ bauen.</p>' +
+        '<p class="klein">Deshalb beginnt dein Weg hier: Wer urteilen will, braucht zuerst Fakten.</p>' +
+        '</div></div>'
+    },
+    // Lesesaal: Karteikarte am Katalogschrank
+    notizen: {
+      titel: "Aus dem Lesesaal: Wie Locke las und notierte",
+      html: '<div class="tafel"><div class="faksimile register" aria-label="Register nach Lockes Methode: Anfangsbuchstabe und erster Vokal">' +
+        '<div class="f1">INDEX</div><table><thead><tr><th></th><th>a</th><th>e</th><th>i</th><th>o</th><th>u</th></tr></thead><tbody>' +
+        '<tr><th>E</th><td></td><td></td><td></td><td></td><td></td></tr>' +
+        '<tr><th>I</th><td></td><td>12</td><td></td><td></td><td></td></tr>' +
+        '<tr><th>R</th><td></td><td>7</td><td></td><td></td><td></td></tr>' +
+        '<tr><th>S</th><td></td><td>3</td><td></td><td></td><td></td></tr>' +
+        '<tr><th>T</th><td>1</td><td></td><td></td><td></td><td></td></tr>' +
+        '</tbody></table><div class="f7"><i>Tabula</i> steht unter T und a, <i>Idee</i> unter I und e.</div></div>' +
+        '<div class="tafeltext">' +
+        '<p><strong>Eine große Bibliothek.</strong> Locke besitzt eine der größten Privatbibliotheken seiner Zeit, rund 3.600 Bücher. Viele davon liest er mit der Feder in der Hand.</p>' +
+        '<p><strong>Gelehrter in Oxford.</strong> Jahrelang studiert und lehrt dein Onkel in Oxford, am Christ Church College.</p>' +
+        '<p><strong>Lockes Notizbuch-Methode.</strong> Er ordnet seine Notizen nach Stichwörtern in einem Register: Anfangsbuchstabe und erster Vokal ergeben das Feld, darin steht die Seitenzahl. 1686 veröffentlicht er diese Methode. Ein früher Vorläufer heutiger Lernkarten.</p>' +
+        '<p class="klein">Deshalb arbeitest du hier am Text: Wer zusammenfassen kann, hat sein Material geordnet.</p>' +
+        '</div></div>'
+    },
+    // Salon: die London Gazette auf dem Teetisch
+    salon: {
+      titel: "Aus dem Salon: Wie der Essay entstand",
+      html: '<div class="tafel"><div class="faksimile gazette" aria-label="Nachbildung des Kopfes der London Gazette">' +
+        '<div class="f2">THE LONDON</div><div class="f2">GAZETTE.</div><div class="f5"><i>Published by Authority.</i></div>' +
+        '<div class="flinie"></div><div class="spalten"><span></span><span></span></div></div>' +
+        '<div class="tafeltext">' +
+        '<p><strong>Fünf oder sechs Freunde.</strong> 1671 diskutieren fünf oder sechs Freunde in Lockes Zimmer und kommen nicht weiter. Locke schlägt vor, zuerst zu prüfen, was unser Verstand überhaupt erkennen kann. Daraus wird nach fast zwanzig Jahren der Essay. So erzählt er es selbst im Vorwort.</p>' +
+        '<p><strong>Die Penny Universities.</strong> In Londons Kaffeehäusern, das erste öffnet 1652, liest man Zeitungen wie die London Gazette (seit 1665) und streitet über Politik und Philosophie, für den Preis eines Kaffees. Deshalb nennt man sie „Penny Universities“.</p>' +
+        '<p><strong>Streit als Methode.</strong> Auch Platon hat seine Philosophie fast ganz in Gesprächen geschrieben. Im Dialog zeigt sich, ob ein Gedankengang trägt.</p>' +
+        '<p class="klein">Deshalb analysierst du hier: Du prüfst Leibniz’ Argument Schritt für Schritt, wie in einem guten Gespräch.</p>' +
+        '</div></div>'
+    },
+    // Akademie: graviertes Schild vorn am Podium
+    nullius: {
+      titel: "Aus der Akademie: Nullius in verba",
+      html: '<div class="tafel"><div class="faksimile wappen" aria-label="Wappen mit dem Wahlspruch Nullius in verba">' +
+        '<div class="schild"><span>✦ ✦ ✦</span></div><div class="band">NULLIUS IN VERBA</div>' +
+        '<div class="f7"><i>„Auf niemandes Wort hin“</i></div></div>' +
+        '<div class="tafeltext">' +
+        '<p><strong>Auf niemandes Wort hin.</strong> Vorbild unserer Akademie ist die Royal Society, gegründet 1660. Ihr Wahlspruch „Nullius in verba“ bedeutet: Glaube nichts, nur weil jemand Berühmtes es sagt. Was zählt, lässt sich prüfen.</p>' +
+        '<p><strong>Das Zepter.</strong> Das Zeremonienzepter auf dem Tisch schenkt König Karl II. der Gesellschaft im Jahr 1663.</p>' +
+        '<p><strong>Gegner unter einem Dach.</strong> Dein Onkel ist seit 1668 Mitglied, Leibniz seit 1673. Die beiden Kontrahenten gehören also derselben Gesellschaft an. Leibniz gründet 1700 in Berlin eine eigene Akademie der Wissenschaften und wird ihr erster Präsident.</p>' +
+        '<p><strong>Woher das Wort kommt.</strong> „Akademie“ stammt von Platons Schule im Hain des Akademos bei Athen. So schließt sich der Kreis zum Salon.</p>' +
+        '</div></div>'
+    }
   };
+  // Welche Tafel steht in welchem Raum (Interaktion "tafel")
+  var TAFEL_JE_RAUM = { welt: "london", observatorium: "sterne", lesesaal: "notizen", salon: "salon", druckerei: "locke_druck", akademie: "nullius" };
   function oeffneTafel(id) {
     var t = TAFELN[id];
     st.material = "tafel"; st.dialog = "material"; st.tafeln[id] = true;
@@ -579,7 +671,7 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
 
   // ---------- Szenen: Oberwelt und begehbare Innenraeume
   var SZENEN = {
-    welt: { d: D, src: "welt/welt.png", begehbar: { "#": 1, ".": 1, "E": 1 } },
+    welt: { d: D, src: "welt/welt.png", begehbar: { "#": 1, ".": 1, "E": 1, "I": 1 } },
     observatorium: { d: INNEN.observatorium, src: "innen/observatorium.png", begehbar: { "#": 1, "S": 1, "I": 1, "A": 1 } },
     lesesaal: { d: INNEN.lesesaal, src: "innen/lesesaal.png", begehbar: { "#": 1, "S": 1, "I": 1, "A": 1 } },
     salon: { d: INNEN.salon, src: "innen/salon.png", begehbar: { "#": 1, "S": 1, "I": 1, "A": 1 } },
@@ -969,6 +1061,7 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
   // Interaktion: nur ausloesbar, wenn Jonny auf der Flaeche vor dem Objekt steht
   function benutzen() {
     if (!st.aktion || st.dialog) return;
+    if (st.aktion === "tafel" && TAFEL_JE_RAUM[sz.id]) { oeffneTafel(TAFEL_JE_RAUM[sz.id]); return; }
     var R = RAUM[sz.id];
     if (R) R.benutzen(st.aktion);
   }
@@ -2817,7 +2910,7 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
     ctx.drawImage(sz.bild, 0, 0);
 
     (sz.d.interaktionen || []).forEach(function (ia) {
-      var an = RAUM[sz.id] && RAUM[sz.id].leuchtet(ia.id);
+      var an = (RAUM[sz.id] && RAUM[sz.id].leuchtet(ia.id)) || (ia.id === "tafel" && !st.tafeln[TAFEL_JE_RAUM[sz.id]]);
       if (!an) return;
       var f = ia.flaeche, o = ia.objekt;
       var gx = (f.x0 + f.x1 + 1) * T / 2, gy = (o.y1 + 1) * T;
@@ -3119,7 +3212,11 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
     urteilPlaton: function (t) { return PLATON.urteil(t); }, flugschrift: FLUGSCHRIFT, tafel: oeffneTafel, presseBild: presseBild,
     urteilDrucker: function (t) { return DRUCKER.urteil(t); }, meisterGespraech: function () { return gespraechAmOrt("druckerei"); },
     oeffneFlugschrift: oeffneFlugschrift, flugschriftDaten: flugschriftDaten,
-    mappeAbschnitte: mappeAbschnitte, neuesSpiel: neuesSpiel, frageAbbrechen: frageAbbrechen, platonGespraech: platonGespraech, vorstellung: PLATON_VORSTELLUNG,
+    mappeAbschnitte: mappeAbschnitte, neuesSpiel: neuesSpiel, frageAbbrechen: frageAbbrechen,
+    szene: function (id) {
+      if (id !== "welt") { hineingehen(id, 0); return; }
+      if (st.szene !== "welt") { st.rueck = st.rueck || { x: st.x, y: st.y }; hinausgehen(); }
+    }, platonGespraech: platonGespraech, vorstellung: PLATON_VORSTELLUNG,
     teleport: function (tx, ty) { st.x = tx * T + 8; st.y = ty * T + 12; },
     starten: spielStarten, infoAuf: infoAuf, infoZu: infoZu, startLage: startLage, START: START
   };

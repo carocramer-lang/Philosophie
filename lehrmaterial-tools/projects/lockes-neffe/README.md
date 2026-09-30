@@ -57,6 +57,16 @@ Buchdruckerei: 40 x 24 Kacheln, erzeugt mit `python3 innen/druckerei.py`.
 - Kriterien des Meisters nach dem Erwartungshorizont: Vergleich (Lockes Sensation und Reflexion, komplexe Ideen, Leibniz' Anlass statt Begruendung), Abwaegung (Induktionsproblem fuer Leibniz, Metaphysik und Sparsamkeit fuer Locke, sichtbares Gegenargument), eigenes Urteil (Fazit, Synthese etwa mit Kant). Zur Form: Urteilssprache statt blosser Darstellung, Begruendungen, Zitate nur in Anfuehrungszeichen, Laenge. Die Position selbst wertet er nie.
 - Druckermeister: `figuren/druckermeister.py` (gefaltete Papiermuetze, Lederschuerze, schwarze Haende), zwei Posen: stehen und ziehen.
 - Infotafel (freiwillig, leuchtet bis sie gelesen ist): Nachbildung des Titelblatts von 1690 und kurze Texte zu Druck und Verlag (Elizabeth Holt, Thomas Basset), Lockes Namen auf dem Titel, Leibniz' liegengebliebenem Manuskript (gedruckt 1765) und dem Ende der Vorzensur 1695. Inhalte im Objekt `TAFELN` in `index.html`, dasselbe Muster laesst sich in anderen Raeumen nutzen.
+
+## Infotafeln in allen Raeumen
+
+Jeder Ort hat eine freiwillige Infotafel (Interaktion `tafel`, leuchtet bis sie gelesen ist). Zuordnung in `TAFEL_JE_RAUM` in `index.html`:
+
+- Oberwelt: Anschlagbrett am Brunnen (Kachel 44,34), Tafel `london` (Glorious Revolution 1688, Lockes Rueckkehr 1689, drei Werke 1689/90).
+- Observatorium: Messingschild, Tafel `sterne` (Greenwich 1675, Newtons Principia 1687, Boyle, Locke als Handlanger).
+- Lesesaal: Karteikarte am Katalogschrank, Tafel `notizen` (Lockes Bibliothek, Christ Church, Methode der Commonplace Books 1686).
+- Salon: London Gazette auf dem Sofa, Tafel `salon` (Freundesrunde 1671, Kaffeehaeuser, Platons Dialoge).
+- Akademie: Messingplakette am Podium, Tafel `nullius` (Royal Society 1660, Nullius in verba, Locke FRS 1668, Leibniz FRS 1673).
 - Flugschrift: `FLUGSCHRIFT` in `index.html` setzt einen Text auf A4-Seiten im Stil von 1690 (Titelei, Zierleiste, Initiale, Blocksatz, Kustoden, FINIS, Druckerzeichen, Druckvermerk MDCXC) und speichert sie als PDF (je Seite ein Bild, ohne fremde Bibliothek). Kurze Texte werden bei Bedarf etwas kleiner gesetzt, damit sie auf eine Seite passen.
 
 Akademie der Wissenschaften (Abschluss): 40 x 24 Kacheln, erzeugt mit `python3 innen/akademie.py`.

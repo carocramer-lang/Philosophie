@@ -7,7 +7,8 @@
   ".": "Wiese, begehbar (optional sperren)",
   "X": "Hindernis",
   "~": "Wasser",
-  "E": "Eingang (Tuer)"
+  "E": "Eingang (Tuer)",
+  "I": "vor der Infotafel, begehbar"
  },
  "start": {
   "x": 47,
@@ -136,6 +137,24 @@
    }
   }
  },
+ "interaktionen": [
+  {
+   "id": "tafel",
+   "markiert": false,
+   "flaeche": {
+    "x0": 44,
+    "y0": 35,
+    "x1": 44,
+    "y1": 35
+   },
+   "objekt": {
+    "x0": 44,
+    "y0": 34,
+    "x1": 44,
+    "y1": 34
+   }
+  }
+ ],
  "raster": [
   "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX~~~~XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
   "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX~~~~XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
@@ -171,8 +190,8 @@
   "XXX....XX.....XX....XX....####################XXXX#######################################....XXX",
   "XXX....XX.....XX....XX.XX.####################XXXX#######################################....XXX",
   "XXXXX..................XX.####################XXXX#######################################.XX.XXX",
-  "XXXXX..XXXXXXXXXXXXXX.....###........X####################XXXXXXXX....................###.XX.XXX",
-  "XXX....XXXXXXXXXXXXXX.....###.XXXXXX..####################..~~~~...XXXXXXXXXXXXXXXX...###....XXX",
+  "XXXXX..XXXXXXXXXXXXXX.....###........X######X#############XXXXXXXX....................###.XX.XXX",
+  "XXX....XXXXXXXXXXXXXX.....###.XXXXXX..######I#############..~~~~...XXXXXXXXXXXXXXXX...###....XXX",
   "XXX.X..XXXXXXXXXXXXXX..X..###.XXXXXX..####################..~~~~.XXXXXXXXXXXXXXXXXXXX.###....XXX",
   "XXX....XXXXXXXXXXXXXX.....###.XXXXXX.X#XXX############XXX#..~~~~~XXXXXXXXXXXXXXXXXXXX.###....XXX",
   "XXX....XXXXXXXXXXXXXX....X###XXXXXXX..#XXX############XXX#..~~~~~XXXXXXXXXXXXXXXXXX..X###X.XXXXX",

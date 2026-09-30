@@ -41,6 +41,8 @@ fill(18, 20, 21, 20, "S")
 INTERAKTIONEN = [
     {"id": "sekretaer", "objekt": (3, 3, 6, 4), "flaeche": (3, 5, 6, 6), "markiert": True},
     {"id": "kamin", "objekt": (17, 3, 22, 5), "flaeche": (18, 6, 21, 6), "markiert": False},
+    # Infotafel (freiwillig): die London Gazette auf dem Teetisch
+    {"id": "tafel", "objekt": (3, 15, 7, 17), "flaeche": (4, 18, 6, 18), "markiert": False},
 ]
 # Fusspunkt des Geistes vor dem Kamin (Kachelkoordinaten, x zwischen zwei Kacheln)
 GEIST = {"x": 19.5, "y": 5}
@@ -326,6 +328,11 @@ def settee_group(tx, ty):
     cv.ellipse(x + 32, t0 + 6, 3, 2, (60, 90, 170))
     cv.rect(x + 37, t0 + 4, 3, 1, (240, 242, 248))
     cv.rect(x + 31, t0 + 1, 2, 2, (60, 90, 170))
+    # gefaltete London Gazette
+    cv.rect(x + 20, t0 + 2, 9, 10, (236, 230, 214))
+    cv.rect(x + 20, t0 + 2, 9, 2, (60, 56, 52))
+    for ly in range(t0 + 5, t0 + 11, 2):
+        cv.rect(x + 21, ly, 7, 1, (140, 132, 120))
     for dx in (44, 51):
         cv.ellipse(x + dx, t0 + 6, 2.5, 2, (240, 242, 248))
         cv.set(x + dx, t0 + 6, (140, 90, 50))

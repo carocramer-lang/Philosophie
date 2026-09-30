@@ -40,6 +40,8 @@ INTERAKTIONEN = [
     {"id": "praesident", "objekt": (15, 3, 24, 6), "flaeche": (18, 7, 21, 7), "markiert": True},
     {"id": "archiv", "objekt": (8, 4, 9, 5), "flaeche": (8, 6, 9, 6), "markiert": False},
     {"id": "sanduhr", "objekt": (28, 19, 29, 19), "flaeche": (28, 20, 29, 20), "markiert": False},
+    # Infotafel (freiwillig): graviertes Schild vorn am Podium unter dem Zepter
+    {"id": "tafel", "objekt": (15, 3, 16, 6), "flaeche": (15, 7, 16, 7), "markiert": False},
 ]
 # Figuren (Fusspunkte in Kacheln): Praesident vor dem Tisch, Onkel John daneben
 PRAESIDENT = {"x": 19.5, "y": 6}
@@ -197,6 +199,12 @@ def dais():
     cv.rect(tx1 - 40, ty + 4, 12, 10, (122, 72, 42)); cv.rect(tx1 - 40, ty + 4, 12, 2, (150, 90, 52))
     cv.ellipse(tx1 - 18, ty + 9, 3, 3, (30, 30, 40))
     cv.line(tx1 - 18, ty + 8, tx1 - 12, ty + 1, (246, 246, 240), 2)
+    # graviertes Messingschild vorn am Podium (Infotafel)
+    px0, py0 = 15 * T + 3, y1 - 6
+    cv.rect(px0 - 1, py0, 28, 6, (70, 48, 20))
+    cv.rect(px0, py0 + 1, 26, 4, (214, 170, 72))
+    for lx in range(px0 + 3, px0 + 23, 3):
+        cv.rect(lx, py0 + 3, 2, 1, (120, 86, 30))
     # Stuhl des Praesidenten hinter dem Tisch
     cx = 20 * T
     cv.rect(cx - 8, ty - 10, 16, 12, (120, 30, 40))
