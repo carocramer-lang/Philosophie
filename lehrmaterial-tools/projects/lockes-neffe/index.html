@@ -1,0 +1,1737 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!--HEAD-START-->
+<title>Lockes Welt</title>
+<style>
+/* Schriften liegen im Ordner schriften/ (SIL Open Font License), keine Verbindung zu Google */
+@font-face { font-family: "IM Fell English"; font-style: normal; font-weight: 400; font-display: swap; src: url(schriften/im-fell-english.woff2) format("woff2"); }
+@font-face { font-family: "IM Fell English"; font-style: italic; font-weight: 400; font-display: swap; src: url(schriften/im-fell-english-italic.woff2) format("woff2"); }
+@font-face { font-family: "IM Fell English SC"; font-style: normal; font-weight: 400; font-display: swap; src: url(schriften/im-fell-english-sc.woff2) format("woff2"); }
+/* Layout: Spielfeld randlos im Querformat, darueber Pergamentkarten wie Einlagen in einem Druck von 1690.
+   Touch: Steuerkreuz unten links, Aktionsknopf E unten rechts, Dialoge dazwischen. */
+:root {
+  --ink: #2b2118;
+  --ink-soft: #5a4632;
+  --parchment: #f3e6c4;
+  --parchment-deep: #e4d0a0;
+  --seal: #9c2f2a;
+  --gold: #c99a3a;
+  --night: #16211a;
+  --display: "IM Fell English SC", "Palatino Linotype", Georgia, serif;
+  --body: "IM Fell English", "Palatino Linotype", Georgia, serif;
+  --steuer: 168px;
+  --rand: 18px;
+  color-scheme: dark;
+}
+[hidden] { display: none !important; }
+html, body { height: 100%; }
+body { margin: 0; background: var(--night); color: var(--ink); font-family: var(--body); overflow: hidden; touch-action: none; }
+#spiel { position: fixed; inset: 0; width: 100%; height: 100%; display: block; image-rendering: pixelated; }
+
+.karte {
+  background: var(--parchment);
+  border: 2px solid var(--ink);
+  box-shadow: 0 0 0 3px var(--parchment-deep), 0 0 0 5px var(--ink), 0 6px 18px rgba(0, 0, 0, .45);
+  border-radius: 2px;
+}
+#hud {
+  position: fixed;
+  top: calc(env(safe-area-inset-top, 0px) + 14px);
+  left: calc(env(safe-area-inset-left, 0px) + 14px);
+  padding: 8px 12px 10px;
+  display: grid; gap: 4px;
+  max-width: min(300px, calc(100vw - 110px));
+}
+#hud .eyebrow { font-family: var(--display); font-size: 12px; letter-spacing: .08em; color: var(--ink-soft); }
+#ziel { font-family: var(--display); font-size: 20px; line-height: 1.1; text-wrap: balance; }
+#siegel { display: flex; gap: 6px; margin-top: 2px; }
+#siegel span {
+  width: 14px; height: 14px; border-radius: 50%;
+  border: 1.5px solid var(--ink-soft); background: transparent;
+}
+#siegel span.fertig { background: var(--seal); border-color: var(--seal); box-shadow: inset 0 0 0 2px rgba(255, 255, 255, .18); }
+#siegel span.aktuell { border-color: var(--seal); border-width: 2px; }
+
+#kartenBtn {
+  position: fixed;
+  top: calc(env(safe-area-inset-top, 0px) + 14px);
+  right: calc(env(safe-area-inset-right, 0px) + 14px);
+  font-family: var(--display); font-size: 16px; color: var(--ink);
+  padding: 6px 12px; min-height: 44px; cursor: pointer;
+}
+#kartenBtn[aria-pressed="true"] { background: var(--parchment-deep); }
+
+#hinweis {
+  position: fixed; left: 50%; transform: translateX(-50%);
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 18px);
+  padding: 6px 14px; font-style: italic; font-size: 16px; white-space: nowrap;
+  transition: opacity .6s;
+}
+#hinweis.weg { opacity: 0; pointer-events: none; }
+
+#dialog {
+  position: fixed; left: 50%; transform: translateX(-50%);
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 22px);
+  width: min(560px, calc(100vw - 32px));
+  box-sizing: border-box;
+  padding: 16px 20px 14px;
+  display: grid; gap: 8px;
+}
+/* Auf Touchgeraeten liegt der Dialog zwischen Steuerkreuz und Aktionsknopf und verdeckt keins von beiden */
+body.touch #dialog { width: min(560px, calc(100vw - 2 * (var(--steuer) + var(--rand) + 14px))); }
+#dialog h2 { margin: 0; font-family: var(--display); font-weight: 400; font-size: 26px; line-height: 1.1; text-wrap: balance; }
+#dialog h2::after { content: ""; display: block; width: 64px; height: 2px; background: var(--seal); margin-top: 6px; }
+#dialog p { margin: 0; font-size: 18px; line-height: 1.4; }
+#dialog .notiz { font-style: italic; font-size: 15px; color: var(--ink-soft); }
+#dialog .zeile { display: flex; justify-content: flex-end; }
+button {
+  font: inherit; color: var(--ink); background: var(--parchment);
+  border: 2px solid var(--ink); border-radius: 2px;
+}
+button:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+#weiter { font-family: var(--display); font-size: 17px; padding: 5px 16px; min-height: 44px; cursor: pointer; background: var(--ink); color: var(--parchment); }
+#weiter:hover { background: var(--seal); border-color: var(--seal); }
+
+#pad {
+  position: fixed;
+  left: calc(env(safe-area-inset-left, 0px) + var(--rand));
+  bottom: calc(env(safe-area-inset-bottom, 0px) + var(--rand));
+  width: var(--steuer); height: var(--steuer);
+  display: grid; grid-template: repeat(3, 1fr) / repeat(3, 1fr); gap: 3px;
+}
+#pad button {
+  background: rgba(243, 230, 196, .85); font-size: 22px; line-height: 1; padding: 0;
+  -webkit-user-select: none; user-select: none; touch-action: none;
+}
+#pad button.an { background: var(--parchment-deep); }
+#pad [data-dir="up"] { grid-area: 1 / 2; }
+#pad [data-dir="left"] { grid-area: 2 / 1; }
+#pad [data-dir="right"] { grid-area: 2 / 3; }
+#pad [data-dir="down"] { grid-area: 3 / 2; }
+
+#aktion {
+  position: fixed;
+  right: calc(env(safe-area-inset-right, 0px) + var(--rand) + 20px);
+  bottom: calc(env(safe-area-inset-bottom, 0px) + var(--rand) + 20px);
+  width: 92px; height: 92px; border-radius: 50%;
+  font-family: var(--display); font-size: 38px; line-height: 1; padding: 0;
+  background: rgba(243, 230, 196, .55); color: rgba(43, 33, 24, .5); border-color: rgba(43, 33, 24, .5);
+  -webkit-user-select: none; user-select: none; touch-action: none;
+}
+#aktion.bereit { background: var(--parchment); color: var(--seal); border: 3px solid var(--seal); box-shadow: 0 0 0 4px var(--gold); }
+
+/* Startbildschirm: Titelbild fuellt das Querformat, der sichere Bereich (Titel, Knoepfe, Figur) bleibt immer sichtbar */
+#start { position: fixed; inset: 0; overflow: hidden; background: #1c120b; transition: opacity .35s ease; }
+#start.weg { opacity: 0; pointer-events: none; }
+#startBild { position: absolute; left: 0; top: 0; display: block; max-width: none; -webkit-user-select: none; user-select: none; }
+.hotspot {
+  position: absolute; padding: 0; margin: 0; border: 0; border-radius: 8px; background: transparent; cursor: pointer;
+  -webkit-tap-highlight-color: transparent; touch-action: manipulation;
+}
+.hotspot:hover { background: rgba(255, 242, 200, .12); }
+.hotspot:active { background: rgba(0, 0, 0, .18); }
+.hotspot:focus-visible { outline: 3px solid #fff2c8; outline-offset: 3px; }
+#startInfo { border-radius: 50%; }
+#info { grid-template-rows: auto minmax(0, 1fr) auto; width: min(640px, calc(100vw - 24px)); }
+#infoText { overflow: auto; padding-right: 6px; font-size: 16px; line-height: 1.45; }
+#infoText h3 { margin: 14px 0 4px; font-family: var(--display); font-weight: 400; font-size: 19px; color: var(--seal); }
+#infoText h3:first-child { margin-top: 0; }
+#infoText p, #infoText ul { margin: 0 0 6px; }
+#infoText ul { padding-left: 20px; }
+
+#drehen {
+  position: fixed; inset: 0; display: none; place-items: center; padding: 16px;
+  background: var(--night); color: var(--parchment); text-align: center;
+}
+#drehen .handy {
+  width: 44px; height: 76px; margin: 0 auto 18px; border: 3px solid var(--parchment); border-radius: 8px;
+  transform: rotate(-90deg);
+}
+#drehen p { margin: 0; font-family: var(--display); font-size: 24px; text-wrap: balance; }
+@media (orientation: portrait) and (pointer: coarse) {
+  #drehen { display: grid; }
+}
+
+#material {
+  position: fixed; left: 50%; transform: translateX(-50%);
+  top: calc(env(safe-area-inset-top, 0px) + 10px);
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 10px);
+  width: min(760px, calc(100vw - 32px));
+  box-sizing: border-box; padding: 12px 16px;
+  display: grid; grid-template-rows: auto minmax(0, 1fr) auto; gap: 8px;
+}
+body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(--rand) + 14px))); }
+#material h2 { margin: 0; font-family: var(--display); font-weight: 400; font-size: 24px; line-height: 1.1; text-wrap: balance; }
+#materialInhalt {
+  overflow: auto; min-height: 0; background: #fbf5e6; border: 1px solid var(--ink-soft);
+  touch-action: pan-x pan-y; -webkit-overflow-scrolling: touch;
+}
+#materialInhalt:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+#materialInhalt img { display: block; width: 100%; height: auto; }
+#materialInhalt .text { padding: 14px 18px 18px; font-size: 18px; line-height: 1.5; max-width: 65ch; }
+#materialInhalt .text h3 { font-family: var(--display); font-weight: 400; font-size: 21px; margin: 18px 0 6px; }
+#materialInhalt .text h3:first-child { margin-top: 0; }
+#materialInhalt .text p { margin: 0 0 10px; }
+#materialInhalt .text:has(.zeilen), .quelltext .text:has(.zeilen) { max-width: none; }
+.zeilen { font-size: 15.5px; line-height: 1.55; }
+.zeilen div { display: grid; grid-template-columns: 2.2em 1fr; column-gap: .5em; }
+.zeilen div.neu { margin-top: .6em; }
+.zeilen .nr { font-size: 13px; color: var(--ink-soft); text-align: right; padding-top: .25em; font-variant-numeric: tabular-nums; }
+#materialInhalt .quelle { font-style: italic; font-size: 15px; color: var(--ink-soft); }
+#materialFuss { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; justify-content: space-between; }
+#materialStatus { font-style: italic; font-size: 15px; color: var(--ink-soft); flex: 1 1 200px; min-width: 0; }
+#materialStatus.fertig { color: #2f6b3a; font-style: normal; }
+.knoepfe { display: flex; gap: 10px; }
+#zu, #laden { font-family: var(--display); font-size: 17px; padding: 5px 16px; min-height: 44px; cursor: pointer; }
+#laden { background: var(--ink); color: var(--parchment); }
+#laden:hover { background: var(--seal); border-color: var(--seal); }
+#laden:disabled { opacity: .6; cursor: wait; }
+
+#toast {
+  position: fixed; left: 50%; transform: translateX(-50%); top: 24vh;
+  width: min(440px, calc(100vw - 32px)); box-sizing: border-box;
+  padding: 12px 16px; font-size: 18px; line-height: 1.35; text-align: center;
+  border-color: var(--seal);
+}
+#toast strong { font-family: var(--display); font-weight: 400; color: var(--seal); font-size: 21px; display: block; }
+#toast.leuchten { animation: aufleuchten 1.2s ease-out 2; }
+@keyframes aufleuchten {
+  0% { box-shadow: 0 0 0 3px var(--parchment-deep), 0 0 0 5px var(--seal), 0 0 0 0 rgba(255, 196, 90, .9); }
+  100% { box-shadow: 0 0 0 3px var(--parchment-deep), 0 0 0 5px var(--seal), 0 0 0 22px rgba(255, 196, 90, 0); }
+}
+
+/* Fenster fuer Schreibrolle und Gespraech: volle Breite, Touch-Steuerung ist dabei ausgeblendet */
+.fenster {
+  position: fixed; left: 50%; transform: translateX(-50%);
+  top: calc(env(safe-area-inset-top, 0px) + 10px);
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 10px);
+  width: min(820px, calc(100vw - 24px));
+  box-sizing: border-box; padding: 12px 16px;
+  display: grid; gap: 8px; grid-template-rows: auto auto minmax(0, 1fr) auto;
+}
+.fenster .kopf { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 12px; }
+.fenster h2 { margin: 0; font-family: var(--display); font-weight: 400; font-size: 24px; line-height: 1.1; }
+.fenster .fuss { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; justify-content: space-between; }
+.fenster .fuss button, .reiter button, .antwort button {
+  font-family: var(--display); font-size: 16px; padding: 4px 14px; min-height: 44px; cursor: pointer;
+}
+.fenster .haupt { background: var(--ink); color: var(--parchment); }
+.fenster .haupt:hover:not(:disabled) { background: var(--seal); border-color: var(--seal); }
+.fenster button:disabled { opacity: .5; cursor: not-allowed; }
+.reiter { display: flex; gap: 6px; }
+.reiter button[aria-selected="true"] { background: var(--parchment-deep); box-shadow: inset 0 -3px 0 var(--seal); }
+
+.auftrag { font-size: 16px; line-height: 1.35; }
+.auftrag details { margin-top: 2px; }
+.auftrag summary { cursor: pointer; font-style: italic; color: var(--ink-soft); min-height: 28px; }
+.auftrag ul { margin: 4px 0 0; padding-left: 20px; }
+.papier {
+  position: relative; min-height: 0; display: grid;
+  padding: 14px 0; background: linear-gradient(#b99a64, #d9c08a 10px, transparent 10px, transparent calc(100% - 10px), #d9c08a calc(100% - 10px), #b99a64);
+  border-radius: 8px;
+}
+#rolleText {
+  width: 100%; height: 100%; min-height: 80px; box-sizing: border-box; resize: none;
+  border: none; border-left: 1px solid #c9a86a; border-right: 1px solid #c9a86a;
+  padding: 6px 18px; font-family: var(--body); font-size: 19px; line-height: 30px; color: #2a1d12;
+  background: #f7ecd0 repeating-linear-gradient(transparent 0, transparent 29px, rgba(120, 90, 50, .18) 29px, rgba(120, 90, 50, .18) 30px);
+  background-attachment: local;
+}
+#rolleText:focus-visible { outline: 3px solid var(--gold); outline-offset: -3px; }
+.quelltext { min-height: 0; overflow: auto; background: #fbf5e6; border: 1px solid var(--ink-soft); }
+.quelltext .text { padding: 12px 16px; font-size: 17px; line-height: 1.5; max-width: 65ch; }
+.quelltext h3 { font-family: var(--display); font-weight: 400; font-size: 19px; margin: 14px 0 4px; }
+.quelltext p { margin: 0 0 8px; }
+#rolleZaehler { font-size: 15px; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+#rolleZaehler.ok { color: #2f6b3a; }
+
+#gespraech { grid-template-rows: auto minmax(0, 1fr) auto auto; }
+#gespraech .kopf { justify-content: flex-start; }
+#portrait { width: 48px; height: 48px; image-rendering: pixelated; background: var(--parchment-deep); border: 2px solid var(--ink); }
+.verlauf { overflow: auto; min-height: 0; display: flex; flex-direction: column; gap: 8px; padding: 4px 2px; }
+.msg { max-width: 82%; padding: 8px 12px; font-size: 17px; line-height: 1.4; border: 1px solid var(--ink-soft); border-radius: 3px; }
+.msg .wer { display: block; font-family: var(--display); font-size: 13px; letter-spacing: .06em; color: var(--ink-soft); }
+.msg.bib { align-self: flex-start; background: #fbf5e6; }
+.msg.jonny { align-self: flex-end; background: #2e3a78; color: #f4f2ec; border-color: #1f2552; }
+.msg.jonny .wer { color: #c9d0f0; }
+.msg ul { margin: 4px 0 0; padding-left: 18px; }
+.msg.denkt { font-style: italic; color: var(--ink-soft); }
+.antwort { display: flex; gap: 8px; }
+#antwortFeld {
+  flex: 1 1 auto; min-width: 0; min-height: 44px; box-sizing: border-box; padding: 6px 10px;
+  font: 17px var(--body); color: var(--ink); background: #fbf5e6; border: 2px solid var(--ink); border-radius: 2px;
+}
+#antwortFeld:focus-visible { outline: 3px solid var(--gold); outline-offset: 1px; }
+@media (max-height: 430px) {
+  .fenster { padding: 8px 12px; gap: 6px; }
+  .fenster h2 { font-size: 20px; }
+  .auftrag { font-size: 14px; }
+  #rolleText { font-size: 17px; line-height: 26px; background-image: repeating-linear-gradient(transparent 0, transparent 25px, rgba(120, 90, 50, .18) 25px, rgba(120, 90, 50, .18) 26px); }
+  .msg { font-size: 15px; }
+  #materialInhalt .text h3, .quelltext h3 { font-size: 17px; margin-top: 8px; }
+  #materialInhalt .quelle { font-size: 13px; }
+}
+
+#fehler { position: fixed; inset: 0; display: grid; place-items: center; padding: 16px; }
+#fehler div { padding: 16px 20px; max-width: 420px; font-size: 18px; }
+
+@media (max-height: 430px) {
+  #ziel { font-size: 17px; }
+  #dialog h2 { font-size: 22px; }
+  #dialog p { font-size: 16px; }
+  #dialog { padding: 12px 16px 10px; gap: 6px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  #hinweis { transition: none; }
+  #toast.leuchten { animation: none; }
+}
+</style>
+<!--HEAD-END-->
+</head>
+<body>
+<!--BODY-START-->
+<canvas id="spiel" aria-label="Spielwelt: Jonny auf dem Weg zur Akademie der Wissenschaften"></canvas>
+
+<div id="hud" class="karte" aria-live="polite">
+  <span class="eyebrow">Nächstes Ziel</span>
+  <span id="ziel">Observatorium</span>
+  <div id="siegel" aria-label="Fortschritt"></div>
+</div>
+
+<button id="kartenBtn" class="karte" type="button" aria-pressed="false">Karte</button>
+
+<div id="hinweis" class="karte">Pfeiltasten oder WASD zum Gehen, E zum Benutzen</div>
+
+<div id="dialog" class="karte" role="dialog" aria-modal="true" aria-labelledby="dialogTitel" hidden>
+  <h2 id="dialogTitel">Observatorium</h2>
+  <p id="dialogText"></p>
+  <p id="dialogNotiz" class="notiz"></p>
+  <div class="zeile"><button id="weiter" type="button">Weiter</button></div>
+</div>
+
+<div id="material" class="karte" role="dialog" aria-modal="true" aria-labelledby="materialTitel" hidden>
+  <h2 id="materialTitel"></h2>
+  <div id="materialInhalt" tabindex="0"></div>
+  <div id="materialFuss">
+    <span id="materialStatus"></span>
+    <div class="knoepfe"><button id="zu" type="button">Schließen</button><button id="laden" type="button">Herunterladen</button></div>
+  </div>
+</div>
+
+<div id="toast" class="karte" role="status" hidden></div>
+
+<div id="rolle" class="karte fenster" role="dialog" aria-modal="true" aria-labelledby="rolleTitel" hidden>
+  <div class="kopf">
+    <h2 id="rolleTitel">Deine Papierrolle</h2>
+    <div class="reiter" role="tablist">
+      <button id="tabRolle" type="button" role="tab" aria-selected="true">Rolle</button>
+      <button id="tabText" type="button" role="tab" aria-selected="false">Leibniz' Text</button>
+    </div>
+  </div>
+  <div class="auftrag">
+    <span id="rolleAuftrag"></span>
+    <details>
+      <summary>Hinweise zur Bearbeitung</summary>
+      <ul id="rolleHinweise"></ul>
+    </details>
+  </div>
+  <div id="rolleBereich" class="papier"><textarea id="rolleText" aria-label="Deine Darstellung" spellcheck="true"></textarea></div>
+  <div class="fuss">
+    <span id="rolleZaehler">0 Wörter</span>
+    <div class="knoepfe"><button id="rolleZu" type="button">Schließen</button><button id="rolleAbgeben" class="haupt" type="button">Dem Bibliothekar übergeben</button></div>
+  </div>
+</div>
+
+<div id="gespraech" class="karte fenster" role="dialog" aria-modal="true" aria-labelledby="gespraechTitel" hidden>
+  <div class="kopf"><canvas id="portrait" width="22" height="22" aria-hidden="true"></canvas><h2 id="gespraechTitel">Der Bibliothekar</h2></div>
+  <div id="verlauf" class="verlauf" aria-live="polite"></div>
+  <form id="antwortForm" class="antwort">
+    <input id="antwortFeld" type="text" autocomplete="off" aria-label="Deine Antwort an den Bibliothekar" placeholder="Antworte dem Bibliothekar …">
+    <button id="antwortSenden" type="submit">Senden</button>
+  </form>
+  <div class="fuss">
+    <button id="gSichern" type="button">Rolle als Datei sichern</button>
+    <div class="knoepfe"><button id="gUeberarbeiten" type="button">Rolle überarbeiten</button><button id="gBeenden" class="haupt" type="button">Gespräch beenden</button></div>
+  </div>
+</div>
+
+<div id="pad" hidden>
+  <button type="button" data-dir="up" aria-label="Nach oben">▲</button>
+  <button type="button" data-dir="left" aria-label="Nach links">◀</button>
+  <button type="button" data-dir="right" aria-label="Nach rechts">▶</button>
+  <button type="button" data-dir="down" aria-label="Nach unten">▼</button>
+</div>
+<button id="aktion" type="button" aria-label="Benutzen" hidden>E</button>
+
+<div id="start" role="dialog" aria-modal="true" aria-label="Startbildschirm: Lernspiel Lockes Welt">
+  <img id="startBild" src="start/titelbild.jpg" alt="Lernspiel Lockes Welt: John Locke mit Buch und Feder in seiner Bibliothek" draggable="false">
+  <button id="startSpiel" class="hotspot" type="button" aria-label="Spiel starten"></button>
+  <button id="startInfo" class="hotspot" type="button" aria-label="Informationen: Impressum, Datenschutz, KI-Hinweis"></button>
+</div>
+
+<div id="info" class="karte fenster" role="dialog" aria-modal="true" aria-labelledby="infoTitel" hidden>
+  <div class="kopf"><h2 id="infoTitel">Informationen</h2></div>
+  <div id="infoText" tabindex="0">
+    <h3>Impressum</h3>
+    <p>Lernspiel „Lockes Welt“ für den Philosophieunterricht der Q2, Pelizaeus-Gymnasium Paderborn.</p>
+    <p>Verantwortlich: CRA, Pelizaeus-Gymnasium Paderborn</p>
+    <h3>Datenschutz</h3>
+    <ul>
+      <li>Keine Anmeldung, keine Namen, keine Cookies, kein Tracking.</li>
+      <li>Dein Entwurf auf der Papierrolle wird nur in deinem eigenen Browser gespeichert. Löschst du die Websitedaten, ist er weg.</li>
+      <li>Die Seite liegt bei Netlify. Beim Aufruf verarbeitet der Anbieter technisch notwendige Daten wie IP-Adresse und Zeitpunkt.</li>
+      <li>Schriften und Grafiken liegen auf demselben Server. Es werden keine Inhalte von Google oder anderen Drittanbietern nachgeladen.</li>
+      <li>Ist der KI-Bibliothekar eingeschaltet, werden dein Text und das Gespräch zur Auswertung an einen KI-Dienst übertragen. Schreib deshalb nichts Persönliches hinein.</li>
+    </ul>
+    <h3>KI-Hinweis</h3>
+    <p>Der Bibliothekar gibt automatisch erzeugte Rückmeldungen. Sie können Fehler enthalten und ersetzen keine Bewertung durch deine Lehrkraft.</p>
+    <p>Teile der Grafiken und des Programmcodes wurden mit Unterstützung von KI erstellt.</p>
+  </div>
+  <div class="fuss"><span></span><div class="knoepfe"><button id="infoZu" class="haupt" type="button">Schließen</button></div></div>
+</div>
+
+<div id="drehen" role="alert"><div><div class="handy"></div><p>Bitte das Gerät quer halten</p></div></div>
+
+<div id="fehler" hidden><div class="karte">Die Kartendaten fehlen. Öffne die Datei im Ordner <code>lockes-neffe</code>, damit die Ordner <code>welt</code> und <code>innen</code> gefunden werden.</div></div>
+
+<script src="welt/welt_daten.js"></script>
+<script src="innen/observatorium_daten.js"></script>
+<script src="innen/lesesaal_daten.js"></script>
+<script src="material/leibniz_daten.js"></script>
+<script>
+(function () {
+  "use strict";
+  var T = 16;
+  var D = window.WELT;
+  var INNEN = window.INNEN || {};
+  var $ = function (id) { return document.getElementById(id); };
+  var LEIBNIZ = window.LEIBNIZ;
+  if (!D || !INNEN.observatorium || !INNEN.lesesaal || !LEIBNIZ) { $("fehler").hidden = false; return; }
+
+  var REIHE = ["observatorium", "lesesaal", "salon", "druckerei", "akademie"];
+  var ORTE = {
+    observatorium: { name: "Observatorium" },
+    lesesaal: {
+      name: "Lesesaal",
+      auftrag: "Zwischen den Säulen ist es still. Hier bringst du deine Erkenntnisse in eine knappe Zusammenfassung.",
+      danach: "Jetzt wartet der Historische Salon."
+    },
+    salon: {
+      name: "Historischer Salon",
+      auftrag: "Kerzenlicht und ein kalter Luftzug. Der Geist eines Philosophen prüft deine Analyse und gibt dir Rückmeldung.",
+      danach: "Deine eigene Meinung gehört in die Buchdruckerei."
+    },
+    druckerei: {
+      name: "Buchdruckerei",
+      auftrag: "Es riecht nach Druckerschwärze. Hier setzt du deinen Kommentar und legst ihn der Gelehrtenwelt vor.",
+      danach: "Die Akademie der Wissenschaften erwartet dich."
+    },
+    akademie: {
+      name: "Akademie der Wissenschaften",
+      auftrag: "Die Gelehrten erheben sich. Onkel John wäre stolz: Die Vernunft lebt in dir weiter. Die Aufnahmeprüfung kann beginnen.",
+      danach: ""
+    }
+  };
+
+  // ---------- Material im Observatorium. Jede Stelle muss angesehen UND heruntergeladen werden.
+  // Die drei Infografiken schalten das Teleskop frei, dort liegt Lockes Text.
+  var MATERIAL = {
+    regal_links: {
+      titel: "Platons Theätet", art: "bild",
+      datei: "material/infografik_theaetet.jpg", name: "Infografik_Platon_Theaetet.jpg",
+      alt: "Infografik: Platons Theätet und die Suche nach dem Wesen des Wissens"
+    },
+    regal_rechts: {
+      titel: "Vom bloßen Meinen zum gesicherten Wissen", art: "bild",
+      datei: "material/infografik_meinen_und_wissen.jpg", name: "Infografik_Meinen_und_Wissen_Gettier.jpg",
+      alt: "Infografik: Platons Theätet und das Gettier-Problem"
+    },
+    kartentisch: {
+      titel: "Rationalismus vs. Empirismus", art: "bild",
+      datei: "material/infografik_rationalismus_empirismus.jpg", name: "Infografik_Rationalismus_Empirismus.jpg",
+      alt: "Infografik: Grundlagen der Erkenntnistheorie, Descartes und Locke"
+    },
+    teleskop: {
+      titel: "John Locke: Der Ursprung der Ideen", art: "text",
+      datei: "material/arbeitsblatt_locke_erkenntnistheorie.pdf", name: "Arbeitsblatt_Locke_Erkenntnistheorie.pdf"
+    },
+    // Lesesaal: der Text, den Jonny zusammenfasst
+    lesepult: {
+      titel: "Leibniz: Die Debatte um die Tabula Rasa", art: "text", html: "leibniz",
+      datei: "material/arbeitsblatt_leibniz_tabula_rasa.pdf", name: "Arbeitsblatt_Leibniz_Tabula_Rasa.pdf"
+    }
+  };
+  var INFOGRAFIKEN = ["regal_links", "regal_rechts", "kartentisch"];
+  var ALLE_MATERIALIEN = INFOGRAFIKEN.concat(["teleskop"]);
+  var LOCKE_TEXT =
+    '<div class="text">' +
+    '<p class="quelle">John Locke (1632–1704): An Essay Concerning Human Understanding, 1690. Das vollständige Arbeitsblatt mit den Arbeitsaufträgen lädst du unten herunter.</p>' +
+    '<h3>Text 1: Der Ursprung der Ideen (Buch II, Kapitel 1)</h3>' +
+    '<p>Nehmen wir also an, der Geist sei, wie man sagt, ein unbeschriebenes Blatt (tabula rasa), ohne alle Schriftzeichen, frei von allen Ideen. Wie werden ihm diese zugeführt? Wie gelangt er zu dem gewaltigen Vorrat an Ideen, den die geschäftige Phantasie des Menschen mit einer fast unbegrenzten Abwechslung auf ihn hinmalt? Woher hat er all das Material für seine Vernunft und seine Erkenntnis? Ich antworte darauf mit einem einzigen Worte: aus der Erfahrung. Auf sie gründet sich unsere gesamte Erkenntnis, von ihr leitet sie sich letztlich her.</p>' +
+    '<p>Unsere Beobachtung, die entweder auf äußere sinnlich wahrnehmbare Objekte gerichtet ist oder auf innere Operationen des Geistes, liefert unserem Verstand das gesamte Material des Denkens. Dies sind die beiden Quellen der Erkenntnis.</p>' +
+    '<p>Erstens: SENSATION. Unsere Sinne, die auf äußere Objekte gerichtet sind, führen dem Geist verschiedene Ideen von Dingen zu, wie Gelb, Weiß, Warm, Kalt, Weich, Hart, Bitter und Süß. Diese Quelle nennen wir Sensation. Zweitens: REFLEXION. Die andere Quelle ist die Wahrnehmung der Operationen unseres eigenen Geistes im Innern, wie Denken, Zweifeln, Glauben, Schließen, Wollen. Diese Quelle nennen wir Reflexion.</p>' +
+    '<h3>Text 2: Der Umfang und die Grenzen unseres Wissens (Buch IV, Kapitel 3)</h3>' +
+    '<p>Da der Geist keine anderen unmittelbaren Objekte seiner Betrachtung hat als seine eigenen Ideen, so ist es klar, dass unsere Erkenntnis nur auf diese bezogen ist. Erkenntnis ist nichts anderes als die Wahrnehmung des Zusammenhangs und der Übereinstimmung oder des Widerstreits zwischen unseren Ideen.</p>' +
+    '<p>Daraus folgt unmittelbar: Erstens: Unser Wissen reicht nicht weiter als unsere Ideen. Zweitens: Unser Wissen ist noch enger als unsere Ideen, weil wir nicht immer die Übereinstimmung oder Nichtübereinstimmung zwischen ihnen wahrnehmen können. Wir besitzen keine intuitive oder demonstrative Gewissheit über die unendliche Natur der Dinge. Unser sensitives Wissen erstreckt sich nicht einmal so weit wie unsere Vorstellungen selbst. Wir tappen in vielen Bereichen der Wirklichkeit völlig im Dunkeln.</p>' +
+    '</div>';
+
+  function esc(t) { return String(t).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
+  var LEIBNIZ_HTML = '<div class="text"><p class="quelle">Leibniz antwortet hier auf Lockes Versuch über den menschlichen Verstand. ' +
+    'Einleitung und Aufgabe stehen auf dem Arbeitsblatt, das du herunterlädst.</p><h3>' + esc(LEIBNIZ.quelle) + '</h3><div class="zeilen">' +
+    LEIBNIZ.zeilen.map(function (z, i) {
+      var neu = i > 0 && LEIBNIZ.absatzAnfang.indexOf(i) >= 0 ? ' class="neu"' : "";
+      return '<div' + neu + '><span class="nr">' + ((i + 1) % 5 ? "" : i + 1) + '</span><span>' + esc(z) + '</span></div>';
+    }).join("") + '</div></div>';
+
+  // ---------- Szenen: Oberwelt und begehbare Innenraeume
+  var SZENEN = {
+    welt: { d: D, src: "welt/welt.png", begehbar: { "#": 1, ".": 1, "E": 1 } },
+    observatorium: { d: INNEN.observatorium, src: "innen/observatorium.png", begehbar: { "#": 1, "S": 1, "I": 1, "A": 1 } },
+    lesesaal: { d: INNEN.lesesaal, src: "innen/lesesaal.png", begehbar: { "#": 1, "S": 1, "I": 1, "A": 1 } }
+  };
+  Object.keys(SZENEN).forEach(function (k) {
+    var s = SZENEN[k];
+    s.id = k; s.pw = s.d.breite * T; s.ph = s.d.hoehe * T; s.da = false;
+    s.bild = new Image();
+    s.bild.onload = function () { s.da = true; };
+    s.bild.onerror = function () { $("fehler").hidden = false; };
+    s.bild.src = s.src;
+  });
+  var sz = SZENEN.welt;
+
+  // ---------- Zustand
+  var st = {
+    start: true, info: false,
+    szene: "welt", x: D.start.x * T + 8, y: D.start.y * T + 12,
+    dir: "up", schritt: 0, animZeit: 0, laeuft: false,
+    stufe: 0, dialog: null, dialogRueck: null, aktion: null,
+    rueck: null, uebersicht: false, bewegt: false,
+    material: null, gesehen: {}, geladen: {},
+    fenster: null, rolle: "", abgegeben: false, rueckmeldung: false, lesesaalFertig: false,
+    verlauf: [], bibSeit: null, frage: null, versuche: 0, gefragt: {}, letzteTreffer: null,
+    musterAngebot: false, musterGezeigt: false
+  };
+  function fertig(id) { return !!(st.gesehen[id] && st.geladen[id]); }
+  function infografikenFertig() { return INFOGRAFIKEN.every(fertig); }
+  function allesFertig() { return ALLE_MATERIALIEN.every(fertig); }
+  function anzahlFertig(liste) { return liste.filter(fertig).length; }
+  // ---------- Raumlogik: was leuchtet, wohin zeigt der Pfeil, wann ist die Tuer offen
+  var MIN_WOERTER = 80;
+  var EMPFOHLEN = [150, 300];
+  var RAUM = {
+    observatorium: {
+      index: 0,
+      offen: function () {
+        if (!infografikenFertig()) return INFOGRAFIKEN.filter(function (i) { return !fertig(i); });
+        return fertig("teleskop") ? [] : ["teleskop"];
+      },
+      leuchtet: function (id) {
+        return id === "teleskop" ? infografikenFertig() && !fertig("teleskop") : INFOGRAFIKEN.indexOf(id) >= 0 && !fertig(id);
+      },
+      darfRaus: function () { return allesFertig(); },
+      sperre: function () {
+        return "Du hast noch nicht alle Materialien angesehen und heruntergeladen. Gesichert: " +
+          anzahlFertig(ALLE_MATERIALIEN) + " von " + ALLE_MATERIALIEN.length + ".";
+      },
+      ziel: function () {
+        if (!infografikenFertig()) return "Materialstellen (" + anzahlFertig(INFOGRAFIKEN) + "/3)";
+        return fertig("teleskop") ? "" : "Das große Teleskop";
+      },
+      benutzen: function (id) {
+        if (id === "teleskop" && !infografikenFertig()) {
+          zeigeDialog("Das große Teleskop",
+            "Die Linse ist noch abgedeckt. Sieh dir zuerst die drei Stellen mit den Kerzen an und lade das Material dort herunter.",
+            "Gesichert: " + anzahlFertig(INFOGRAFIKEN) + " von 3.", null);
+          return;
+        }
+        if (MATERIAL[id]) oeffneMaterial(id);
+      }
+    },
+    lesesaal: {
+      index: 1,
+      offen: function () {
+        if (!fertig("lesepult")) return ["lesepult"];
+        return st.lesesaalFertig ? [] : ["schreibpult"];
+      },
+      leuchtet: function (id) {
+        if (id === "lesepult") return !fertig("lesepult");
+        return id === "schreibpult" && fertig("lesepult") && !st.lesesaalFertig;
+      },
+      darfRaus: function () { return st.lesesaalFertig || st.stufe > 1; },
+      sperre: function () {
+        if (!fertig("lesepult")) return "Hol dir zuerst das Arbeitsblatt am Lesepult mit der Kerze und lade es herunter.";
+        if (!st.abgegeben) return "Deine Darstellung fehlt noch. Schreib sie am Schreibpult auf die Papierrolle.";
+        return "Der Bibliothekar wartet noch auf dich. Beende das Gespräch mit ihm am Schreibpult.";
+      },
+      ziel: function () {
+        if (!fertig("lesepult")) return "Lesepult";
+        if (st.lesesaalFertig) return "";
+        return st.abgegeben ? "Bibliothekar" : "Schreibpult";
+      },
+      benutzen: function (id) {
+        if (id === "lesepult") { oeffneMaterial("lesepult"); return; }
+        if (id === "schreibpult") {
+          if (!fertig("lesepult")) {
+            zeigeDialog("Das Schreibpult",
+              "Die Papierrolle ist noch leer. Worüber willst du schreiben? Hol dir zuerst das Arbeitsblatt am Lesepult mit der Kerze.",
+              "Ansehen und herunterladen, dann geht es hier weiter.", null);
+            return;
+          }
+          if (st.abgegeben && !st.lesesaalFertig && st.verlauf.length) { oeffneGespraech(); return; }
+          oeffneRolle();
+        }
+      }
+    }
+  };
+
+  var keys = { up: false, down: false, left: false, right: false };
+  var grob = !!(window.matchMedia && window.matchMedia("(pointer: coarse)").matches);
+  var hochMq = window.matchMedia ? window.matchMedia("(orientation: portrait) and (pointer: coarse)") : { matches: false };
+  function tastenLos() { keys.up = keys.down = keys.left = keys.right = false; }
+
+  var tuerOrt = {};
+  Object.keys(D.lernorte).forEach(function (k) {
+    D.lernorte[k].tuer.forEach(function (t) { tuerOrt[t.x + "," + t.y] = k; });
+  });
+
+  function kachel(px, py) {
+    var d = sz.d, tx = Math.floor(px / T), ty = Math.floor(py / T);
+    if (tx < 0 || ty < 0 || tx >= d.breite || ty >= d.hoehe) return "X";
+    return d.raster[ty][tx];
+  }
+  // Fussbox: 10 x 5 px ueber dem Fusspunkt
+  function frei(px, py) {
+    var pts = [[px - 5, py - 5], [px + 5, py - 5], [px - 5, py - 0.01], [px + 5, py - 0.01]];
+    for (var i = 0; i < pts.length; i++) if (!sz.begehbar[kachel(pts[i][0], pts[i][1])]) return false;
+    return true;
+  }
+
+  function tick(dt) {
+    if (st.dialog) { st.laeuft = false; return; }
+    var dx = (keys.right ? 1 : 0) - (keys.left ? 1 : 0);
+    var dy = (keys.down ? 1 : 0) - (keys.up ? 1 : 0);
+    st.laeuft = !!(dx || dy);
+    if (st.laeuft) {
+      if (!st.bewegt) { st.bewegt = true; $("hinweis").classList.add("weg"); }
+      if (dy) st.dir = dy < 0 ? "up" : "down";
+      if (dx) st.dir = dx < 0 ? "left" : "right";
+      var v = 84 * dt / ((dx && dy) ? Math.SQRT2 : 1);
+      var nx = st.x + dx * v, ny = st.y + dy * v;
+      if (dx && frei(nx, st.y)) st.x = nx;
+      if (dy && frei(st.x, ny)) st.y = ny;
+      st.animZeit += dt;
+      st.schritt = [1, 0, 2, 0][Math.floor(st.animZeit * 8) % 4];
+    } else {
+      st.schritt = 0; st.animZeit = 0;
+    }
+    var fuss = kachel(st.x, st.y - 2);
+    if (sz.id === "welt") {
+      var tx = Math.floor(st.x / T), ty = Math.floor((st.y - 2) / T);
+      var ort = st.laeuft ? tuerOrt[tx + "," + ty] : null;
+      if (ort && SZENEN[ort] && REIHE.indexOf(ort) <= st.stufe) hineingehen(ort, ty);
+      else if (ort) betreten(ort, ty);
+    } else if (fuss === "A" && st.laeuft) {
+      var R = RAUM[sz.id];
+      if (R && !R.darfRaus()) {
+        st.y = sz.d.ausgang[0].y * T - 3; st.dir = "up"; tastenLos();
+        zeigeToast("Halt!", R.sperre());
+      } else {
+        hinausgehen();
+      }
+    }
+    setzeAktion(interaktionAn(st.x, st.y - 2));
+  }
+
+  // Welche Interaktion gehoert zur Kachel unter Jonnys Fuessen?
+  function interaktionAn(px, py) {
+    var liste = sz.d.interaktionen;
+    if (!liste || kachel(px, py) !== "I") return null;
+    var tx = Math.floor(px / T), ty = Math.floor(py / T);
+    for (var i = 0; i < liste.length; i++) {
+      var f = liste[i].flaeche;
+      if (tx >= f.x0 && tx <= f.x1 && ty >= f.y0 && ty <= f.y1) return liste[i].id;
+    }
+    return null;
+  }
+
+  function setzeAktion(a) {
+    if (st.aktion === a) return;
+    st.aktion = a;
+    $("aktion").classList.toggle("bereit", !!a);
+  }
+
+  // ---------- Szenenwechsel
+  function hineingehen(id, tuerY) {
+    st.rueck = { x: st.x, y: (tuerY + 2) * T + 4 };
+    sz = SZENEN[id]; st.szene = id;
+    var e = sz.d.eintritt;
+    st.x = (e.x + 1) * T; st.y = e.y * T + 12; st.dir = e.blick || "up";
+    hudAktualisieren();
+  }
+  function hinausgehen() {
+    sz = SZENEN.welt; st.szene = "welt";
+    st.x = st.rueck.x; st.y = st.rueck.y; st.dir = "down";
+    setzeAktion(null);
+    hudAktualisieren();
+  }
+
+  // ---------- Dialoge
+  function zeigeDialog(titel, text, notiz, rueckY) {
+    st.dialog = titel; st.dialogRueck = rueckY;
+    tastenLos();
+    $("dialogTitel").textContent = titel;
+    $("dialogText").textContent = text;
+    $("dialogNotiz").textContent = notiz;
+    $("dialog").hidden = false;
+    $("weiter").focus();
+    hudAktualisieren();
+  }
+  function dialogSchliessen() {
+    if (!st.dialog) return;
+    st.dialog = null;
+    if (st.dialogRueck != null) { st.y = st.dialogRueck; st.dir = "down"; }
+    st.dialogRueck = null;
+    $("dialog").hidden = true;
+  }
+
+  // Lernorte ohne Innenraum: kurzer Text an der Tuer
+  function betreten(ort, tuerY) {
+    var o = ORTE[ort], ziel = REIHE[st.stufe], text, notiz;
+    if (ort === ziel) {
+      text = o.auftrag;
+      notiz = ort === "akademie" ? "Ende der Probefassung. Die Prüfungsräume folgen." : "Der Innenraum wird noch gebaut. " + o.danach;
+      st.stufe = Math.min(st.stufe + 1, REIHE.length);
+    } else if (REIHE.indexOf(ort) < st.stufe) {
+      text = "Hier warst du schon. Onkel John sagte immer: Wiederholung festigt den Verstand, aber nicht zu lange.";
+      notiz = "Nächstes Ziel: " + zielName() + ".";
+    } else {
+      text = ort === "akademie"
+        ? "Der Pförtner hebt die Hand: Erst die Fakten, dann Zusammenfassung, Analyse und Kommentar. Dann darfst du zur Prüfung."
+        : "Die Tür ist noch verschlossen. Ein Gelehrter geht Schritt für Schritt vor.";
+      notiz = "Nächstes Ziel: " + zielName() + ".";
+    }
+    zeigeDialog(o.name, text, notiz, (tuerY + 2) * T + 4);
+  }
+
+  // Interaktion: nur ausloesbar, wenn Jonny auf der Flaeche vor dem Objekt steht
+  function benutzen() {
+    if (!st.aktion || st.dialog) return;
+    var R = RAUM[sz.id];
+    if (R) R.benutzen(st.aktion);
+  }
+
+  // ---------- Materialfenster
+  function oeffneMaterial(id) {
+    var m = MATERIAL[id];
+    st.material = id; st.dialog = "material"; st.gesehen[id] = true;
+    tastenLos();
+    $("materialTitel").textContent = m.titel;
+    var inhalt = $("materialInhalt");
+    inhalt.innerHTML = "";
+    if (m.art === "bild") {
+      var img = document.createElement("img");
+      img.src = m.datei; img.alt = m.alt;
+      inhalt.appendChild(img);
+    } else {
+      inhalt.innerHTML = m.html === "leibniz" ? LEIBNIZ_HTML : LOCKE_TEXT;
+    }
+    inhalt.scrollTop = 0;
+    $("laden").textContent = m.art === "bild" ? "Infografik herunterladen" : "Arbeitsblatt herunterladen (PDF)";
+    materialStatus(null);
+    $("material").hidden = false;
+    $("laden").focus();
+    hudAktualisieren();
+  }
+  function materialStatus(fehler) {
+    var el = $("materialStatus"), id = st.material;
+    if (!id) return;
+    var ok = fertig(id);
+    el.classList.toggle("fertig", ok);
+    el.textContent = fehler ? fehler : ok ? "✓ Angesehen und heruntergeladen." : "Lade das Material herunter, um es zu sichern.";
+  }
+
+  // Online nutzt das Spiel die Download-Funktion der Plattform, lokal einen normalen Download-Link.
+  var dl = null;
+  if (window.claude && window.claude.use) {
+    window.claude.use("downloads").then(function (d) { dl = d; }, function () {});
+  }
+  function speichern(m) {
+    if (dl && window.fetch) {
+      return window.fetch(m.datei)
+        .then(function (r) { if (!r.ok) throw new Error("laden"); return r.blob(); })
+        .then(function (b) { return dl.save({ filename: m.name, data: b }); })
+        .then(function () { return true; }, function () { return false; });
+    }
+    try {
+      var a = document.createElement("a");
+      // target: lokal (file://) ignorieren Browser "download" und oeffnen die Datei, dann in einem neuen Tab statt im Spiel
+      a.href = m.datei; a.download = m.name; a.target = "_blank"; a.rel = "noopener";
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      return Promise.resolve(true);
+    } catch (e) {
+      return Promise.resolve(false);
+    }
+  }
+  function herunterladen() {
+    var id = st.material;
+    if (!id) return Promise.resolve(false);
+    $("laden").disabled = true;
+    return speichern(MATERIAL[id]).then(function (ok) {
+      $("laden").disabled = false;
+      if (ok) st.geladen[id] = true;
+      if (st.material === id) materialStatus(ok ? null : "Nicht gespeichert. Tippe noch einmal auf Herunterladen.");
+      hudAktualisieren();
+      return ok;
+    });
+  }
+  function materialSchliessen() {
+    var id = st.material;
+    if (!id) return;
+    st.material = null; st.dialog = null;
+    $("material").hidden = true;
+    if (id === "teleskop" && allesFertig() && st.stufe === 0) {
+      st.stufe = 1;
+      zeigeDialog("Alle Materialien gesichert",
+        "Du hast die Fakten beisammen: drei Infografiken und Lockes Text über den Ursprung der Ideen. Die Tür steht dir offen.",
+        "Nächstes Ziel: Lesesaal.", null);
+    } else if (fertig(id) && INFOGRAFIKEN.indexOf(id) >= 0 && infografikenFertig() && !fertig("teleskop")) {
+      zeigeToast("Das Teleskop leuchtet", "Alle drei Infografiken sind gesichert. Jetzt wartet Lockes Text am Teleskop.");
+    } else if (id === "lesepult" && fertig(id) && !st.abgegeben) {
+      zeigeToast("Das Schreibpult wartet", "Oben am Podest liegt eine leere Papierrolle für deine Darstellung.");
+    }
+    hudAktualisieren();
+  }
+
+  // ---------- Touch-Steuerung waehrend Schreibrolle und Gespraech ausblenden (wie bei einem Quiz)
+  function steuerung(sichtbar) {
+    $("pad").hidden = !(grob && sichtbar);
+    $("aktion").hidden = !(grob && sichtbar);
+  }
+
+  // ---------- Entwurf der Rolle im Browser merken (nur auf diesem Geraet)
+  var SPEICHER = "lockes-neffe_v1";
+  function entwurfLaden() {
+    try { var d = JSON.parse(window.localStorage.getItem(SPEICHER) || "{}"); return d.rolle || ""; } catch (e) { return ""; }
+  }
+  function entwurfSichern() {
+    try { window.localStorage.setItem(SPEICHER, JSON.stringify({ rolle: st.rolle })); } catch (e) { /* ohne Speicher weiter */ }
+  }
+  st.rolle = entwurfLaden();
+
+  $("rolleAuftrag").textContent = LEIBNIZ.aufgabeKopf + ": " + LEIBNIZ.aufgabe;
+  LEIBNIZ.hinweise.forEach(function (h) {
+    var li = document.createElement("li"); li.textContent = h; $("rolleHinweise").appendChild(li);
+  });
+
+  function woerter(t) { return (String(t).match(/[A-Za-zÄÖÜäöüß0-9]+/g) || []).length; }
+
+  // ---------- Papierrolle
+  function oeffneRolle() {
+    st.fenster = "rolle"; st.dialog = "rolle";
+    tastenLos(); steuerung(false);
+    rolleReiter("rolle");
+    $("rolleText").value = st.rolle;
+    zaehler();
+    $("rolle").hidden = false;
+    $("rolleText").focus();
+    hudAktualisieren();
+  }
+  function rolleReiter(welcher) {
+    var text = welcher === "text";
+    $("tabRolle").setAttribute("aria-selected", text ? "false" : "true");
+    $("tabText").setAttribute("aria-selected", text ? "true" : "false");
+    var bereich = $("rolleBereich");
+    if (text) {
+      bereich.className = "quelltext";
+      bereich.innerHTML = LEIBNIZ_HTML;
+    } else if (bereich.className !== "papier") {
+      bereich.className = "papier";
+      bereich.innerHTML = "";
+      var ta = document.createElement("textarea");
+      ta.id = "rolleText"; ta.setAttribute("aria-label", "Deine Darstellung"); ta.spellcheck = true;
+      ta.value = st.rolle;
+      ta.addEventListener("input", rolleEingabe);
+      bereich.appendChild(ta);
+    }
+  }
+  function rolleEingabe() {
+    st.rolle = $("rolleText").value;
+    zaehler();
+    entwurfSichern();
+  }
+  function zaehler() {
+    var n = woerter(st.rolle), ok = n >= MIN_WOERTER;
+    var el = $("rolleZaehler");
+    el.textContent = n + (n === 1 ? " Wort" : " Wörter") +
+      (n < MIN_WOERTER ? " · mindestens " + MIN_WOERTER : n < EMPFOHLEN[0] ? " · empfohlen sind " + EMPFOHLEN[0] + " bis " + EMPFOHLEN[1] :
+        n <= EMPFOHLEN[1] + 20 ? " · gute Länge" : " · eher zu lang");
+    el.classList.toggle("ok", ok);
+    $("rolleAbgeben").disabled = !ok;
+  }
+  function rolleSchliessen() {
+    if (st.fenster !== "rolle") return;
+    st.fenster = null; st.dialog = null;
+    $("rolle").hidden = true;
+    steuerung(true);
+    hudAktualisieren();
+  }
+
+  // ---------- Abgabe: Bibliothekar erscheint und antwortet
+  function abgeben() {
+    if (woerter(st.rolle) < MIN_WOERTER) return Promise.resolve(false);
+    var erneut = st.abgegeben;
+    st.abgegeben = true;
+    if (st.bibSeit == null) st.bibSeit = window.performance ? window.performance.now() : 0;
+    $("rolle").hidden = true;
+    st.fenster = "gespraech"; st.dialog = "gespraech";
+    st.verlauf.push({ wer: "jonny", text: erneut ? "Hier ist meine überarbeitete Rolle." : "Ich habe meine Darstellung geschrieben." });
+    zeigeGespraech();
+    return bibliothekarSpricht({ art: "urteil", erneut: erneut }).then(function () {
+      st.rueckmeldung = true;
+      hudAktualisieren();
+      return true;
+    });
+  }
+  function oeffneGespraech() {
+    st.fenster = "gespraech"; st.dialog = "gespraech";
+    tastenLos();
+    zeigeGespraech();
+  }
+  function zeigeGespraech() {
+    steuerung(false);
+    malePortrait();
+    $("gespraech").hidden = false;
+    renderVerlauf();
+    $("antwortFeld").focus();
+    hudAktualisieren();
+  }
+  function renderVerlauf(denkt) {
+    var box = $("verlauf");
+    box.innerHTML = "";
+    st.verlauf.forEach(function (m) {
+      var div = document.createElement("div");
+      div.className = "msg " + (m.wer === "bib" ? "bib" : "jonny");
+      var wer = document.createElement("span");
+      wer.className = "wer";
+      wer.textContent = m.wer === "bib" ? "Bibliothekar" : "Jonny";
+      div.appendChild(wer);
+      var zeilen = String(m.text).split("\n");
+      var liste = null;
+      zeilen.forEach(function (z) {
+        if (/^• /.test(z)) {
+          if (!liste) { liste = document.createElement("ul"); div.appendChild(liste); }
+          var li = document.createElement("li"); li.textContent = z.slice(2); liste.appendChild(li);
+        } else {
+          liste = null;
+          if (z) div.appendChild(document.createTextNode(z));
+          div.appendChild(document.createElement("br"));
+        }
+      });
+      if (div.lastChild && div.lastChild.nodeName === "BR") div.removeChild(div.lastChild);
+      box.appendChild(div);
+    });
+    if (denkt) {
+      var d = document.createElement("div");
+      d.className = "msg bib denkt";
+      d.textContent = "Der Bibliothekar rückt die Brille zurecht und liest …";
+      box.appendChild(d);
+    }
+    box.scrollTop = box.scrollHeight;
+  }
+
+  function antworten(text) {
+    text = String(text || "").trim();
+    if (!text || st.fenster !== "gespraech") return Promise.resolve(false);
+    st.verlauf.push({ wer: "jonny", text: text });
+    $("antwortFeld").value = "";
+    return bibliothekarSpricht({ art: "antwort", eingabe: text }).then(function () { return true; });
+  }
+
+  // Auf Netlify beantwortet die Function /.netlify/functions/bibliothekar (Claude API) die Nachrichten.
+  // Ist sie nicht erreichbar (lokal, Vorschau, Fehler), antwortet fuer den Rest der Sitzung die eingebaute Fassung.
+  var BIBLIOTHEKAR_URL = "/.netlify/functions/bibliothekar";
+  var serverAus = false;
+  function serverBibliothekar() {
+    var loc = window.location;
+    if (serverAus || !window.fetch || !loc || !/^https?:$/.test(loc.protocol) || /claude\.ai$|claudeusercontent|^localhost$|^127\./.test(loc.hostname)) return null;
+    return function (daten) {
+      var abbruch = window.AbortController ? new AbortController() : null;
+      var uhr = abbruch ? setTimeout(function () { abbruch.abort(); }, 30000) : null;
+      return window.fetch(BIBLIOTHEKAR_URL, {
+        method: "POST", headers: { "content-type": "application/json" },
+        body: JSON.stringify({ zusammenfassung: daten.zusammenfassung, verlauf: daten.verlauf, art: daten.art }),
+        signal: abbruch ? abbruch.signal : undefined
+      }).then(function (r) {
+        if (uhr) clearTimeout(uhr);
+        if (r.status === 404 || r.status === 405 || r.status >= 500) serverAus = true;
+        if (!r.ok) throw new Error("Server " + r.status);
+        return r.json();
+      }).then(function (j) { return j.text; }, function (e) { serverAus = serverAus || e.name !== "AbortError"; throw e; });
+    };
+  }
+
+  // Antwortquelle: ein spaeter angeschlossener Chatbot (window.LESESAAL_BIBLIOTHEKAR) oder die eingebaute Fassung.
+  // Schnittstelle: function ({ zusammenfassung, verlauf, quelle, art }) -> Promise<string>
+  var warten = false;
+  function bibliothekarSpricht(anlass) {
+    warten = true;
+    $("antwortSenden").disabled = true;
+    renderVerlauf(true);
+    var extern = window.LESESAAL_BIBLIOTHEKAR || serverBibliothekar();
+    var p = typeof extern === "function"
+      ? Promise.resolve().then(function () {
+          return extern({ zusammenfassung: st.rolle, verlauf: st.verlauf.slice(), quelle: QUELLE_PLAIN, art: anlass.art });
+        }).then(function (txt) { if (!txt) throw new Error("leer"); return String(txt); })
+          .catch(function () { return BIBLIOTHEKAR.sprich(anlass); })
+      : new Promise(function (ok) { setTimeout(function () { ok(BIBLIOTHEKAR.sprich(anlass)); }, ruhig ? 50 : 700); });
+    return p.then(function (txt) {
+      warten = false;
+      $("antwortSenden").disabled = false;
+      st.verlauf.push({ wer: "bib", text: txt });
+      renderVerlauf();
+    });
+  }
+
+  function ueberarbeiten() {
+    $("gespraech").hidden = true;
+    st.fenster = null; st.dialog = null;
+    oeffneRolle();
+  }
+  function gespraechBeenden() {
+    if (st.fenster !== "gespraech") return;
+    st.fenster = null; st.dialog = null;
+    $("gespraech").hidden = true;
+    steuerung(true);
+    if (st.rueckmeldung && !st.lesesaalFertig && woerter(st.rolle) >= MIN_WOERTER) {
+      st.lesesaalFertig = true;
+      if (st.stufe === 1) st.stufe = 2;
+      zeigeDialog("Deine Rolle ist gesiegelt",
+        "Der Bibliothekar drückt sein Wachssiegel auf die Rolle und legt sie zu den Schriften der Akademie. Du hast Leibniz' Einwand gegen deinen Onkel sauber dargestellt, jetzt kannst du ihn analysieren.",
+        "Nächstes Ziel: Historischer Salon.", null);
+    }
+    hudAktualisieren();
+  }
+
+  function rolleAlsDatei() {
+    var teile = ["Lockes Neffe – Lesesaal: Leibniz' Kritik an der tabula rasa", "", "Meine Darstellung:", st.rolle, "", "Gespräch mit dem Bibliothekar:"];
+    st.verlauf.forEach(function (m) { teile.push("", (m.wer === "bib" ? "Bibliothekar: " : "Jonny: ") + m.text); });
+    var daten = teile.join("\n");
+    if (dl) {
+      return dl.save({ filename: "Darstellung_Leibniz.txt", data: daten }).then(function () { return true; }, function () { return false; });
+    }
+    try {
+      var url = URL.createObjectURL(new Blob([daten], { type: "text/plain;charset=utf-8" }));
+      var a = document.createElement("a");
+      a.href = url; a.download = "Darstellung_Leibniz.txt";
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      setTimeout(function () { URL.revokeObjectURL(url); }, 2000);
+      return Promise.resolve(true);
+    } catch (e) { return Promise.resolve(false); }
+  }
+
+  $("tabRolle").addEventListener("click", function () { rolleReiter("rolle"); });
+  $("tabText").addEventListener("click", function () { rolleReiter("text"); });
+  $("rolleText").addEventListener("input", rolleEingabe);
+  $("rolleZu").addEventListener("click", rolleSchliessen);
+  $("rolleAbgeben").addEventListener("click", function () { abgeben(); });
+  $("antwortForm").addEventListener("submit", function (e) { e.preventDefault(); if (!warten) antworten($("antwortFeld").value); });
+  $("gUeberarbeiten").addEventListener("click", ueberarbeiten);
+  $("gBeenden").addEventListener("click", gespraechBeenden);
+  $("gSichern").addEventListener("click", function () { rolleAlsDatei(); });
+
+  // ---------- Eingebauter Bibliothekar: regelbasierte Rueckmeldung nach Lockes Kernbegriffen und den Regeln fuer AFB I
+  var MUSTERLOESUNG = "1. Problemstellung und Gegenüberstellung der Grundpositionen\n• Abgrenzung von Lockes empiristischer These, dass die Seele bei der Geburt einer leeren Tafel (tabula rasa) gleicht.\n• Entfaltung der eigenen rationalistischen Gegenposition: Die Seele enthält von Natur aus grundlegende Begriffe und Prinzipien (Innatismus), die durch Sinneseindrücke lediglich „aufgeweckt“ werden.\n2. Kritik an der rein empirischen Induktion\n• Sinneserfahrungen liefern stets nur Einzelfälle und Beobachtungen der Vergangenheit.\n• Aus wiederholten Einzelfällen lässt sich keine logische Notwendigkeit oder allgemeine Gültigkeit für die Zukunft ableiten.\n• Notwendige und universelle Wahrheiten (wie in Mathematik, Arithmetik und Geometrie) können daher nicht allein auf der Erfahrung gründen, auch wenn die Sinne den Anstoß geben, nach ihnen zu suchen.\n3. Veranschaulichung durch das Marmorblock-Gleichnis\n• Die Seele gleicht weder einer leeren Tafel noch einem völlig ungestalteten Stein.\n• Sie ähnelt einem Marmorblock, dessen Äderung bereits die Konturen einer Figur (z. B. Herkules) vorgibt.\n• Die Sinneserfahrung entspricht der Arbeit des Bildhauers: Sie schafft die Figur nicht neu, sondern legt die bereits angelegten Strukturen bloß und bringt sie zur Klarheit.\nEs müssen nicht alle Aspekte genannt werden. Eine gute Lösung erfasst den Kern der Sache.";
+  var QUELLE_PLAIN = LEIBNIZ.zeilen.join(" ");
+  // Zeilenangaben direkt aus dem Arbeitsblatttext, damit sie immer stimmen
+  function zeileVon(wort) {
+    for (var i = 0; i < LEIBNIZ.zeilen.length; i++) if (LEIBNIZ.zeilen[i].toLowerCase().indexOf(wort.toLowerCase()) >= 0) return i + 1;
+    return null;
+  }
+  function zz(von, bis) {
+    var a = zeileVon(von), b = bis ? zeileVon(bis) : a;
+    if (!a) return "";
+    return b && b !== a ? "Z. " + a + "–" + b : "Z. " + a;
+  }
+  var BIBLIOTHEKAR = (function () {
+    // bereich: 1 Problemstellung, 2 Kritik an der Induktion, 3 Marmorblock-Gleichnis, 0 Einleitung
+    // kern: ein Bereich gilt als erfasst, sobald einer seiner Kernpunkte da ist (Erwartungshorizont der Lehrkraft)
+    var KRIT = [
+      { id: "einleitung", bereich: 0,
+        test: function (t) { return /leibniz/i.test(t) && /(neue[n]? abhandlung|1704|menschlichen verstand)/i.test(t); },
+        lob: "Dein Einleitungssatz nennt Autor und Werk. So weiß jeder Leser sofort, worum es geht.",
+        mangel: "Ein Einleitungssatz mit Autor, Titel, Jahr und Thema fehlt noch.",
+        frage: "Was gehört in den ersten Satz einer Darstellung?",
+        erkennt: /(autor|titel|jahr|thema|werk|leibniz|1704|abhandlung)/i,
+        wo: "Denk an das, was ein Leser zuerst wissen muss: wer, was, wann, worüber.",
+        hilfe: "Autor, Titel, Jahr und Thema: Gottfried Wilhelm Leibniz, Neue Abhandlungen über den menschlichen Verstand, 1704, seine Kritik an Lockes Empirismus." },
+      { id: "locke", bereich: 1,
+        test: function (t) { return /(locke|empiris)/i.test(t) && /(tabula rasa|leer|unbeschrieben)/i.test(t); },
+        lob: "Du grenzt Leibniz sauber von Lockes tabula rasa ab.",
+        mangel: "Mach deutlich, wogegen Leibniz sich wendet: Lockes These von der Seele als leerer Tafel.",
+        frage: "Gegen welche These Lockes schreibt Leibniz an?",
+        erkennt: /tabula|leer|tafel|blatt|erfahrung/i,
+        wo: "Schau in die ersten Zeilen (" + zz("ganz leer", "tabula rasa") + ").",
+        hilfe: "Locke meint, die Seele sei bei der Geburt eine leere Tafel, eine tabula rasa (" + zz("ganz leer", "tabula rasa") + ")." },
+      { id: "angeboren", bereich: 1, kern: true,
+        test: /angeboren|innatis|von natur aus|urspr(ü|ue)nglich|innewohn|prinzipien|veranlag/i,
+        lob: "Leibniz' Gegenposition, die angeborenen Prinzipien, hast du klar herausgestellt.",
+        mangel: "Leibniz' eigene Gegenposition fehlt: Was trägt die Seele nach ihm schon in sich?",
+        frage: "Was enthält die Seele nach Leibniz schon von Anfang an?",
+        erkennt: /angeboren|prinzip|begriff|lehrs(ä|ae)tz|natur|urspr/i,
+        wo: "Lies noch einmal " + zz("Prinzipien mehrerer", "aufgeweckt") + ".",
+        hilfe: "Nach Leibniz enthält die Seele ursprünglich Prinzipien von Begriffen und Lehrsätzen (" + zz("Prinzipien mehrerer") + ")." },
+      { id: "aufgeweckt", bereich: 1,
+        test: /geweckt|wecken/i,
+        lob: "Du zeigst, dass die Sinne diese Prinzipien nur aufwecken.",
+        mangel: "Welche Rolle bleibt den äußeren Gegenständen, wenn die Prinzipien schon in der Seele liegen?",
+        frage: "Welche Rolle bleibt den äußeren Gegenständen, wenn die Prinzipien schon in der Seele liegen?",
+        erkennt: /weck|ansto(ß|ss)|anlass|anreg|ausl(ö|oe)s/i,
+        wo: "Achte auf das Verb in " + zz("aufgeweckt") + ".",
+        hilfe: "Die äußeren Gegenstände wecken diese Prinzipien bloß auf, sie erzeugen sie nicht (" + zz("aufgeweckt") + ")." },
+      { id: "einzelfaelle", bereich: 2, kern: true,
+        test: /einzel|induktion|beispiel|wiederhol|wiederkehr|vergangen|beobacht/i,
+        lob: "Du gibst Leibniz' Kritik an der Induktion wieder: Die Sinne liefern nur Einzelfälle.",
+        mangel: "Leibniz' Kritik an der bloßen Erfahrung fehlt: Was liefern uns die Sinne eigentlich?",
+        frage: "Was geben uns die Sinne nach Leibniz, und warum reicht das nicht?",
+        erkennt: /einzel|beispiel|induktion|wiederhol|besonder/i,
+        wo: "Lies " + zz("Induktion", "Einzelnes") + ".",
+        hilfe: "Die Sinne liefern nur Beispiele, also Wahrheiten über Einzelnes (" + zz("Einzelnes") + ")." },
+      { id: "notwendigkeit", bereich: 2, kern: true,
+        test: /notwendig|allgemeing(ü|ue)ltig|allgemeine g(ü|ue)ltigkeit|universell|immer so|zukunft/i,
+        lob: "Du erklärst, warum aus Einzelfällen keine Notwendigkeit folgt.",
+        mangel: "Warum reichen viele Beispiele nicht aus? Der Schritt zur Notwendigkeit fehlt.",
+        frage: "Folgt aus vielen gleichen Beobachtungen, dass es immer so sein muss?",
+        erkennt: /nein|nicht|notwendig|allgemein|zukunft|immer/i,
+        wo: "Lies das Ende des zweiten Absatzes (" + zz("geschehen ist", "geschehen muss") + ").",
+        hilfe: "Daraus, dass etwas oft geschehen ist, folgt nicht, dass es immer so geschehen muss (" + zz("geschehen ist", "geschehen muss") + ")." },
+      { id: "mathematik", bereich: 2,
+        test: /mathemati|arithmetik|geometrie/i,
+        lob: "Das Beispiel der Mathematik hast du treffend eingesetzt.",
+        mangel: "Welches Wissensgebiet nennt Leibniz als Beispiel für notwendige Wahrheiten?",
+        frage: "Welches Wissensgebiet nennt Leibniz als Beispiel für notwendige Wahrheiten?",
+        erkennt: /mathe|arithm|geometr|rechn|zahl/i,
+        wo: "Schau in " + zz("reinen Mathematik", "Geometrie") + ".",
+        hilfe: "Die reine Mathematik, also Arithmetik und Geometrie (" + zz("reinen Mathematik", "Geometrie") + ")." },
+      { id: "anstoss", bereich: 2,
+        test: /ansto(ß|ss)|anlass|ohne (die )?sinne|anreg|ausl(ö|oe)s/i,
+        lob: "Fein beobachtet: Die Sinne geben bei Leibniz den Anstoß, aber nicht den Beweis.",
+        mangel: "Brauchen wir die Sinne dann gar nicht, um solche Wahrheiten zu finden?",
+        frage: "Brauchen wir die Sinne dann gar nicht, um solche Wahrheiten zu finden?",
+        erkennt: /ansto(ß|ss)|anlass|such|anreg|doch|ohne|brauch/i,
+        wo: "Lies den Nebensatz mit „obgleich“ (" + zz("obgleich ohne") + ").",
+        hilfe: "Ohne die Sinne hätte niemand nach diesen Wahrheiten gesucht. Sie geben den Anstoß, begründen sie aber nicht (" + zz("obgleich ohne", "sie zu suchen") + ")." },
+      { id: "marmor", bereich: 3, kern: true,
+        test: /marmor|adern|(ä|ae)derung|herkules|bildhauer/i,
+        lob: "Das Gleichnis vom geäderten Marmorblock hast du aufgegriffen.",
+        mangel: "Das Gleichnis vom Marmorblock fehlt, dabei verlangt die Aufgabe es ausdrücklich.",
+        frage: "Mit welchem Bild aus der Bildhauerei beschreibt Leibniz die Seele?",
+        erkennt: /marmor|stein|ader|herkules|bildhau/i,
+        wo: "Lies den letzten Absatz ab " + zz("Marmorblock") + ".",
+        hilfe: "Die Seele gleicht einem Marmorblock, dessen Adern schon die Gestalt des Herkules andeuten (" + zz("Marmorblock", "Herkules") + ")." },
+      { id: "unterschied", bereich: 3,
+        test: /(nicht|weder|kein)[^.]{0,50}(leer|tafel|ungestalt|beliebig)|vorgegeben|vorgezeichnet|im voraus|angelegt|vorbestimm/i,
+        lob: "Du erklärst den Unterschied zu Lockes leerer Tafel.",
+        mangel: "Worin genau unterscheidet sich der Marmorblock von einer leeren Tafel?",
+        frage: "Worin genau unterscheidet sich der Marmorblock von einer leeren Tafel?",
+        erkennt: /vorgeg|vorgezeich|schon|bereits|angelegt|bestimm|nicht leer|struktur|form|ader/i,
+        wo: "Achte auf " + zz("ungestalteten", "im Voraus") + ".",
+        hilfe: "Anders als eine leere Tafel oder eine ungestaltete Masse ist der Stein durch seine Adern im Voraus bestimmt (" + zz("ungestalteten", "Voraus") + ")." },
+      { id: "arbeit", bereich: 3,
+        test: /freileg|frei zu leg|blo(ß|ss) ?(zu ?)?leg|politur|polier|zur klarheit|herausarbeit/i,
+        lob: "Auch die Arbeit, die die Adern erst freilegt, hast du erklärt.",
+        mangel: "Wenn Herkules schon im Stein angelegt ist, wozu braucht es dann noch Arbeit?",
+        frage: "Wenn Herkules schon im Stein angelegt ist, wozu braucht es dann noch Arbeit?",
+        erkennt: /frei|blo(ß|ss)|polier|politur|arbeit|klar|sichtbar/i,
+        wo: "Lies die letzten Zeilen (" + zz("Arbeit bedürfte", "Klarheit") + ").",
+        hilfe: "Die Adern müssen durch Arbeit bloßgelegt und durch Politur zur Klarheit gebracht werden (" + zz("Arbeit bedürfte", "Klarheit") + ")." }
+    ];
+    var BEREICHE = { 1: "die Gegenüberstellung von tabula rasa und angeborenen Prinzipien", 2: "die Kritik an der Induktion", 3: "das Marmorblock-Gleichnis" };
+    var REDE = /(leibniz|locke|der autor|der philosoph|er)\s+(\w+\s+)?(kritisiert|erl(ä|ae)utert|erkl(ä|ae)rt|behauptet|beschreibt|stellt|f(ü|ue)hrt|betont|unterscheidet|zeigt|legt|vertritt|vergleicht|definiert|bestimmt|begr(ü|ue)ndet|kommt|nennt|geht|folgert|schlie(ß|ss)t|wendet|h(ä|ae)lt|argumentiert|veranschaulicht|verdeutlicht|fragt|bestreitet|entgegnet|setzt|meint|sieht)/i;
+    var WERTUNG = /\b(ich finde|finde ich|meiner meinung|meines erachtens|ich denke|ich glaube|gef(ä|ae)llt mir|(ü|ue)berzeugt mich|zu recht|zu unrecht)\b/i;
+    var PRAETERITUM = /\b(war|waren|hatte|hatten|sagte|meinte|beschrieb|erkl(ä|ae)rte|behauptete|schrieb|dachte|glaubte|stellte|zeigte|kritisierte)\b/gi;
+
+    function norm(t) { return String(t).toLowerCase().replace(/[^a-zäöüß0-9 ]+/g, " ").split(/\s+/).filter(Boolean); }
+    var QUELLE = norm(QUELLE_PLAIN), N = 7, GRAMME = {};
+    for (var i = 0; i + N <= QUELLE.length; i++) GRAMME[QUELLE.slice(i, i + N).join(" ")] = true;
+    function woertlich(t) {
+      var w = norm(t);
+      for (var i = 0; i + N <= w.length; i++) {
+        if (GRAMME[w.slice(i, i + N).join(" ")]) return w.slice(i, i + N).join(" ");
+      }
+      return null;
+    }
+    function trifft(k, t) { return typeof k.test === "function" ? k.test(t) : k.test.test(t); }
+
+    function urteil(t) {
+      var treffer = KRIT.filter(function (k) { return trifft(k, t); });
+      var fehlt = KRIT.filter(function (k) { return !trifft(k, t); });
+      var bereiche = {};
+      [1, 2, 3].forEach(function (b) {
+        bereiche[b] = treffer.some(function (k) { return k.bereich === b && k.kern; });
+      });
+      // je fehlendem Kernbereich der erste Kernpunkt als Hinweis
+      var kernFehlt = [1, 2, 3].filter(function (b) { return !bereiche[b]; }).map(function (b) {
+        return KRIT.filter(function (k) { return k.bereich === b && k.kern; })[0];
+      });
+      var form = [];
+      var n = woerter(t);
+      if (WERTUNG.test(t)) form.push("Du wertest an einer Stelle selbst. Eine Darstellung bleibt sachlich, deine Meinung gehört in die Buchdruckerei.");
+      var zitat = woertlich(t);
+      if (zitat) form.push("Du übernimmst Passagen wörtlich, etwa „" + zitat + " …“. Gib den Gedankengang mit eigenen Worten wieder.");
+      if ((t.match(PRAETERITUM) || []).length >= 2) form.push("Du erzählst in der Vergangenheit. Darstellungen stehen im Präsens.");
+      if (!REDE.test(t)) form.push("Mach deutlicher, dass du Leibniz wiedergibst, zum Beispiel mit „Leibniz kritisiert, dass …“ oder „Er veranschaulicht …“.");
+      if (n < EMPFOHLEN[0]) form.push("Deine Darstellung ist noch knapp. Für diese Aufgabe sind etwa " + EMPFOHLEN[0] + " bis " + EMPFOHLEN[1] + " Wörter angemessen.");
+      if (n > EMPFOHLEN[1] + 20) form.push("Deine Darstellung ist lang geraten. Verdichte: Streiche Wiederholungen und Nebensächliches.");
+      return {
+        treffer: treffer, fehlt: fehlt, kernFehlt: kernFehlt, bereiche: bereiche,
+        kernErfasst: !kernFehlt.length, form: form, woerter: n, zitat: zitat, redeOk: REDE.test(t)
+      };
+    }
+    function anzahlBereiche(u) { return [1, 2, 3].filter(function (b) { return u.bereiche[b]; }).length; }
+
+    // Reihenfolge der Rueckfragen: fehlende Kernbereiche, Einleitung, dann Vertiefungen
+    function naechsteFrage() {
+      var u = urteil(st.rolle);
+      var reihe = u.kernFehlt.concat(u.fehlt.filter(function (k) { return k.id === "einleitung"; }))
+        .concat(u.fehlt.filter(function (k) { return !k.kern && k.id !== "einleitung"; }));
+      for (var i = 0; i < reihe.length; i++) if (!st.gefragt[reihe[i].id]) return reihe[i];
+      return null;
+    }
+    function stelle(k) {
+      st.frage = k ? k.id : null; st.versuche = 0;
+      if (k) st.gefragt[k.id] = true;
+      return k ? k.frage : "";
+    }
+
+    var GLOSSAR = [
+      [/tabula|unbeschrieben|leere tafel/i, "Tabula rasa heißt „abgeschabte Tafel“. Locke meint: Wir bringen keine angeborenen Ideen mit, erst die Erfahrung beschreibt die Tafel. Genau das bestreitet Leibniz."],
+      [/induktion/i, "Induktion heißt: von vielen Einzelfällen auf eine allgemeine Regel schließen. Wer tausend weiße Schwäne sieht, schließt, alle Schwäne seien weiß. Sicher ist das nie."],
+      [/notwendig/i, "Eine notwendige Wahrheit kann gar nicht anders sein, etwa 2 + 2 = 4. Erfahrung zeigt nur, was bisher so war, nicht was so sein muss."],
+      [/angeboren|innat/i, "Angeborene Ideen oder Prinzipien bringt der Geist schon mit, bevor er etwas erfährt. Das ist die Gegenthese zu Lockes tabula rasa."],
+      [/rationalis/i, "Rationalisten wie Descartes und Leibniz meinen, dass sichere Erkenntnis aus der Vernunft selbst stammt, nicht allein aus der Erfahrung."],
+      [/empiris/i, "Empiristen wie Locke meinen, dass alle Erkenntnis letztlich aus der Erfahrung stammt."],
+      [/sensation|reflexion/i, "Bei Locke ist Sensation die äußere Wahrnehmung durch die Sinne, Reflexion die innere Wahrnehmung der eigenen Geistestätigkeit."],
+      [/pr(ä|ae)sens|zeitform/i, "Darstellungen stehen im Präsens, weil der Text jetzt vor uns liegt: „Leibniz kritisiert …“, nicht „Leibniz kritisierte …“."],
+      [/eigene worte|zitat|w(ö|oe)rtlich|abschreib/i, "Eigene Worte zeigen, dass du den Gedanken verstanden hast. Lies einen Absatz, leg den Text weg und schreib auf, was hängen geblieben ist."],
+      [/einleitung|anfang|erste[rn]? satz/i, "Der erste Satz nennt Autor, Titel, Jahr und Thema. Danach folgt der Argumentationsgang in der Reihenfolge des Textes."],
+      [/meinung|werten|wertung|bewerten/i, "In der Darstellung hältst du dich mit deiner Meinung zurück. Die hebst du dir für die Buchdruckerei auf, dort schreibst du deinen Kommentar."],
+      [/wie lang|wie viele w(ö|oe)rter|l(ä|ae)nge/i, "Für diese Aufgabe sind etwa " + EMPFOHLEN[0] + " bis " + EMPFOHLEN[1] + " Wörter angemessen. Es müssen nicht alle Einzelheiten hinein, aber der Kern jedes Gedankens."]
+    ];
+
+    var MUSTER_WUNSCH = /muster|l(ö|oe)sung|beispieltext|vorlage|erwartung/i;
+    var ZUSTIMMUNG = /^\s*(ja|jawohl|gern|gerne|bitte|zeig|okay|ok)\b/i;
+    function musterAngebot(vorspann) {
+      st.musterAngebot = true;
+      return (vorspann ? vorspann + "\n\n" : "") +
+        "Ich könnte dir eine Musterlösung zeigen. Bedenke aber: Wer nur liest, lernt weniger, als wer selbst verbessert. " +
+        "Möchtest du sie trotzdem sehen? Dann antworte mit „Ja“.";
+    }
+
+    function sprich(anlass) {
+      if (anlass.art === "antwort" && st.musterAngebot) {
+        st.musterAngebot = false;
+        if (ZUSTIMMUNG.test(anlass.eingabe || "")) {
+          st.musterGezeigt = true;
+          return "Nun gut. Das erwartet deine Lehrkraft von einer gelungenen Darstellung:\n\n" + MUSTERLOESUNG +
+            "\n\nVergleiche Punkt für Punkt mit deiner Rolle. Was fehlt dir, was hast du anders gelöst? Schreib bitte nicht ab.";
+        }
+        return "Eine weise Entscheidung. Überarbeite deine Rolle selbst, ich lese sie gern noch einmal.";
+      }
+      if (anlass.art === "antwort" && MUSTER_WUNSCH.test(anlass.eingabe || "")) {
+        return musterAngebot(st.musterGezeigt ? "Du kennst sie schon, aber gern noch einmal." : "");
+      }
+      if (anlass.art === "urteil") {
+        var u = urteil(st.rolle), teile = [];
+        var vorher = st.letzteTreffer;
+        st.letzteTreffer = { bereiche: anzahlBereiche(u), punkte: u.treffer.length };
+        st.gefragt = {};
+        if (anlass.erneut && vorher) {
+          teile.push(u.treffer.length > vorher.punkte
+            ? "Du hast nachgebessert! Jetzt sind " + anzahlBereiche(u) + " von 3 Kernbereichen erfasst und " + u.treffer.length + " Einzelaspekte, vorher waren es " + vorher.punkte + "."
+            : "Ich habe deine neue Fassung gelesen: " + anzahlBereiche(u) + " von 3 Kernbereichen.");
+        } else {
+          teile.push("Ah, eine frisch beschriebene Rolle! Lass sehen, was du über Leibniz zu berichten hast …");
+        }
+        var lob = u.treffer.filter(function (k) { return k.kern; }).concat(u.treffer.filter(function (k) { return !k.kern; }))
+          .slice(0, 2).map(function (k) { return k.lob; });
+        if (u.redeOk && lob.length < 2) lob.push("Du machst sauber deutlich, dass du Leibniz wiedergibst.");
+        if (lob.length) teile.push("Das gelingt dir schon:\n" + lob.map(function (l) { return "• " + l; }).join("\n"));
+        var tipps = u.kernFehlt.slice(0, 2).map(function (k) { return k.mangel; });
+        if (u.fehlt.some(function (k) { return k.id === "einleitung"; })) tipps.push(KRIT[0].mangel);
+        tipps = tipps.concat(u.form).slice(0, 3);
+        if (tipps.length) teile.push("Daran würde ich noch feilen:\n" + tipps.map(function (l) { return "• " + l; }).join("\n"));
+        if (u.kernErfasst) {
+          teile.push("Du hast den Kern der Sache erfasst: " + BEREICHE[1] + ", " + BEREICHE[2] + " und " + BEREICHE[3] + ". Nicht jede Einzelheit muss hinein.");
+        }
+        var k = naechsteFrage();
+        if (k) teile.push((u.kernErfasst ? "Wenn du vertiefen willst, eine Frage: " : "Eine Frage an dich: ") + stelle(k));
+        else {
+          stelle(null);
+          teile.push(u.form.length
+            ? "Wenn du die Form noch glättest, ist die Rolle vortrefflich. Du kannst sie überarbeiten oder das Gespräch beenden."
+            : "Vortrefflich! Du kannst das Gespräch beenden, ich siegle deine Rolle.");
+        }
+        return teile.join("\n\n");
+      }
+      // Antwort auf Jonnys Eingabe
+      var e = anlass.eingabe || "";
+      var k = KRIT.filter(function (x) { return x.id === st.frage; })[0];
+      if (k) {
+        if (k.erkennt.test(e)) {
+          var weiter = naechsteFrage();
+          var lobText = "Genau so. Nimm das in deine Rolle auf, dann wird sie runder.";
+          if (weiter) return lobText + "\n\nNächste Frage: " + stelle(weiter);
+          stelle(null);
+          if (!st.musterGezeigt) return musterAngebot(lobText + " Mehr habe ich nicht zu fragen. Überarbeite deine Rolle mit diesen Punkten.");
+          return lobText + "\n\nMehr habe ich nicht zu fragen. Überarbeite deine Rolle mit diesen Punkten oder beende das Gespräch.";
+        }
+        st.versuche++;
+        if (st.versuche === 1) return "Nicht ganz. " + k.wo + " Versuch es noch einmal.";
+        var danach = naechsteFrage();
+        var aufl = "Ich helfe dir: " + k.hilfe;
+        if (danach) return aufl + "\n\nNächste Frage: " + stelle(danach);
+        stelle(null);
+        if (!st.musterGezeigt) return musterAngebot(aufl);
+        return aufl + "\n\nÜberarbeite deine Rolle damit, oder beende das Gespräch.";
+      }
+      for (var i = 0; i < GLOSSAR.length; i++) if (GLOSSAR[i][0].test(e)) return GLOSSAR[i][1];
+      if (/danke/i.test(e)) return "Gern geschehen. Ein Gelehrter fragt, bis er verstanden hat.";
+      if (/\?/.test(e)) return "Eine gute Frage. Darauf weiß ich keine sichere Antwort. Frag deine Lehrkraft, und schau dazu in Leibniz' Text.";
+      return "Ich höre dir zu. Du kannst mich nach Begriffen wie tabula rasa, Induktion, notwendige Wahrheit oder angeborene Ideen fragen, oder deine Rolle überarbeiten.";
+    }
+
+    return { urteil: urteil, sprich: sprich, kriterien: KRIT };
+  })();
+
+  // ---------- Kurzer Hinweis, der aufleuchtet und von selbst verschwindet
+  var toastTimer = null;
+  function zeigeToast(titel, text) {
+    var t = $("toast");
+    t.innerHTML = "";
+    var st_ = document.createElement("strong");
+    st_.textContent = titel;
+    t.appendChild(st_);
+    t.appendChild(document.createTextNode(text));
+    t.hidden = false;
+    t.classList.remove("leuchten");
+    void t.offsetWidth;
+    t.classList.add("leuchten");
+    if (toastTimer) clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { t.hidden = true; }, 4000);
+  }
+
+  function zielName() {
+    if (st.stufe >= REIHE.length) return "Aufnahme bestanden";
+    var R = RAUM[st.szene];
+    if (R && st.stufe === R.index) {
+      var z = R.ziel();
+      if (z) return z;
+    }
+    return ORTE[REIHE[st.stufe]].name;
+  }
+  function hudAktualisieren() {
+    $("ziel").textContent = zielName();
+    var s = $("siegel");
+    s.innerHTML = "";
+    REIHE.forEach(function (k, i) {
+      var sp = document.createElement("span");
+      sp.title = ORTE[k].name;
+      if (i < st.stufe) sp.classList.add("fertig");
+      else if (i === st.stufe) sp.classList.add("aktuell");
+      s.appendChild(sp);
+    });
+  }
+
+  // ---------- Jonny als Pixel-Sprite (16 x 24, 1 px Rand fuer die Kontur)
+  var C = {
+    wig: "#f2efe8", wigS: "#c9c6cf", wigD: "#a19cab", hi: "#ffffff",
+    skin: "#f0c8a6", skinS: "#d49a78", mouth: "#b0604e",
+    coat: "#2e3a78", coatD: "#1f2552", coatL: "#4a5aa6", gold: "#e2b64a",
+    white: "#f4f2ec", book: "#8a4b2a", bookD: "#5e3019", page: "#f1e6c8",
+    breeches: "#2a2430", stock: "#eeeeee", shoe: "#1e1a1c",
+    lens: "#bfe3f4", rim: "#3a3440", bow: "#1a1a22", line: "#1c1624"
+  };
+  function sprite(dir, s) {
+    var cnv = document.createElement("canvas");
+    cnv.width = 18; cnv.height = 26;
+    var g = cnv.getContext && cnv.getContext("2d");
+    if (!g) return null;
+    var side = dir === "left" || dir === "right";
+    function p(x, y, w, h, c) {
+      g.fillStyle = c;
+      g.fillRect((side && dir === "left" ? 15 - x - w + 1 : x) + 1, y + 1, w, h);
+    }
+    function bein(x, lift, c) {
+      p(x, 18, 2, 4 - lift, c || C.stock);
+      p(x, 22 - lift, side ? 3 : 2, 2, C.shoe);
+    }
+    if (dir === "down" || dir === "up") {
+      bein(5, s === 1 ? 1 : 0);
+      bein(9, s === 2 ? 1 : 0);
+      p(4, 16, 8, 2, C.breeches);
+      p(3, 10, 10, 6, C.coat);
+      p(2, 14, 12, 4, C.coat);
+      p(2, 14, 1, 4, C.coatD); p(13, 14, 1, 4, C.coatD);
+      p(2, 17, 12, 1, C.gold);
+      if (dir === "down") {
+        p(6, 15, 4, 3, C.breeches);
+        p(6, 10, 1, 5, C.gold); p(9, 10, 1, 5, C.gold);
+        p(2, 10, 2, 5, C.coatL); p(12, 10, 2, 5, C.coatD);
+        p(2, 14, 2, 1, C.gold); p(12, 14, 2, 1, C.gold);
+        p(4, 11, 8, 4, C.book); p(5, 11, 6, 3, C.page); p(8, 11, 1, 4, C.bookD);
+        p(5, 12, 2, 1, C.skinS); p(9, 13, 2, 1, C.skinS);
+        p(3, 13, 2, 2, C.skin); p(11, 13, 2, 2, C.skin);
+        p(6, 9, 4, 2, C.white);
+        p(4, 0, 8, 3, C.wig); p(3, 1, 10, 2, C.wig); p(5, 0, 3, 1, C.hi);
+        p(3, 3, 2, 6, C.wig); p(11, 3, 2, 6, C.wigS);
+        p(3, 5, 2, 1, C.wigD); p(11, 5, 2, 1, C.wigD); p(3, 7, 2, 1, C.wigD); p(11, 7, 2, 1, C.wigD);
+        p(5, 3, 6, 1, C.wigS);
+        p(5, 4, 6, 5, C.skin); p(10, 4, 1, 5, C.skinS);
+        p(5, 5, 2, 2, C.lens); p(9, 5, 2, 2, C.lens); p(7, 5, 2, 1, C.rim);
+        p(6, 6, 1, 1, C.rim); p(9, 6, 1, 1, C.rim);
+        p(8, 7, 1, 1, C.skinS); p(7, 8, 2, 1, C.mouth);
+      } else {
+        p(8, 12, 1, 6, C.coatD);
+        p(2, 10, 2, 5, C.coatD); p(12, 10, 2, 5, C.coatD);
+        p(2, 14, 2, 1, C.gold); p(12, 14, 2, 1, C.gold);
+        p(4, 0, 8, 1, C.wig); p(3, 1, 10, 8, C.wig); p(5, 1, 4, 1, C.hi);
+        p(3, 6, 10, 3, C.wigS);
+        p(3, 5, 2, 1, C.wigD); p(11, 5, 2, 1, C.wigD); p(3, 7, 2, 1, C.wigD); p(11, 7, 2, 1, C.wigD);
+        p(7, 9, 2, 3, C.wigS);
+        p(6, 8, 4, 1, C.bow); p(7, 8, 2, 2, C.bow);
+      }
+    } else {
+      var hinten = [6, 5, 7][s], vorn = [8, 9, 7][s];
+      bein(hinten, 0, "#cfcfd6");
+      bein(vorn, s === 2 ? 1 : 0);
+      p(5, 16, 6, 2, C.breeches);
+      p(4, 10, 7, 6, C.coat);
+      p(3, 14, 9, 4, C.coat); p(3, 14, 2, 4, C.coatD);
+      p(3, 17, 9, 1, C.gold); p(10, 10, 1, 7, C.gold);
+      p(9, 9, 2, 2, C.white);
+      p(9, 11, 3, 4, C.book); p(11, 11, 1, 3, C.page);
+      p(6, 11, 3, 4, C.coatL); p(6, 14, 3, 1, C.gold); p(9, 13, 2, 2, C.skin);
+      p(7, 3, 4, 6, C.skin); p(11, 6, 1, 1, C.skin); p(7, 3, 1, 6, C.skinS);
+      p(4, 0, 7, 3, C.wig); p(5, 0, 3, 1, C.hi);
+      p(4, 3, 4, 7, C.wig); p(3, 2, 2, 6, C.wig);
+      p(4, 5, 3, 1, C.wigD); p(4, 7, 3, 1, C.wigD); p(3, 4, 1, 4, C.wigS);
+      p(3, 8, 2, 2, C.bow); p(3, 10, 1, 2, C.wigS);
+      p(9, 5, 2, 2, C.lens); p(8, 5, 1, 1, C.rim); p(10, 6, 1, 1, C.rim);
+      p(10, 8, 1, 1, C.mouth);
+    }
+    // automatische Kontur um alle gefuellten Pixel
+    var img = g.getImageData(0, 0, 18, 26), d = img.data, out = new Uint8ClampedArray(d);
+    for (var y = 0; y < 26; y++) for (var x = 0; x < 18; x++) {
+      var i = (y * 18 + x) * 4;
+      if (d[i + 3]) continue;
+      var nb = [[1, 0], [-1, 0], [0, 1], [0, -1]].some(function (o) {
+        var X = x + o[0], Y = y + o[1];
+        return X >= 0 && Y >= 0 && X < 18 && Y < 26 && d[(Y * 18 + X) * 4 + 3];
+      });
+      if (nb) { out[i] = 28; out[i + 1] = 22; out[i + 2] = 36; out[i + 3] = 255; }
+    }
+    img.data.set(out);
+    g.putImageData(img, 0, 0);
+    return cnv;
+  }
+  // Bibliothekar: Pixel-Sprite aus figuren/ (erzeugt mit figuren/bibliothekar.py), Dreiviertelansicht nach links
+  var BIB_SPRITE = null, BIB_GROSS = null;
+  (function () {
+    var klein = new Image(), gross = new Image();
+    klein.onload = function () { BIB_SPRITE = klein; };
+    gross.onload = function () { BIB_GROSS = gross; malePortrait(); };
+    klein.src = "figuren/bibliothekar_16x24.png";
+    gross.src = "figuren/bibliothekar_32x48.png";
+  })();
+  function malePortrait() {
+    var c = $("portrait"), g = c.getContext && c.getContext("2d");
+    if (!g || !BIB_GROSS) return;
+    g.imageSmoothingEnabled = false;
+    g.clearRect(0, 0, c.width, c.height);
+    g.drawImage(BIB_GROSS, 5, 0, 22, 22, 0, 0, 22, 22);
+  }
+
+  var FRAMES = {};
+  ["down", "up", "left", "right"].forEach(function (d) { FRAMES[d] = [0, 1, 2].map(function (s) { return sprite(d, s); }); });
+
+  // ---------- Darstellung
+  var cnv = $("spiel");
+  var ctx = cnv.getContext && cnv.getContext("2d");
+  var ruhig = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var Z = 3, dpr = 1;
+
+  function groesse() {
+    dpr = window.devicePixelRatio || 1;
+    cnv.width = Math.round(window.innerWidth * dpr);
+    cnv.height = Math.round(window.innerHeight * dpr);
+    var zc = Math.max(2, Math.min(5, Math.round(Math.min(window.innerWidth / (26 * T), window.innerHeight / (15 * T)))));
+    Z = Math.max(1, Math.round(zc * dpr));
+  }
+  groesse();
+  window.addEventListener("resize", groesse);
+
+  function zielPunkt() {
+    if (RAUM[sz.id]) {
+      var liste = RAUM[sz.id].offen();
+      var offen = sz.d.interaktionen.filter(function (ia) { return liste.indexOf(ia.id) >= 0; });
+      offen.sort(function (p, q) {
+        var dp = Math.hypot((p.flaeche.x0 + p.flaeche.x1 + 1) * T / 2 - st.x, (p.flaeche.y1 + 1) * T - st.y);
+        var dq = Math.hypot((q.flaeche.x0 + q.flaeche.x1 + 1) * T / 2 - st.x, (q.flaeche.y1 + 1) * T - st.y);
+        return dp - dq;
+      });
+      if (offen.length) {
+        var f = offen[0].flaeche;
+        return { x: (f.x0 + f.x1 + 1) * T / 2, y: (f.y1 + 1) * T };
+      }
+      var a = sz.d.ausgang[0];
+      return { x: (a.x + 2) * T, y: (a.y + 1) * T };
+    }
+    var ziel = REIHE[st.stufe];
+    if (!ziel) return null;
+    var tu = D.lernorte[ziel].tuer[0];
+    return { x: tu.x * T + T, y: tu.y * T + T };
+  }
+
+  function zeichnen(t) {
+    if (!ctx || !sz.da) return;
+    var cw = cnv.width, ch = cnv.height;
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.fillStyle = "#16211a";
+    ctx.fillRect(0, 0, cw, ch);
+    ctx.imageSmoothingEnabled = false;
+    var z = st.uebersicht ? Math.min(cw / sz.pw, ch / sz.ph) : Z;
+    var vw = cw / z, vh = ch / z;
+    var cx = vw >= sz.pw ? (sz.pw - vw) / 2 : Math.max(0, Math.min(sz.pw - vw, st.x - vw / 2));
+    var cy = vh >= sz.ph ? (sz.ph - vh) / 2 : Math.max(0, Math.min(sz.ph - vh, st.y - 10 - vh / 2));
+    cx = Math.round(cx * z) / z; cy = Math.round(cy * z) / z;
+    ctx.setTransform(z, 0, 0, z, -cx * z, -cy * z);
+    ctx.drawImage(sz.bild, 0, 0);
+
+    (sz.d.interaktionen || []).forEach(function (ia) {
+      var an = RAUM[sz.id] && RAUM[sz.id].leuchtet(ia.id);
+      if (!an) return;
+      var f = ia.flaeche, o = ia.objekt;
+      var gx = (f.x0 + f.x1 + 1) * T / 2, gy = (o.y1 + 1) * T;
+      var r = Math.max(f.x1 - f.x0 + 1, 3) * T * 0.75;
+      var g = ctx.createRadialGradient(gx, gy, 2, gx, gy, r);
+      g.addColorStop(0, "rgba(255,190,90,.55)");
+      g.addColorStop(0.6, "rgba(255,170,70,.2)");
+      g.addColorStop(1, "rgba(255,170,70,0)");
+      ctx.save();
+      ctx.globalCompositeOperation = "lighter";
+      ctx.fillStyle = g;
+      ctx.fillRect(gx - r, gy - r, 2 * r, 2 * r);
+      ctx.restore();
+    });
+
+    var px = Math.round(st.x), py = Math.round(st.y);
+    ctx.fillStyle = "rgba(0,0,0,.28)";
+    ctx.beginPath(); ctx.ellipse(px + 1, py - 1, 6, 2.5, 0, 0, Math.PI * 2); ctx.fill();
+    var f = FRAMES[st.dir][st.laeuft ? st.schritt : 0];
+    var hop = st.laeuft && st.schritt ? -1 : 0;
+    if (f) ctx.drawImage(f, px - 9, py - 25 + hop);
+    if (sz.id === "lesesaal" && st.bibSeit != null && BIB_SPRITE) {
+      var bp = sz.d.bibliothekar, bx = bp.x * T + 8, by = bp.y * T + 14;
+      var alter = (t - st.bibSeit) / 600, alpha = ruhig ? 1 : Math.max(0, Math.min(1, alter));
+      ctx.save();
+      ctx.globalAlpha = alpha;
+      ctx.fillStyle = "rgba(0,0,0,.28)";
+      ctx.beginPath(); ctx.ellipse(bx + 1, by - 1, 6, 2.5, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.drawImage(BIB_SPRITE, bx - 8, by - 24);
+      ctx.restore();
+      if (!ruhig && alter < 1.4) {
+        ctx.fillStyle = "rgba(255,236,170," + Math.max(0, 1 - alter / 1.4).toFixed(2) + ")";
+        for (var k = 0; k < 10; k++) {
+          var a = k * 0.63 + alter * 2, r = 6 + alter * 14;
+          ctx.fillRect(Math.round(bx + Math.cos(a) * r), Math.round(by - 12 + Math.sin(a) * r * 0.7), 1, 1);
+        }
+      }
+    }
+
+    if (st.uebersicht) {
+      ctx.strokeStyle = "#e2b64a"; ctx.lineWidth = 2 / z * dpr;
+      ctx.beginPath(); ctx.arc(px, py - 12, 14 + (ruhig ? 0 : Math.sin(t / 200) * 2), 0, Math.PI * 2); ctx.stroke();
+      return;
+    }
+
+    // Tastenkappe ueber Jonny, sobald eine Interaktion moeglich ist
+    if (st.aktion && !st.dialog) {
+      var ky = py - 36 + (ruhig ? 0 : Math.round(Math.sin(t / 220)));
+      ctx.fillStyle = "#1c1624"; ctx.fillRect(px - 7, ky - 7, 14, 13);
+      ctx.fillStyle = "#f3e6c4"; ctx.fillRect(px - 6, ky - 6, 12, 11);
+      ctx.fillStyle = "#9c2f2a"; ctx.font = "10px Georgia, serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+      ctx.fillText("E", px, ky);
+    }
+
+    // Wegweiser: kleiner Goldpfeil zum naechsten Ziel
+    var zp = st.dialog || st.aktion ? null : zielPunkt();
+    if (zp) {
+      var ddx = zp.x - st.x, ddy = zp.y - st.y, dist = Math.hypot(ddx, ddy);
+      if (dist > (sz.id === "welt" ? 6 : 3) * T) {
+        var a = Math.atan2(ddy, ddx), r = 20 + (ruhig ? 0 : Math.sin(t / 180) * 1.5);
+        var ax = st.x + Math.cos(a) * r, ay = st.y - 12 + Math.sin(a) * r;
+        ctx.save(); ctx.translate(ax, ay); ctx.rotate(a);
+        ctx.fillStyle = "#1c1624";
+        ctx.beginPath(); ctx.moveTo(6, 0); ctx.lineTo(-4, -5); ctx.lineTo(-2, 0); ctx.lineTo(-4, 5); ctx.closePath(); ctx.fill();
+        ctx.fillStyle = "#e2b64a";
+        ctx.beginPath(); ctx.moveTo(4.5, 0); ctx.lineTo(-2.8, -3.6); ctx.lineTo(-1.2, 0); ctx.lineTo(-2.8, 3.6); ctx.closePath(); ctx.fill();
+        ctx.restore();
+      }
+    }
+  }
+
+  var letzte = 0;
+  function schleife(t) {
+    var dt = Math.min(0.05, (t - letzte) / 1000 || 0);
+    letzte = t;
+    if (hochMq.matches) tastenLos();
+    else if (!st.uebersicht && !st.start) tick(dt);
+    zeichnen(t);
+    window.requestAnimationFrame(schleife);
+  }
+
+  // ---------- Eingabe: Tastatur
+  var TASTEN = {
+    ArrowUp: "up", KeyW: "up", ArrowDown: "down", KeyS: "down",
+    ArrowLeft: "left", KeyA: "left", ArrowRight: "right", KeyD: "right"
+  };
+  document.addEventListener("keydown", function (e) {
+    if (st.start) {
+      if (st.info) { if (e.code === "Escape") { e.preventDefault(); infoZu(); } return; }
+      if ((e.code === "Enter" || e.code === "Space") && !(e.target && e.target.id === "startInfo")) { e.preventDefault(); spielStarten(); }
+      else if (e.code === "KeyI") { e.preventDefault(); infoAuf(); }
+      return;
+    }
+    if (st.fenster) {
+      if (e.code === "Escape") { e.preventDefault(); if (st.fenster === "rolle") rolleSchliessen(); else gespraechBeenden(); }
+      return;
+    }
+    if (st.material) {
+      if (e.code === "Escape") { e.preventDefault(); materialSchliessen(); }
+      return;
+    }
+    if (st.dialog) {
+      if (e.code === "Space" || e.code === "Enter" || e.code === "Escape") { e.preventDefault(); dialogSchliessen(); }
+      return;
+    }
+    if (e.code === "KeyE") { e.preventDefault(); if (!e.repeat) benutzen(); return; }
+    if (e.code === "KeyM") { uebersicht(!st.uebersicht); return; }
+    var k = TASTEN[e.code];
+    if (k) { keys[k] = true; e.preventDefault(); }
+  });
+  document.addEventListener("keyup", function (e) {
+    var k = TASTEN[e.code];
+    if (k) keys[k] = false;
+  });
+  window.addEventListener("blur", tastenLos);
+  $("weiter").addEventListener("click", dialogSchliessen);
+  $("zu").addEventListener("click", materialSchliessen);
+  $("laden").addEventListener("click", herunterladen);
+
+  function uebersicht(an) {
+    st.uebersicht = an;
+    tastenLos();
+    $("kartenBtn").setAttribute("aria-pressed", an ? "true" : "false");
+    $("kartenBtn").textContent = an ? "Zurück" : "Karte";
+  }
+  $("kartenBtn").addEventListener("click", function () { uebersicht(!st.uebersicht); });
+
+  // ---------- Eingabe: Touch (Steuerkreuz links, Aktionsknopf rechts)
+  if (grob) {
+    document.body.classList.add("touch");
+    $("pad").hidden = false;
+    $("aktion").hidden = false;
+    $("hinweis").textContent = "Steuerkreuz zum Gehen, E zum Benutzen";
+  }
+  Array.prototype.forEach.call(document.querySelectorAll("#pad button"), function (b) {
+    var d = b.getAttribute("data-dir");
+    function an(e) { e.preventDefault(); keys[d] = true; b.classList.add("an"); }
+    function aus() { keys[d] = false; b.classList.remove("an"); }
+    b.addEventListener("pointerdown", an);
+    b.addEventListener("pointerup", aus);
+    b.addEventListener("pointercancel", aus);
+    b.addEventListener("pointerleave", aus);
+  });
+  $("aktion").addEventListener("pointerdown", function (e) { e.preventDefault(); benutzen(); });
+  $("aktion").addEventListener("click", function (e) { if (e.detail === 0) benutzen(); });
+
+  // ---------- Startbildschirm
+  // Koordinaten im Grundbild 1408 x 768 (start/titelbild.jpg ist doppelt so gross, erzeugt von start/titelbild.html).
+  var START = {
+    w: 1408, h: 768,
+    sicher: { x: 150, y: 88, w: 1070, h: 627 },     // Titel, Knoepfe und Locke: bleibt immer ganz sichtbar
+    knopf: { x: 164, y: 508, w: 440, h: 96 },        // „SPIEL STARTEN“
+    info: { x: 1104, y: 96, w: 96, h: 96 }           // ⓘ
+  };
+  function startLage(W, H) {
+    var S = START.sicher, s = Math.max(W / START.w, H / START.h);
+    if (S.w * s > W || S.h * s > H) s = Math.min(W / S.w, H / S.h);
+    var bw = START.w * s, bh = START.h * s;
+    var ox = W / 2 - (S.x + S.w / 2) * s, oy = H / 2 - (S.y + S.h / 2) * s;
+    ox = bw >= W ? Math.min(0, Math.max(W - bw, ox)) : (W - bw) / 2;
+    oy = bh >= H ? Math.min(0, Math.max(H - bh, oy)) : (H - bh) / 2;
+    function r(b) { return { x: ox + b.x * s, y: oy + b.y * s, w: b.w * s, h: b.h * s }; }
+    return { s: s, bild: { x: ox, y: oy, w: bw, h: bh }, knopf: r(START.knopf), info: r(START.info), sicher: r(S) };
+  }
+  function startLayout() {
+    if (!st.start) return;
+    var l = startLage(window.innerWidth, window.innerHeight);
+    function setze(el, b) { el.style.left = b.x + "px"; el.style.top = b.y + "px"; el.style.width = b.w + "px"; el.style.height = b.h + "px"; }
+    setze($("startBild"), l.bild); setze($("startSpiel"), l.knopf); setze($("startInfo"), l.info);
+  }
+  function infoAuf() {
+    st.info = true; $("info").hidden = false; $("infoZu").focus();
+  }
+  function infoZu() {
+    st.info = false; $("info").hidden = true; $("startInfo").focus();
+  }
+  function spielStarten() {
+    if (!st.start || st.info) return;
+    st.start = false; tastenLos();
+    var el = $("start");
+    el.classList.add("weg");
+    window.setTimeout(function () { el.hidden = true; }, 380);
+    if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+  }
+  $("startSpiel").addEventListener("click", spielStarten);
+  $("startInfo").addEventListener("click", infoAuf);
+  $("infoZu").addEventListener("click", infoZu);
+  window.addEventListener("resize", startLayout);
+  startLayout();
+
+  // ---------- Start (uebernimmt bei einem Update im Viewer den Spielstand)
+  function start(daten) {
+    if (daten && typeof daten.x === "number") {
+      st.stufe = daten.stufe || 0; st.dir = daten.dir || "up"; st.rueck = daten.rueck || null;
+      if (daten.szene && SZENEN[daten.szene] && (daten.szene === "welt" || st.rueck)) { sz = SZENEN[daten.szene]; st.szene = daten.szene; }
+      st.x = daten.x; st.y = daten.y; st.gesehen = daten.gesehen || {}; st.geladen = daten.geladen || {};
+      st.rolle = daten.rolle || st.rolle; st.abgegeben = !!daten.abgegeben; st.rueckmeldung = !!daten.rueckmeldung;
+      st.lesesaalFertig = !!daten.lesesaalFertig; st.verlauf = daten.verlauf || [];
+      if (st.abgegeben) st.bibSeit = -1e6;
+      st.start = false; $("start").hidden = true;
+    }
+    hudAktualisieren();
+    window.requestAnimationFrame(schleife);
+  }
+  var hot = window.claude && window.claude.hot;
+  if (hot && hot.snapshot) hot.snapshot(function () { return { x: st.x, y: st.y, stufe: st.stufe, dir: st.dir, szene: st.szene, rueck: st.rueck, gesehen: st.gesehen, geladen: st.geladen,
+    rolle: st.rolle, abgegeben: st.abgegeben, rueckmeldung: st.rueckmeldung, lesesaalFertig: st.lesesaalFertig, verlauf: st.verlauf }; });
+  if (hot && hot.ready) hot.ready(start); else start(hot && hot.data ? hot.data : {});
+
+  // Test-Hook
+  window.__game = {
+    state: st, keys: keys, tick: tick, frei: frei, schliessen: dialogSchliessen, benutzen: benutzen,
+    herunterladen: herunterladen, materialSchliessen: materialSchliessen,
+    abgeben: abgeben, antworten: antworten, gespraechBeenden: gespraechBeenden, ueberarbeiten: ueberarbeiten,
+    rolleSchliessen: rolleSchliessen, urteil: function (t) { return BIBLIOTHEKAR.urteil(t); },
+    teleport: function (tx, ty) { st.x = tx * T + 8; st.y = ty * T + 12; },
+    starten: spielStarten, infoAuf: infoAuf, infoZu: infoZu, startLage: startLage, START: START
+  };
+})();
+</script>
+<!--BODY-END-->
+</body>
+</html>

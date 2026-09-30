@@ -1,0 +1,100 @@
+{
+ "name": "lesesaal",
+ "kachelgroesse": 16,
+ "breite": 40,
+ "hoehe": 24,
+ "legende": {
+  "#": "Boden, begehbar",
+  "X": "Wand oder Moebel",
+  "A": "Ausgang (Tuer nach draussen)",
+  "S": "Eintrittsstelle, begehbar",
+  "I": "Interaktionsflaeche vor einem Objekt, begehbar"
+ },
+ "eintritt": {
+  "x": 19,
+  "y": 20,
+  "blick": "up"
+ },
+ "ausgang": [
+  {
+   "x": 18,
+   "y": 22
+  },
+  {
+   "x": 19,
+   "y": 22
+  },
+  {
+   "x": 20,
+   "y": 22
+  },
+  {
+   "x": 21,
+   "y": 22
+  }
+ ],
+ "interaktionen": [
+  {
+   "id": "lesepult",
+   "markiert": true,
+   "flaeche": {
+    "x0": 28,
+    "y0": 19,
+    "x1": 30,
+    "y1": 19
+   },
+   "objekt": {
+    "x0": 28,
+    "y0": 17,
+    "x1": 30,
+    "y1": 18
+   }
+  },
+  {
+   "id": "schreibpult",
+   "markiert": false,
+   "flaeche": {
+    "x0": 17,
+    "y0": 6,
+    "x1": 22,
+    "y1": 7
+   },
+   "objekt": {
+    "x0": 17,
+    "y0": 3,
+    "x1": 22,
+    "y1": 5
+   }
+  }
+ ],
+ "bibliothekar": {
+  "x": 23,
+  "y": 5
+ },
+ "raster": [
+  "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+  "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+  "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+  "X###########X##XXXXXXXXXX##############X",
+  "X###############XXXXXXXX###############X",
+  "X#XXXXXXXXXX####XXXXXXXX####XXXX#XXXX##X",
+  "X#XXXXXXXXXX#####IIIIII#####XXXX#XXXX##X",
+  "X#############X##IIIIII##X#############X",
+  "X######################################X",
+  "X######################################X",
+  "X#XXXXXXXXXX################XXXX#XXXXX#X",
+  "X#XXXXXXXXXX##X##########X##XXXX#XXXXX#X",
+  "X######################################X",
+  "X#####################################XX",
+  "X#####################################XX",
+  "X#XXXXXXXXXX##X##########X############XX",
+  "X#XXXXXXXXXX##########################XX",
+  "X###########################XXX#######XX",
+  "X###########################XXX########X",
+  "X###########################III########X",
+  "XXX#########X#X###SSSS###X#X#######X###X",
+  "XXX####################################X",
+  "XXXXXXXXXXXXXXXXXXAAAAXXXXXXXXXXXXXXXXXX",
+  "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+ ]
+}

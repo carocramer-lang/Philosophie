@@ -1,0 +1,8 @@
+# Netlify: das Spiel Lockes Neffe liegt im Unterordner, alle Pfade relativ zu base
+[build]
+  base = "lehrmaterial-tools/projects/lockes-neffe"
+  publish = "."
+  functions = "netlify/functions"
+
+[functions]
+  node_bundler = "esbuild"
