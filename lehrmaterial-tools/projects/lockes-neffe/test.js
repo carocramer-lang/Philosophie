@@ -204,7 +204,7 @@ async function lesesaalAblauf() {
   G.schliessen();
   G.teleport(19, 21); bisWechsel("down", 2);
   check("Lesesaal: danach ist die Tuer offen", G.state.szene === "welt" && Math.floor(G.state.y / 16) === 17);
-  salonAblauf();
+  await salonAblauf();
 
   // Rueckmeldungen der eingebauten Fassung
   const u1 = G.urteil(GUT);
@@ -221,23 +221,82 @@ async function lesesaalAblauf() {
   check("Bibliothekar: Zeilenangaben aus dem Arbeitsblatt", /Z\. \d/.test(hinweis) && !/\(\)/.test(hinweis));
 }
 
-// ---------- Salon (Probefassung): begehbar, Sekretaer und Kamin bieten Interaktionen
-function salonAblauf() {
+// ---------- Salon: Brief der Akademie, Analyse schreiben, Platon am Kamin
+const ANALYSE = "In der Vorrede zu seinen Neuen Abhandlungen über den menschlichen Verstand (1704) begründet Gottfried Wilhelm Leibniz seine These angeborener Prinzipien gegen Lockes Empirismus. " +
+  "Er eröffnet den Text mit einer disjunktiven Gegenüberstellung zweier Positionen (Z. 1–5): Entweder ist die Seele eine leere Tafel, wie Locke und Aristoteles meinen, oder sie enthält ursprünglich Prinzipien, die durch äußere Gegenstände nur aufgeweckt werden. " +
+  "Leibniz vertritt die zweite Position und beruft sich dabei auf Platon. Im zweiten Abschnitt (Z. 6–13) kritisiert er die Induktion. " +
+  "Die erste Prämisse lautet, dass die Sinne nur Beispiele, also Wahrheiten über Einzelnes liefern (Z. 9–10). " +
+  "Die zweite Prämisse besagt, dass aus noch so vielen Einzelfällen keine allgemeine Notwendigkeit folgt, denn was oft geschehen ist, muss nicht immer so geschehen (Z. 11–13). " +
+  "Daraus folgert Leibniz im Zwischenschluss, dass notwendige Wahrheiten Prinzipien besitzen müssen, die nicht vom Zeugnis der Sinne abhängen (Z. 14–17). " +
+  "Als Beleg dient die reine Mathematik, deren Lehrsätze universell und notwendig gelten (Z. 18–20). Die Sinne geben nur den Anstoß, nach diesen Wahrheiten zu suchen. " +
+  "Im letzten Abschnitt (Z. 21–28) veranschaulicht Leibniz seine These durch das Gleichnis vom geäderten Marmorblock. " +
+  "Die leere Tafel und die ungestaltete Masse stehen für das empiristische Modell eines passiven Geistes. " +
+  "Die Adern symbolisieren dagegen die angeborene Struktur der Seele, die bestimmte Erkenntnisse vorzeichnet. " +
+  "Die Arbeit des Bildhauers steht für die Sinneserfahrung, die nichts Neues erschafft, sondern die Adern freilegt und zur Klarheit bringt. " +
+  "Das gedankliche Ziel des Gleichnisses ist es zu zeigen, dass Erfahrung und angeborene Ideen keine Gegensätze sind: Die Sinne sind der Anlass, aber nicht das Fundament notwendiger Erkenntnis.";
+async function salonAblauf() {
   G.teleport(13, 43); bisWechsel("up", 2);
   check("Salon: Tuer fuehrt nach dem Lesesaal hinein", G.state.szene === "salon" && !G.state.dialog);
   check("Salon: Eintritt auf der Eintrittsstelle", salon.raster[Math.floor((G.state.y - 2) / 16)][Math.floor(G.state.x / 16)] === "S");
-  lauf("up", 3.5);
+  G.teleport(19, 21); bisWechsel("down", 2);
+  check("Salon: Tuer gesperrt ohne Analyse", G.state.szene === "salon");
+  G.teleport(19, 20); lauf("up", 3.5);
   check("Salon: Hauptweg fuehrt gerade zum Kamin", G.state.aktion === "kamin");
   G.benutzen();
-  check("Salon: Kamin zeigt Hinweis", G.state.dialog === "Der Kamin");
+  check("Salon: Kamin verweist zuerst auf den Sekretaer", G.state.dialog === "Der Kamin" && !G.state.fenster);
   G.schliessen();
+
   G.teleport(4, 6); G.tick(1 / 60);
   check("Salon: Sekretaer bietet Interaktion", G.state.aktion === "sekretaer");
   G.benutzen();
-  check("Salon: Sekretaer zeigt den Brief der Akademie", G.state.dialog === "Der Sekretär");
+  check("Salon: Sekretaer oeffnet den Brief der Akademie", G.state.material === "sekretaer");
+  check("Salon: Brief zeigt Analyseauftrag und Hinweise", /Analysieren Sie die Argumentationsstruktur/.test(document.getElementById("materialInhalt").innerHTML) &&
+    /Zeilenangaben/.test(document.getElementById("materialInhalt").innerHTML));
+  await G.herunterladen(); G.materialSchliessen();
+  check("Salon: Brief gesichert", G.state.gesehen.sekretaer && G.state.geladen.sekretaer);
+  G.benutzen();
+  check("Salon: Sekretaer oeffnet die Rolle fuer die Analyse", G.state.fenster === "rolle" && document.getElementById("rolleTitel").textContent === "Deine Analyse");
+  check("Salon: Rolle zeigt den Analyseauftrag", /Analysieren Sie/.test(document.getElementById("rolleAuftrag").textContent));
+  G.state.salon.rolle = "Leibniz argumentiert gegen Locke.";
+  check("Salon: zu kurze Analyse wird nicht angenommen", (await G.abgeben()) === false && G.state.fenster === "rolle");
+  G.state.salon.rolle = ANALYSE;
+  await G.abgeben();
+  check("Salon: Abgabe ruft Platon aus dem Bild", G.state.dialog === "Das Feuer lodert auf" && G.state.salon.seit != null && !G.state.fenster);
+  check("Salon: Lesesaal-Rolle bleibt unberuehrt", G.state.rolle === GUT);
   G.schliessen();
   G.teleport(19, 21); bisWechsel("down", 2);
-  check("Salon: Rueckweg nach draussen", G.state.szene === "welt");
+  check("Salon: Tuer gesperrt, solange Platon wartet", G.state.szene === "salon");
+
+  G.teleport(19, 6); G.tick(1 / 60);
+  check("Salon: Kamin bietet Interaktion", G.state.aktion === "kamin");
+  await G.platonGespraech();
+  const v = G.state.salon.verlauf;
+  check("Platon: stellt sich vor", v[0].wer === "bib" && /Ich bin Platon/.test(v[0].text));
+  check("Platon: erklaert den Bezug zu Leibniz mit Zeile", /Z\. 5/.test(v[0].text) && /mit Platon/.test(v[0].text) && /Anamnesis/.test(v[0].text));
+  const rm = v[v.length - 1].text;
+  check("Platon: gibt Rueckmeldung zur Analyse", v[v.length - 1].wer === "bib" && /Das ist dir gelungen/.test(rm));
+  check("Platon: gute Analyse erfasst den Kern", /Kern der Sache erfasst/.test(rm));
+  await G.antworten("Was ist eine Prämisse?");
+  check("Platon: erklaert Begriffe", /Voraussetzung, aus der ein Schluss folgt/.test(v[v.length - 1].text));
+  await G.antworten("Kann ich die Musterlösung sehen?");
+  check("Platon: Musterloesung nur nach Angebot mit Hinweis", /Wer nur liest, lernt weniger/.test(v[v.length - 1].text) && !/Prämisse 1/.test(v[v.length - 1].text));
+  await G.antworten("Ja, bitte");
+  check("Platon: Musterloesung nach Zustimmung", /Prämisse 1/.test(v[v.length - 1].text) && /Schreib bitte nicht ab/.test(v[v.length - 1].text));
+  G.gespraechBeenden();
+  check("Platon: Gespraech beenden siegelt die Analyse", G.state.salon.fertig && G.state.stufe === 3 && G.state.dialog === "Deine Analyse ist gesiegelt");
+  G.schliessen();
+  G.teleport(19, 21); bisWechsel("down", 2);
+  check("Salon: danach ist die Tuer offen", G.state.szene === "welt");
+
+  // Rueckmeldungen der eingebauten Fassung
+  const p1 = G.urteilPlaton(ANALYSE);
+  check("Platon: gute Analyse ohne Formhinweise", p1.kernErfasst && p1.form.length === 0);
+  const p2 = G.urteilPlaton("Leibniz sagt, dass die Seele angeborene Ideen hat. Die Sinne geben nur Beispiele. Der Marmorblock hat Adern.");
+  check("Platon: Darstellung statt Analyse erkannt", p2.form.some(f => /eher wie eine Darstellung/.test(f)));
+  check("Platon: fehlende Zeilenangaben erkannt", p2.form.some(f => /Zeilenangaben/.test(f)));
+  check("Platon: fehlende Deutung des Gleichnisses erkannt", !p2.bereiche[3] && p2.kernFehlt.some(k => k.id === "adern"));
+  const hinweisP = G.urteilPlaton("x").kernFehlt.map(k => k.hilfe).join(" ");
+  check("Platon: Zeilenangaben aus dem Arbeitsblatt", /Z\. \d/.test(hinweisP) && !/\(\)/.test(hinweisP));
 }
 
 // Salon-Raster: alles vom Eintritt aus erreichbar
@@ -313,6 +372,7 @@ for (const m of src.matchAll(/datei: "(material\/[^"]+)"/g)) {
 // ---------- Musterloesung in der eingebauten Fassung und Serverkern (Netlify Function)
 async function musterUndKern() {
   const ende = () => G.state.verlauf[G.state.verlauf.length - 1].text;
+  G.state.werk = "lesesaal";  // wie im Spiel: das Gespraech im Lesesaal gehoert zum Bibliothekar
   G.state.fenster = "gespraech";
   await G.antworten("Kann ich eine Musterlösung sehen?");
   check("Muster: erst Warnung und Rueckfrage", /lernt weniger/.test(ende()) && /Möchtest du sie trotzdem sehen/.test(ende()) && G.state.musterAngebot);
@@ -335,7 +395,17 @@ async function musterUndKern() {
   const u = kern.nachrichten(kern.pruefe({ zusammenfassung: "MEINE ROLLE", verlauf: v.slice(0, 1), art: "urteil" }));
   check("Kern: Urteil haengt die Zusammenfassung an", u.length === 1 && u[0].content.includes("<zusammenfassung>\nMEINE ROLLE"));
   const wirft = f => { try { f(); return false; } catch (e) { return e.status === 400; } };
-  check("Kern: zu lange Rolle abgewiesen", wirft(() => kern.pruefe({ zusammenfassung: "x".repeat(5000), verlauf: v })));
+  check("Kern: zu lange Rolle abgewiesen", wirft(() => kern.pruefe({ zusammenfassung: "x".repeat(kern.GRENZEN.zusammenfassung + 1), verlauf: v })));
+  // Platon im Salon
+  check("Kern: ohne Angabe antwortet der Bibliothekar", kern.pruefe({ zusammenfassung: "x", verlauf: v.slice(0, 1) }).rolle === "bibliothekar");
+  check("Kern: unbekannte Rolle faellt auf den Bibliothekar zurueck", kern.pruefe({ zusammenfassung: "x", verlauf: v.slice(0, 1), rolle: "sokrates" }).rolle === "bibliothekar");
+  const pl = kern.nachrichten(kern.pruefe({ zusammenfassung: "MEINE ANALYSE", verlauf: v.slice(0, 1), art: "urteil", rolle: "platon" }));
+  check("Kern: Platon bekommt die Analyse", pl[0].content.includes("<analyse>\nMEINE ANALYSE"));
+  check("Kern: Platon kennt Aufgabe und Erwartungshorizont", kern.ROLLEN.platon.system.includes("Analysieren Sie die Argumentationsstruktur") &&
+    kern.ROLLEN.platon.system.includes(kern.MUSTERLOESUNG_ANALYSE) && kern.MUSTERLOESUNG_ANALYSE.includes("Prämisse 1"));
+  check("Kern: Platon erklaert den Bezug zu Leibniz", /wie ich mit Platon annehme/.test(kern.SYSTEM_PLATON) && /Anamnesis/.test(kern.SYSTEM_PLATON));
+  check("Kern: Platons Musterloesung identisch mit dem Spiel", G.state.salon.verlauf.some(m => m.text.includes(kern.MUSTERLOESUNG_ANALYSE)));
+  check("Kern: Erwartungshorizont ohne Tippfehler", !/[一-鿿]|derive|veranschaulichung, dass/.test(kern.MUSTERLOESUNG_ANALYSE));
   check("Kern: letzte Nachricht muss von Jonny sein", wirft(() => kern.pruefe({ zusammenfassung: "x", verlauf: v.slice(0, 2) })));
   check("Kern: falsche Rolle abgewiesen", wirft(() => kern.pruefe({ zusammenfassung: "x", verlauf: [{ wer: "system", text: "x" }] })));
   check("Kern: Ablehnung ergibt keinen Text", kern.antworttext({ stop_reason: "refusal", content: [] }) === null);

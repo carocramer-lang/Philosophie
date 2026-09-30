@@ -47,5 +47,16 @@
   "Achten Sie auf den Operator „Stellen Sie dar …“: Verfassen Sie eine strukturierte, sachlich präzise Zusammenfassung in eigenen Worten.",
   "Vermeiden Sie bloße Textzitate; geben Sie stattdessen den logischen Argumentationsgang von Leibniz wieder.",
   "Beziehen Sie sich gezielt auf das Bild des Marmorblocks und erklären Sie, worin der Unterschied zu Lockes Tabula Rasa liegt."
- ]
+ ],
+ "analyse": {
+  "aufgabeKopf": "Aufgabe 2 (Anforderungsbereich II)",
+  "aufgabe": "Analysieren Sie die Argumentationsstruktur des vorliegenden Textes, indem Sie herausarbeiten, wie Leibniz seine These gegen die empiristische Position begründet und mit welchem gedanklichen Ziel er das Gleichnis vom geäderten Marmorblock einsetzt.",
+  "hinweiseKopf": "Hinweise zur Bearbeitung (AFB II)",
+  "hinweise": [
+   "Achten Sie auf den Operator „Analysieren Sie …“: Untersuchen Sie den Text kriterienorientiert und systematisch im Hinblick auf seinen argumentativen Aufbau und die Funktion der sprachlichen Veranschaulichung.",
+   "Weisen Sie die gedanklichen Abschnitte und Argumentationsschritte präzise durch Zeilenangaben (bzw. Textstellen) nach.",
+   "Stellen Sie explizit heraus, wie Leibniz von der Begrenzung sinnlicher Erfahrung zur Notwendigkeit angeborener Vernunftprinzipien schlussfolgert."
+  ],
+  "erwartung": "1. Einordnung der Problemstellung und Thesenaufstellung\n• Ziel: Gegenüberstellung zweier gegensätzlicher erkenntnistheoretischer Grundkonzepte (Empirismus vs. Rationalismus / Theorie angeborener Ideen).\n• Funktion: Leibniz eröffnet den Text mit einer disjunktiven Gegenüberstellung (Entweder-Oder-Logik): Tabula Rasa (Locke) versus angeborene Prinzipien.\n2. Rekonstruktion der Argumentationskette (Kritik der Induktion)\n• Prämisse 1: Sinneserfahrungen liefern lediglich Aussagen über Einzelnes (Fakten/Induktion).\n• Prämisse 2: Aus wiederholten Einzelbeobachtungen lässt sich niemals eine allgemeine, logische Notwendigkeit für die Zukunft ableiten.\n• Zwischenschluss: Rein empirische Beobachtung kann die Notwendigkeit und Allgemeingültigkeit von Erkenntnissen nicht begründen.\n• Beleg/Exempel: Verweis auf die reine Mathematik (Arithmetik und Geometrie) als Feld notwendiger und universeller Wahrheiten, die nicht bloß aus Sinnesdaten stammen können.\n3. Analyse der Funktion der Sprach- und Bildmittel (Marmorblock-Analogie)\n• Ungeformter Block / glatte Tafel: symbolisiert das empiristische Modell (Geist als passiver Empfänger).\n• Geäderter Marmorblock: symbolisiert das rationalistische Modell (Geist hat eine bereits vorgegebene, innere Struktur/Disposition).\n• Arbeit des Bildhauers / Politur: symbolisiert die Sinneserfahrung (sie erschafft das Wissen nicht aus dem Nichts, sondern bringt die latent bereits vorhandenen Adern/Strukturen erst zum Vorschein und zur Klarheit).\n• Gedankliches Ziel: Leibniz nutzt das Gleichnis, um zu veranschaulichen, dass Sinneserfahrung und angeborene Ideen keine Gegensätze sein müssen: Sinnesreize sind der Anlass („Aufwecken“), aber nicht das eigentliche Fundament der notwendigen Erkenntnis.\nEs müssen nicht alle Aspekte genannt werden. Eine gute Analyse erfasst den Kern der Sache."
+ }
 }

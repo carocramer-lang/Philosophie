@@ -3,7 +3,7 @@
 Topdown-Lernspiel zur Philosophie der fruehen Aufklaerung. Jonny will in die Akademie der Wissenschaften aufgenommen werden.
 
 ## Status
-Startbildschirm, spielbare Oberwelt mit begehbarem Observatorium und Lesesaal. Salon, Druckerei und Akademie folgen.
+Startbildschirm, spielbare Oberwelt mit begehbarem Observatorium, Lesesaal und Historischem Salon. Druckerei und Akademie folgen.
 Titel auf dem Startbildschirm: „Lockes Welt“.
 
 ## Startbildschirm (`start/`)
@@ -42,10 +42,20 @@ Lesesaal: 40 x 24 Kacheln, erzeugt mit `python3 innen/lesesaal.py` (nutzt die Ba
 - Ablauf: Am Lesepult (`lesepult`) das Arbeitsblatt ansehen und herunterladen. Dann leuchtet das Schreibpult (`schreibpult`): Papierrolle mit Auftrag, Hinweisen zur Zusammenfassung, Reiter mit Lockes Text und Wortzaehler (mindestens 60 Woerter). Nach der Abgabe erscheint der Bibliothekar neben dem Pult und gibt Rueckmeldung. Jonny kann antworten, nachfragen oder ueberarbeiten. "Gespraech beenden" siegelt die Rolle = Etappe 2. Vorher bleibt die Tuer zu.
 - Der Entwurf wird im Browser gemerkt (`localStorage`, Schluessel `lockes-neffe_v1`). "Rolle als Datei sichern" speichert Zusammenfassung und Gespraech als Textdatei.
 
-### Bibliothekar (Rueckmeldung)
+Historischer Salon: 40 x 24 Kacheln, erzeugt mit `python3 innen/salon.py` (Bausteine aus `observatorium.py`).
+- Aufbau: Fischgraetparkett, rote Seidentapete, Fenster mit roten Vorhaengen wie an der Fassade. Gegenueber der Tuer der Kamin mit Platons Portraet und zwei Ohrensesseln, links oben der Sekretaer mit Kerze, dazu Cembalo, Standuhr, Schachtisch, Kanapee mit Teeservice, Vitrine mit Kuriositaeten, Globus und Buesten am Eingang.
+- Material: Brief der Akademie am Sekretaer (`sekretaer`) mit Aufgabe 2 (AFB II, Analyse) und den Hinweisen der Lehrkraft, dazu derselbe Leibniz-Text. PDF `material/arbeitsblatt_leibniz_analyse.pdf`, erzeugt aus `material/arbeitsblatt_leibniz.py` (Feld `analyse` in `leibniz.json`, dort auch der Erwartungshorizont).
+- Ablauf: Brief ansehen und herunterladen, dann am Sekretaer die Analyse schreiben (mindestens 120, empfohlen 250 bis 450 Woerter). Bei der Abgabe lodert das Feuer auf und Platon tritt aus seinem Portraet, das Bild bleibt leer. Am Kamin stellt er sich vor und erklaert den Bezug zu Leibniz (Z. 5 „wie ich mit Platon annehme“, Anamnesis, Menon, Aristoteles und Locke in Z. 3), dann gibt er Rueckmeldung. "Gespraech beenden" siegelt die Analyse = Etappe 3, Platon kehrt ins Bild zurueck. Vorher bleibt die Tuer zu.
+- Platons Kriterien nach dem Erwartungshorizont: drei Kernbereiche (Entweder-oder-Gegenueberstellung und These, Argumentationskette mit Praemissen, Zwischenschluss und Mathematik als Beleg, Funktion des Marmorblock-Gleichnisses mit gedanklichem Ziel). Deutungen zaehlen nur, wenn Bild und Bedeutung im selben Satz stehen. Zur Form prueft er Fachbegriffe der Analyse (sonst: "eher eine Darstellung"), Zeilenangaben, Wertung, Zitate ohne Anfuehrungszeichen, Praeteritum und Laenge.
+- Figur: `figuren/platon.py` zeichnet den Geist (Stirnband, weisser Bart, Schriftrolle, Schweif statt Fuessen, kuehle Geisterfarben).
+- Entwurf der Analyse wird wie die Rolle im Browser gemerkt, "Rolle als Datei sichern" speichert `Analyse_Leibniz.txt`.
+
+### Bibliothekar und Platon (Rueckmeldung)
 Zwei Quellen, das Spiel waehlt automatisch:
 1. **Auf Netlify:** `netlify/functions/bibliothekar.mjs` fragt die Claude API (Standardmodell `claude-opus-5-5`). Der API-Schluessel bleibt auf dem Server.
 2. **Sonst** (lokal, Vorschau auf claude.ai, Server nicht erreichbar): die eingebaute regelbasierte Fassung. Sie prueft sieben Kernpunkte und die Form (Wertung, woertliche Uebernahmen, Praeteritum, Redewiedergabe, Laenge) und fuehrt mit Rueckfragen und gestuften Hilfen.
+
+Die Function kennt zwei Rollen: `rolle: "bibliothekar"` (Standard) und `rolle: "platon"` mit eigenem Systemtext (`SYSTEM_PLATON`), Aufgabe, Hinweisen und Erwartungshorizont der Analyse.
 
 Beide folgen denselben Regeln: sokratisch fragen statt Loesungen liefern. Die Musterloesung gibt es erst nach einem ausdruecklichen Angebot mit dem Hinweis, dass fertige Loesungen dem Lernen weniger nuetzen, und nur, wenn Jonny zustimmt. Rollenbeschreibung, Locke-Text und Musterloesung stehen in `netlify/lib/bibliothekar-kern.mjs`.
 
@@ -59,7 +69,7 @@ Beide folgen denselben Regeln: sokratisch fragen statt Loesungen liefern. Die Mu
 
 Achtung Gemini: Die Gemini API Additional Terms verlangen, dass Nutzer 18 oder aelter sind, und untersagen den Einsatz in Diensten, die sich an Minderjaehrige richten oder von ihnen wahrscheinlich genutzt werden. Vor dem Einsatz mit Schuelerinnen und Schuelern unter 18 klaeren. In der kostenlosen Stufe darf Google Eingaben zur Produktverbesserung nutzen, auch mit menschlicher Pruefung.
 
-Eigene Anbindung ohne Netlify: `window.LESESAAL_BIBLIOTHEKAR = function ({ zusammenfassung, verlauf, quelle, art }) { return Promise<string> }`.
+Eigene Anbindung ohne Netlify: `window.LESESAAL_BIBLIOTHEKAR = function ({ zusammenfassung, verlauf, quelle, art, rolle }) { return Promise<string> }`.
 
 ## Oberwelt (`welt/`)
 - `welt.png`: 1536 x 864 px, 96 x 54 Kacheln a 16 px

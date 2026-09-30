@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # Arbeitsblatt "Die Debatte um die Tabula Rasa" (Leibniz) als eine Quelle fuer alles:
-#   material/arbeitsblatt_leibniz.html  -> wird mit Chromium zur PDF gedruckt (siehe drucke_pdf.js)
+#   material/arbeitsblatt_leibniz.html  -> Lesesaal, Aufgabe 1 (AFB I), wird mit Chromium zur PDF gedruckt (drucke_pdf.js)
+#   material/arbeitsblatt_leibniz_analyse.html -> Historischer Salon, Aufgabe 2 (AFB II), ebenso als PDF
 #   material/leibniz_daten.js           -> Text mit Zeilen fuer das Spiel
 #   netlify/lib/leibniz.json            -> derselbe Text fuer den Bibliothekar auf dem Server
 # Aufruf: python3 material/arbeitsblatt_leibniz.py && node material/drucke_pdf.js
@@ -50,6 +51,34 @@ HINWEISE = [
     "Beziehen Sie sich gezielt auf das Bild des Marmorblocks und erklären Sie, worin der Unterschied zu Lockes Tabula Rasa liegt.",
 ]
 
+# Historischer Salon: Analyse (AFB II). Erwartungshorizont der Lehrkraft, nicht auf dem Arbeitsblatt.
+ANALYSE_KOPF = "Aufgabe 2 (Anforderungsbereich II)"
+ANALYSE_AUFGABE = ("Analysieren Sie die Argumentationsstruktur des vorliegenden Textes, indem Sie herausarbeiten, wie Leibniz seine These "
+                   "gegen die empiristische Position begründet und mit welchem gedanklichen Ziel er das Gleichnis vom geäderten "
+                   "Marmorblock einsetzt.")
+ANALYSE_HINWEISE_KOPF = "Hinweise zur Bearbeitung (AFB II)"
+ANALYSE_HINWEISE = [
+    "Achten Sie auf den Operator „Analysieren Sie …“: Untersuchen Sie den Text kriterienorientiert und systematisch im Hinblick auf "
+    "seinen argumentativen Aufbau und die Funktion der sprachlichen Veranschaulichung.",
+    "Weisen Sie die gedanklichen Abschnitte und Argumentationsschritte präzise durch Zeilenangaben (bzw. Textstellen) nach.",
+    "Stellen Sie explizit heraus, wie Leibniz von der Begrenzung sinnlicher Erfahrung zur Notwendigkeit angeborener "
+    "Vernunftprinzipien schlussfolgert.",
+]
+ANALYSE_ERWARTUNG = """1. Einordnung der Problemstellung und Thesenaufstellung
+• Ziel: Gegenüberstellung zweier gegensätzlicher erkenntnistheoretischer Grundkonzepte (Empirismus vs. Rationalismus / Theorie angeborener Ideen).
+• Funktion: Leibniz eröffnet den Text mit einer disjunktiven Gegenüberstellung (Entweder-Oder-Logik): Tabula Rasa (Locke) versus angeborene Prinzipien.
+2. Rekonstruktion der Argumentationskette (Kritik der Induktion)
+• Prämisse 1: Sinneserfahrungen liefern lediglich Aussagen über Einzelnes (Fakten/Induktion).
+• Prämisse 2: Aus wiederholten Einzelbeobachtungen lässt sich niemals eine allgemeine, logische Notwendigkeit für die Zukunft ableiten.
+• Zwischenschluss: Rein empirische Beobachtung kann die Notwendigkeit und Allgemeingültigkeit von Erkenntnissen nicht begründen.
+• Beleg/Exempel: Verweis auf die reine Mathematik (Arithmetik und Geometrie) als Feld notwendiger und universeller Wahrheiten, die nicht bloß aus Sinnesdaten stammen können.
+3. Analyse der Funktion der Sprach- und Bildmittel (Marmorblock-Analogie)
+• Ungeformter Block / glatte Tafel: symbolisiert das empiristische Modell (Geist als passiver Empfänger).
+• Geäderter Marmorblock: symbolisiert das rationalistische Modell (Geist hat eine bereits vorgegebene, innere Struktur/Disposition).
+• Arbeit des Bildhauers / Politur: symbolisiert die Sinneserfahrung (sie erschafft das Wissen nicht aus dem Nichts, sondern bringt die latent bereits vorhandenen Adern/Strukturen erst zum Vorschein und zur Klarheit).
+• Gedankliches Ziel: Leibniz nutzt das Gleichnis, um zu veranschaulichen, dass Sinneserfahrung und angeborene Ideen keine Gegensätze sein müssen: Sinnesreize sind der Anlass („Aufwecken“), aber nicht das eigentliche Fundament der notwendigen Erkenntnis.
+Es müssen nicht alle Aspekte genannt werden. Eine gute Analyse erfasst den Kern der Sache."""
+
 BREITE = 84  # Zeichen je Textzeile, passt bei 11 pt Serifenschrift sicher in die 172 mm breite Spalte
 
 
@@ -62,7 +91,7 @@ def zeilen():
     return out
 
 
-def html_seite(z):
+def html_seite(z, kopf=AUFGABE_KOPF, aufgabe=AUFGABE, hinweise=HINWEISE, hinweise_kopf=None):
     e = html.escape
     rows = []
     for n, zeile in enumerate(z, 1):
@@ -95,6 +124,7 @@ h2 {{ font-size: 10pt; text-transform: uppercase; letter-spacing: .08em; margin:
 .aufgabe .k {{ font-weight: bold; margin-bottom: 3pt; }}
 .aufgabe p {{ margin: 0; }}
 .hinweise {{ margin: 8pt 0 0; padding-left: 14pt; }}
+.hk {{ font-weight: bold; margin: 8pt 0 0; }}
 .hinweise li {{ margin-bottom: 3pt; }}
 .notizen {{ margin-top: 12pt; break-inside: avoid; }}
 .notizen div {{ border-bottom: .6pt solid var(--rule); height: 8.5mm; }}
@@ -109,8 +139,8 @@ h2 {{ font-size: 10pt; text-transform: uppercase; letter-spacing: .08em; margin:
 <h2>Textgrundlage</h2>
 <p class="quelle">{e(QUELLE)}</p>
 <div class="text">{''.join(rows)}</div>
-<div class="aufgabe"><div class="k">{e(AUFGABE_KOPF)}</div><p>{e(AUFGABE)}</p>
-<ul class="hinweise">{''.join(f'<li>{e(h)}</li>' for h in HINWEISE)}</ul></div>
+<div class="aufgabe"><div class="k">{e(kopf)}</div><p>{e(aufgabe)}</p>
+{f'<div class="hk">{e(hinweise_kopf)}</div>' if hinweise_kopf else ''}<ul class="hinweise">{''.join(f'<li>{e(h)}</li>' for h in hinweise)}</ul></div>
 <div class="notizen"><h2>Notizen</h2>{'<div></div>' * 8}</div>
 <p class="fuss">Quelle: G. W. Leibniz, Neue Abhandlungen über den menschlichen Verstand, Vorrede (1704), gekürzt.</p>
 </body></html>"""
@@ -120,10 +150,14 @@ def main():
     z = zeilen()
     with open(os.path.join(HERE, "arbeitsblatt_leibniz.html"), "w", encoding="utf-8") as f:
         f.write(html_seite(z))
+    with open(os.path.join(HERE, "arbeitsblatt_leibniz_analyse.html"), "w", encoding="utf-8") as f:
+        f.write(html_seite(z, ANALYSE_KOPF, ANALYSE_AUFGABE, ANALYSE_HINWEISE, ANALYSE_HINWEISE_KOPF))
     daten = {
         "titel": TITEL, "quelle": QUELLE, "einleitung": EINLEITUNG,
         "zeilen": [x["text"] for x in z], "absatzAnfang": [i for i, x in enumerate(z) if x["neu"]],
         "aufgabeKopf": AUFGABE_KOPF, "aufgabe": AUFGABE, "hinweise": HINWEISE,
+        "analyse": {"aufgabeKopf": ANALYSE_KOPF, "aufgabe": ANALYSE_AUFGABE, "hinweiseKopf": ANALYSE_HINWEISE_KOPF,
+                    "hinweise": ANALYSE_HINWEISE, "erwartung": ANALYSE_ERWARTUNG},
     }
     with open(os.path.join(HERE, "leibniz_daten.js"), "w", encoding="utf-8") as f:
         f.write("window.LEIBNIZ = " + json.dumps(daten, ensure_ascii=False) + ";\n")

@@ -71,6 +71,12 @@
   "x": 19.5,
   "y": 5
  },
+ "portraet": {
+  "x": 297,
+  "y": 10,
+  "w": 46,
+  "h": 24
+ },
  "raster": [
   "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
   "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",

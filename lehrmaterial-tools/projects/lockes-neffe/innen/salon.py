@@ -44,6 +44,8 @@ INTERAKTIONEN = [
 ]
 # Fusspunkt des Geistes vor dem Kamin (Kachelkoordinaten, x zwischen zwei Kacheln)
 GEIST = {"x": 19.5, "y": 5}
+# Grosses Portraet ueber dem Kamin (Rahmen x, y, Breite, Hoehe in Pixeln). Waehrend der Geist im Raum steht, ist es leer.
+PORTRAET = (18 * T + 6, 7, 4 * T - 12, 30)
 
 objs = []
 
@@ -225,23 +227,25 @@ def fireplace():
     # Kaminvorsprung (etwas heller, wirft Schatten)
     cv.rect(x0 + 6, 6, x1 - x0 - 12, 3 * T - 6, mul(DAMAST, 1.1))
     cv.shade_rect(x1 - 6, 8, 4, 3 * T - 8, 0.7)
-    # grosses Portraet: dunkler Grund, Gelehrter mit Allongeperuecke
-    px, py, pw, ph = 18 * T + 6, 7, 4 * T - 12, 30
+    # grosses Portraet: Platon mit Stirnband und weissem Bart, im Himation. Aus diesem Bild tritt der Geist.
+    px, py, pw, ph = PORTRAET
     gilt_frame(px, py, pw, ph, (34, 28, 30))
     for yy in range(py + 3, py + ph - 3):
         t = (yy - py) / ph
-        cv.rect(px + 3, yy, pw - 6, 1, lerp((58, 46, 42), (26, 22, 24), t))
+        cv.rect(px + 3, yy, pw - 6, 1, lerp((60, 50, 44), (28, 24, 26), t))
     cx = px + pw // 2
-    cv.rect(cx - 12, py + ph - 11, 24, 8, (30, 30, 40))          # dunkler Rock
-    cv.rect(cx - 12, py + ph - 11, 24, 1, (60, 60, 76))
-    cv.rect(cx - 3, py + ph - 12, 6, 4, (236, 232, 222))          # Halsbinde
-    cv.ellipse(cx, py + 13, 4, 5, (226, 190, 160))                # Gesicht
+    cv.rect(cx - 12, py + ph - 11, 24, 8, (226, 214, 188))          # Himation
+    cv.line(cx - 12, py + ph - 11, cx + 6, py + ph - 3, (176, 150, 110))
+    cv.rect(cx + 6, py + ph - 11, 6, 8, (170, 120, 70))               # ockerfarbener Saum ueber der Schulter
+    cv.ellipse(cx, py + 13, 4, 5, (222, 186, 150))                   # Gesicht
     cv.set(cx - 2, py + 12, (60, 40, 30)); cv.set(cx + 1, py + 12, (60, 40, 30))
+    cv.ellipse(cx, py + 8, 6, 3, (236, 234, 228))                    # weisses Haar
+    cv.rect(cx - 6, py + 8, 12, 1, (214, 170, 72))                   # Stirnband
+    cv.ellipse(cx, py + 19, 5, 5, (240, 238, 232))                   # Bart
+    cv.ellipse(cx, py + 17, 3, 1.5, (240, 238, 232))
     cv.rect(cx - 1, py + 16, 2, 1, (170, 110, 90))
-    for dx, ry in ((-6, 9), (6, 9), (-8, 7), (8, 7)):             # Locken der Peruecke
-        cv.ellipse(cx + dx, py + 15, 3, ry, (70, 52, 40))
-    cv.ellipse(cx, py + 8, 6, 3, (70, 52, 40))
-    cv.set(cx - 3, py + 7, (110, 84, 62))
+    for dx, dy in ((-2, 20), (1, 22), (2, 18)):
+        cv.set(cx + dx, py + dy, (200, 196, 190))
     # Kaminsims aus Marmor
     mx0, mx1, my = x0 + 4, x1 - 4, 2 * T + 6
     cv.rect(mx0 - 3, my - 3, mx1 - mx0 + 6, 5, (246, 240, 228))
@@ -569,6 +573,7 @@ def export():
                            "objekt": dict(zip(("x0", "y0", "x1", "y1"), ia["objekt"]))}
                           for ia in INTERAKTIONEN],
         "geist": GEIST,
+        "portraet": {"x": PORTRAET[0] + 3, "y": PORTRAET[1] + 3, "w": PORTRAET[2] - 6, "h": PORTRAET[3] - 6},
         "raster": ["".join(r) for r in grid],
     }
     with open(os.path.join(HERE, "salon.json"), "w", encoding="utf-8") as f:

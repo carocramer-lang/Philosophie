@@ -137,6 +137,10 @@ button:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
 #startInfo { border-radius: 50%; }
 #info { grid-template-rows: auto minmax(0, 1fr) auto; width: min(640px, calc(100vw - 24px)); }
 #infoText { overflow: auto; padding-right: 6px; font-size: 16px; line-height: 1.45; }
+.brief { background: #f7ecd0; border: 1px solid var(--ink-soft); padding: 8px 12px; margin: 0 0 14px; font-family: var(--body); }
+.brief p { margin: 0 0 6px; }
+.brief .hk { font-weight: bold; margin-top: 8px; }
+.brief ul { margin: 0; padding-left: 20px; }
 #infoText h3 { margin: 14px 0 4px; font-family: var(--display); font-weight: 400; font-size: 19px; color: var(--seal); }
 #infoText h3:first-child { margin-top: 0; }
 #infoText p, #infoText ul { margin: 0 0 6px; }
@@ -463,6 +467,11 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
     lesepult: {
       titel: "Leibniz: Die Debatte um die Tabula Rasa", art: "text", html: "leibniz",
       datei: "material/arbeitsblatt_leibniz_tabula_rasa.pdf", name: "Arbeitsblatt_Leibniz_Tabula_Rasa.pdf"
+    },
+    // Salon: Brief der Akademie mit dem Analyseauftrag, dazu derselbe Text
+    sekretaer: {
+      titel: "Brief der Akademie: Leibniz analysieren", art: "text", html: "analyse",
+      datei: "material/arbeitsblatt_leibniz_analyse.pdf", name: "Arbeitsblatt_Leibniz_Analyse.pdf"
     }
   };
   var INFOGRAFIKEN = ["regal_links", "regal_rechts", "kartentisch"];
@@ -480,12 +489,19 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
     '</div>';
 
   function esc(t) { return String(t).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
-  var LEIBNIZ_HTML = '<div class="text"><p class="quelle">Leibniz antwortet hier auf Lockes Versuch über den menschlichen Verstand. ' +
-    'Einleitung und Aufgabe stehen auf dem Arbeitsblatt, das du herunterlädst.</p><h3>' + esc(LEIBNIZ.quelle) + '</h3><div class="zeilen">' +
+  var LEIBNIZ_ZEILEN = '<h3>' + esc(LEIBNIZ.quelle) + '</h3><div class="zeilen">' +
     LEIBNIZ.zeilen.map(function (z, i) {
       var neu = i > 0 && LEIBNIZ.absatzAnfang.indexOf(i) >= 0 ? ' class="neu"' : "";
       return '<div' + neu + '><span class="nr">' + ((i + 1) % 5 ? "" : i + 1) + '</span><span>' + esc(z) + '</span></div>';
-    }).join("") + '</div></div>';
+    }).join("") + '</div>';
+  var LEIBNIZ_HTML = '<div class="text"><p class="quelle">Leibniz antwortet hier auf Lockes Versuch über den menschlichen Verstand. ' +
+    'Einleitung und Aufgabe stehen auf dem Arbeitsblatt, das du herunterlädst.</p>' + LEIBNIZ_ZEILEN + '</div>';
+  var A = LEIBNIZ.analyse;
+  var ANALYSE_HTML = '<div class="text"><div class="brief"><p class="quelle">An Jonny, Neffe des Herrn John Locke</p>' +
+    '<p>Die Akademie der Wissenschaften bittet dich, Leibniz\' Einwand gegen deinen Onkel nun zu analysieren. Das Arbeitsblatt lädst du unten herunter.</p>' +
+    '<p><strong>' + esc(A.aufgabeKopf) + '</strong><br>' + esc(A.aufgabe) + '</p>' +
+    '<p class="hk">' + esc(A.hinweiseKopf) + '</p><ul>' + A.hinweise.map(function (h) { return '<li>' + esc(h) + '</li>'; }).join("") + '</ul></div>' +
+    LEIBNIZ_ZEILEN + '</div>';
 
   // ---------- Szenen: Oberwelt und begehbare Innenraeume
   var SZENEN = {
@@ -514,7 +530,10 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
     material: null, gesehen: {}, geladen: {},
     fenster: null, rolle: "", abgegeben: false, rueckmeldung: false, lesesaalFertig: false,
     verlauf: [], bibSeit: null, frage: null, versuche: 0, gefragt: {}, letzteTreffer: null,
-    musterAngebot: false, musterGezeigt: false
+    musterAngebot: false, musterGezeigt: false,
+    werk: "lesesaal",
+    salon: { rolle: "", verlauf: [], abgegeben: false, rueckmeldung: false, fertig: false, seit: null,
+      frage: null, versuche: 0, gefragt: {}, letzteTreffer: null, musterAngebot: false, musterGezeigt: false }
   };
   function fertig(id) { return !!(st.gesehen[id] && st.geladen[id]); }
   function infografikenFertig() { return INFOGRAFIKEN.every(fertig); }
@@ -522,6 +541,8 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
   function anzahlFertig(liste) { return liste.filter(fertig).length; }
   // ---------- Raumlogik: was leuchtet, wohin zeigt der Pfeil, wann ist die Tuer offen
   var MIN_WOERTER = 80;
+  var MIN_ANALYSE = 120;              // Salon: Analyse (AFB II)
+  var EMPFOHLEN_ANALYSE = [250, 450];
   var EMPFOHLEN = [150, 300];
   var RAUM = {
     observatorium: {
@@ -582,28 +603,49 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
               "Ansehen und herunterladen, dann geht es hier weiter.", null);
             return;
           }
-          if (st.abgegeben && !st.lesesaalFertig && st.verlauf.length) { oeffneGespraech(); return; }
-          oeffneRolle();
+          if (st.abgegeben && !st.lesesaalFertig && st.verlauf.length) { oeffneGespraech("lesesaal"); return; }
+          oeffneRolle("lesesaal");
         }
       }
     },
-    // Probefassung: Raum begehbar, Auftrag und Geist folgen. Bis dahin darf Jonny den Salon verlassen.
+    // Salon: Brief der Akademie am Sekretaer (ansehen, herunterladen), Analyse schreiben, Platon am Kamin
     salon: {
       index: 2,
-      offen: function () { return ["sekretaer"]; },
-      leuchtet: function (id) { return id === "sekretaer"; },
-      darfRaus: function () { return true; },
-      sperre: function () { return ""; },
-      ziel: function () { return "Sekretär"; },
+      offen: function () {
+        if (!fertig("sekretaer")) return ["sekretaer"];
+        if (st.salon.fertig) return [];
+        return st.salon.abgegeben ? ["kamin"] : ["sekretaer"];
+      },
+      leuchtet: function (id) { return RAUM.salon.offen().indexOf(id) >= 0; },
+      darfRaus: function () { return st.salon.fertig || st.stufe > 2; },
+      sperre: function () {
+        if (!fertig("sekretaer")) return "Öffne zuerst den Brief der Akademie am Sekretär mit der Kerze und lade das Arbeitsblatt herunter.";
+        if (!st.salon.abgegeben) return "Deine Analyse fehlt noch. Schreib sie am Sekretär.";
+        return "Platon wartet am Kamin auf dich. Beende das Gespräch mit ihm.";
+      },
+      ziel: function () {
+        if (!fertig("sekretaer")) return "Sekretär";
+        if (st.salon.fertig) return "";
+        return st.salon.abgegeben ? "Platon am Kamin" : "Sekretär";
+      },
       benutzen: function (id) {
         if (id === "sekretaer") {
-          zeigeDialog("Der Sekretär",
-            "Auf der Schreibplatte liegt ein Brief mit dem roten Siegel der Akademie. Darin steht dein Auftrag für die Analyse.",
-            "Probefassung: Arbeitsauftrag und Material folgen.", null);
-        } else if (id === "kamin") {
-          zeigeDialog("Der Kamin",
-            "Das Feuer knistert. Über dem Sims blickt ein Gelehrter aus seinem Rahmen, als wollte er gleich etwas sagen.",
-            "Probefassung: Hier erscheint später der Geist des Philosophen.", null);
+          if (!fertig("sekretaer")) { oeffneMaterial("sekretaer"); return; }
+          oeffneRolle("salon");
+          return;
+        }
+        if (id === "kamin") {
+          if (!st.salon.abgegeben) {
+            zeigeDialog("Der Kamin",
+              "Das Feuer knistert. Über dem Sims blickt ein bärtiger Philosoph mit Stirnband aus seinem Rahmen, als wollte er gleich etwas sagen.",
+              fertig("sekretaer") ? "Schreib zuerst deine Analyse am Sekretär." : "Öffne zuerst den Brief der Akademie am Sekretär.", null);
+            return;
+          }
+          if (st.salon.fertig) {
+            zeigeDialog("Der Kamin", "Platon ist in sein Bild zurückgekehrt. Er scheint dir zuzunicken.", "Nächstes Ziel: Buchdruckerei.", null);
+            return;
+          }
+          platonGespraech();
         }
       }
     }
@@ -758,7 +800,7 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
       img.src = m.datei; img.alt = m.alt;
       inhalt.appendChild(img);
     } else {
-      inhalt.innerHTML = m.html === "leibniz" ? LEIBNIZ_HTML : LOCKE_TEXT;
+      inhalt.innerHTML = m.html === "leibniz" ? LEIBNIZ_HTML : m.html === "analyse" ? ANALYSE_HTML : LOCKE_TEXT;
     }
     inhalt.scrollTop = 0;
     $("laden").textContent = m.art === "bild" ? "Infografik herunterladen" : "Arbeitsblatt herunterladen (PDF)";
@@ -823,6 +865,8 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
       zeigeToast("Das Teleskop leuchtet", "Alle drei Infografiken sind gesichert. Jetzt wartet Lockes Text am Teleskop.");
     } else if (id === "lesepult" && fertig(id) && !st.abgegeben) {
       zeigeToast("Das Schreibpult wartet", "Oben am Podest liegt eine leere Papierrolle für deine Darstellung.");
+    } else if (id === "sekretaer" && fertig(id) && !st.salon.abgegeben) {
+      zeigeToast("Der Sekretär ist bereit", "Drück noch einmal E am Sekretär und schreib deine Analyse.");
     }
     hudAktualisieren();
   }
@@ -833,29 +877,93 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
     $("aktion").hidden = !(grob && sichtbar);
   }
 
-  // ---------- Entwurf der Rolle im Browser merken (nur auf diesem Geraet)
+  // ---------- Schreibwerkstaetten: Lesesaal (Darstellung beim Bibliothekar) und Salon (Analyse bei Platon)
+  // Beide nutzen dieselbe Papierrolle und dasselbe Gespraechsfenster. h() liefert den Zustand des Raums.
+  var WERK = {
+    lesesaal: {
+      h: function () { return st; },
+      titel: "Deine Papierrolle", aria: "Deine Darstellung", abgeben: "Dem Bibliothekar übergeben",
+      auftrag: LEIBNIZ.aufgabeKopf + ": " + LEIBNIZ.aufgabe, hinweise: LEIBNIZ.hinweise,
+      min: MIN_WOERTER, empfohlen: EMPFOHLEN,
+      figur: "Bibliothekar", gespraech: "Der Bibliothekar", anrede: "dem Bibliothekar",
+      denkt: "Der Bibliothekar rückt die Brille zurecht und liest …",
+      server: "bibliothekar", tutor: function () { return BIBLIOTHEKAR; }, bild: function () { return BIB_GROSS; },
+      erste: "Ich habe meine Darstellung geschrieben.", erneut: "Hier ist meine überarbeitete Rolle.",
+      datei: "Darstellung_Leibniz.txt", kopf: "Lockes Neffe – Lesesaal: Leibniz' Kritik an der tabula rasa", meine: "Meine Darstellung:",
+      istFertig: function () { return st.lesesaalFertig; },
+      erscheinen: function () { if (st.bibSeit == null) st.bibSeit = jetzt(); },
+      siegeln: function () {
+        st.lesesaalFertig = true;
+        if (st.stufe === 1) st.stufe = 2;
+        zeigeDialog("Deine Rolle ist gesiegelt",
+          "Der Bibliothekar drückt sein Wachssiegel auf die Rolle und legt sie zu den Schriften der Akademie. Du hast Leibniz' Einwand gegen deinen Onkel sauber dargestellt, jetzt kannst du ihn analysieren.",
+          "Nächstes Ziel: Historischer Salon.", null);
+      }
+    },
+    salon: {
+      h: function () { return st.salon; },
+      titel: "Deine Analyse", aria: "Deine Analyse", abgeben: "Die Analyse vorlegen",
+      auftrag: LEIBNIZ.analyse.aufgabeKopf + ": " + LEIBNIZ.analyse.aufgabe, hinweise: LEIBNIZ.analyse.hinweise,
+      min: MIN_ANALYSE, empfohlen: EMPFOHLEN_ANALYSE,
+      figur: "Platon", gespraech: "Der Geist des Platon", anrede: "Platon",
+      denkt: "Platon streicht sich nachdenklich über den Bart …",
+      server: "platon", tutor: function () { return PLATON; }, bild: function () { return PLATON_GROSS; },
+      erste: "Ich habe meine Analyse geschrieben.", erneut: "Hier ist meine überarbeitete Analyse.",
+      datei: "Analyse_Leibniz.txt", kopf: "Lockes Welt – Historischer Salon: Analyse von Leibniz' Argumentation", meine: "Meine Analyse:",
+      istFertig: function () { return st.salon.fertig; },
+      erscheinen: function () { if (st.salon.seit == null) st.salon.seit = jetzt(); },
+      // Erste Abgabe: Platon tritt aus dem Portraet, das Gespraech beginnt am Kamin
+      ankunft: function () {
+        zeigeDialog("Das Feuer lodert auf",
+          "Kaum legst du die Feder ab, flackern die Kerzen. Das Feuer im Kamin lodert auf, und aus dem Porträt über dem Sims tritt eine durchscheinende Gestalt mit weißem Bart.",
+          "Geh zum Kamin und sprich mit ihr.", null);
+      },
+      siegeln: function () {
+        st.salon.fertig = true;
+        if (st.stufe === 2) st.stufe = 3;
+        zeigeDialog("Deine Analyse ist gesiegelt",
+          "Platon rollt deine Analyse zusammen und drückt ein Siegel darauf. Dann nickt er dir zu und tritt zurück in sein Bild über dem Kamin. Leibniz' Beweisgang hast du zerlegt, jetzt darfst du ihn beurteilen.",
+          "Nächstes Ziel: Buchdruckerei.", null);
+      }
+    }
+  };
+  function K() { return WERK[st.werk]; }
+  function H() { return K().h(); }
+  function jetzt() { return window.performance ? window.performance.now() : 0; }
+
+  // ---------- Entwuerfe im Browser merken (nur auf diesem Geraet)
   var SPEICHER = "lockes-neffe_v1";
   function entwurfLaden() {
-    try { var d = JSON.parse(window.localStorage.getItem(SPEICHER) || "{}"); return d.rolle || ""; } catch (e) { return ""; }
+    try { return JSON.parse(window.localStorage.getItem(SPEICHER) || "{}") || {}; } catch (e) { return {}; }
   }
   function entwurfSichern() {
-    try { window.localStorage.setItem(SPEICHER, JSON.stringify({ rolle: st.rolle })); } catch (e) { /* ohne Speicher weiter */ }
+    try { window.localStorage.setItem(SPEICHER, JSON.stringify({ rolle: st.rolle, analyse: st.salon.rolle })); } catch (e) { /* ohne Speicher weiter */ }
   }
-  st.rolle = entwurfLaden();
-
-  $("rolleAuftrag").textContent = LEIBNIZ.aufgabeKopf + ": " + LEIBNIZ.aufgabe;
-  LEIBNIZ.hinweise.forEach(function (h) {
-    var li = document.createElement("li"); li.textContent = h; $("rolleHinweise").appendChild(li);
-  });
+  (function () {
+    var d = entwurfLaden();
+    st.rolle = d.rolle || "";
+    st.salon.rolle = d.analyse || "";
+  })();
 
   function woerter(t) { return (String(t).match(/[A-Za-zÄÖÜäöüß0-9]+/g) || []).length; }
 
   // ---------- Papierrolle
-  function oeffneRolle() {
+  function oeffneRolle(werk) {
+    if (werk) st.werk = werk;
+    var k = K();
     st.fenster = "rolle"; st.dialog = "rolle";
     tastenLos(); steuerung(false);
+    $("rolleTitel").textContent = k.titel;
+    $("rolleAuftrag").textContent = k.auftrag;
+    var ul = $("rolleHinweise");
+    ul.innerHTML = "";
+    k.hinweise.forEach(function (h) {
+      var li = document.createElement("li"); li.textContent = h; ul.appendChild(li);
+    });
+    $("rolleAbgeben").textContent = k.abgeben;
     rolleReiter("rolle");
-    $("rolleText").value = st.rolle;
+    $("rolleText").value = H().rolle;
+    $("rolleText").setAttribute("aria-label", k.aria);
     zaehler();
     $("rolle").hidden = false;
     $("rolleText").focus();
@@ -873,23 +981,23 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
       bereich.className = "papier";
       bereich.innerHTML = "";
       var ta = document.createElement("textarea");
-      ta.id = "rolleText"; ta.setAttribute("aria-label", "Deine Darstellung"); ta.spellcheck = true;
-      ta.value = st.rolle;
+      ta.id = "rolleText"; ta.setAttribute("aria-label", K().aria); ta.spellcheck = true;
+      ta.value = H().rolle;
       ta.addEventListener("input", rolleEingabe);
       bereich.appendChild(ta);
     }
   }
   function rolleEingabe() {
-    st.rolle = $("rolleText").value;
+    H().rolle = $("rolleText").value;
     zaehler();
     entwurfSichern();
   }
   function zaehler() {
-    var n = woerter(st.rolle), ok = n >= MIN_WOERTER;
+    var k = K(), n = woerter(H().rolle), ok = n >= k.min, e = k.empfohlen;
     var el = $("rolleZaehler");
     el.textContent = n + (n === 1 ? " Wort" : " Wörter") +
-      (n < MIN_WOERTER ? " · mindestens " + MIN_WOERTER : n < EMPFOHLEN[0] ? " · empfohlen sind " + EMPFOHLEN[0] + " bis " + EMPFOHLEN[1] :
-        n <= EMPFOHLEN[1] + 20 ? " · gute Länge" : " · eher zu lang");
+      (n < k.min ? " · mindestens " + k.min : n < e[0] ? " · empfohlen sind " + e[0] + " bis " + e[1] :
+        n <= e[1] + 20 ? " · gute Länge" : " · eher zu lang");
     el.classList.toggle("ok", ok);
     $("rolleAbgeben").disabled = !ok;
   }
@@ -901,44 +1009,73 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
     hudAktualisieren();
   }
 
-  // ---------- Abgabe: Bibliothekar erscheint und antwortet
+  // ---------- Abgabe: Bibliothekar erscheint und antwortet, im Salon tritt Platon aus dem Bild
   function abgeben() {
-    if (woerter(st.rolle) < MIN_WOERTER) return Promise.resolve(false);
-    var erneut = st.abgegeben;
-    st.abgegeben = true;
-    if (st.bibSeit == null) st.bibSeit = window.performance ? window.performance.now() : 0;
+    var k = K(), h = H();
+    if (woerter(h.rolle) < k.min) return Promise.resolve(false);
+    var erneut = h.abgegeben;
+    h.abgegeben = true;
+    k.erscheinen();
     $("rolle").hidden = true;
+    if (k.ankunft && !h.verlauf.length) {
+      st.fenster = null; st.dialog = null;
+      steuerung(true);
+      k.ankunft();
+      hudAktualisieren();
+      return Promise.resolve(true);
+    }
     st.fenster = "gespraech"; st.dialog = "gespraech";
-    st.verlauf.push({ wer: "jonny", text: erneut ? "Hier ist meine überarbeitete Rolle." : "Ich habe meine Darstellung geschrieben." });
+    h.verlauf.push({ wer: "jonny", text: erneut ? k.erneut : k.erste });
     zeigeGespraech();
-    return bibliothekarSpricht({ art: "urteil", erneut: erneut }).then(function () {
-      st.rueckmeldung = true;
+    return tutorSpricht({ art: "urteil", erneut: erneut }).then(function () {
+      h.rueckmeldung = true;
       hudAktualisieren();
       return true;
     });
   }
-  function oeffneGespraech() {
+  // Am Kamin: Platon stellt sich vor und gibt Rueckmeldung auf die erste Fassung
+  function platonGespraech() {
+    st.werk = "salon";
+    var h = st.salon;
+    if (h.verlauf.length) { oeffneGespraech(); return Promise.resolve(true); }
+    h.verlauf.push({ wer: "bib", text: PLATON_VORSTELLUNG });
+    h.verlauf.push({ wer: "jonny", text: WERK.salon.erste });
+    st.fenster = "gespraech"; st.dialog = "gespraech";
+    tastenLos();
+    zeigeGespraech();
+    return tutorSpricht({ art: "urteil", erneut: false }).then(function () {
+      h.rueckmeldung = true;
+      hudAktualisieren();
+      return true;
+    });
+  }
+  function oeffneGespraech(werk) {
+    if (werk) st.werk = werk;
     st.fenster = "gespraech"; st.dialog = "gespraech";
     tastenLos();
     zeigeGespraech();
   }
   function zeigeGespraech() {
+    var k = K();
     steuerung(false);
     malePortrait();
+    $("gespraechTitel").textContent = k.gespraech;
+    $("antwortFeld").setAttribute("placeholder", "Antworte " + k.anrede + " …");
+    $("antwortFeld").setAttribute("aria-label", "Deine Antwort an " + k.anrede);
     $("gespraech").hidden = false;
     renderVerlauf();
     $("antwortFeld").focus();
     hudAktualisieren();
   }
   function renderVerlauf(denkt) {
-    var box = $("verlauf");
+    var k = K(), box = $("verlauf");
     box.innerHTML = "";
-    st.verlauf.forEach(function (m) {
+    H().verlauf.forEach(function (m) {
       var div = document.createElement("div");
       div.className = "msg " + (m.wer === "bib" ? "bib" : "jonny");
       var wer = document.createElement("span");
       wer.className = "wer";
-      wer.textContent = m.wer === "bib" ? "Bibliothekar" : "Jonny";
+      wer.textContent = m.wer === "bib" ? k.figur : "Jonny";
       div.appendChild(wer);
       var zeilen = String(m.text).split("\n");
       var liste = null;
@@ -958,7 +1095,7 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
     if (denkt) {
       var d = document.createElement("div");
       d.className = "msg bib denkt";
-      d.textContent = "Der Bibliothekar rückt die Brille zurecht und liest …";
+      d.textContent = k.denkt;
       box.appendChild(d);
     }
     box.scrollTop = box.scrollHeight;
@@ -967,12 +1104,12 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
   function antworten(text) {
     text = String(text || "").trim();
     if (!text || st.fenster !== "gespraech") return Promise.resolve(false);
-    st.verlauf.push({ wer: "jonny", text: text });
+    H().verlauf.push({ wer: "jonny", text: text });
     $("antwortFeld").value = "";
-    return bibliothekarSpricht({ art: "antwort", eingabe: text }).then(function () { return true; });
+    return tutorSpricht({ art: "antwort", eingabe: text }).then(function () { return true; });
   }
 
-  // Auf Netlify beantwortet die Function /.netlify/functions/bibliothekar (Claude API) die Nachrichten.
+  // Auf Netlify beantwortet die Function /.netlify/functions/bibliothekar die Nachrichten (rolle: bibliothekar oder platon).
   // Ist sie nicht erreichbar (lokal, Vorschau, Fehler), antwortet fuer den Rest der Sitzung die eingebaute Fassung.
   var BIBLIOTHEKAR_URL = "/.netlify/functions/bibliothekar";
   var serverAus = false;
@@ -984,7 +1121,7 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
       var uhr = abbruch ? setTimeout(function () { abbruch.abort(); }, 30000) : null;
       return window.fetch(BIBLIOTHEKAR_URL, {
         method: "POST", headers: { "content-type": "application/json" },
-        body: JSON.stringify({ zusammenfassung: daten.zusammenfassung, verlauf: daten.verlauf, art: daten.art }),
+        body: JSON.stringify({ zusammenfassung: daten.zusammenfassung, verlauf: daten.verlauf, art: daten.art, rolle: daten.rolle }),
         signal: abbruch ? abbruch.signal : undefined
       }).then(function (r) {
         if (uhr) clearTimeout(uhr);
@@ -995,24 +1132,25 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
     };
   }
 
-  // Antwortquelle: ein spaeter angeschlossener Chatbot (window.LESESAAL_BIBLIOTHEKAR) oder die eingebaute Fassung.
-  // Schnittstelle: function ({ zusammenfassung, verlauf, quelle, art }) -> Promise<string>
+  // Antwortquelle: ein spaeter angeschlossener Chatbot (window.LESESAAL_BIBLIOTHEKAR), der Server oder die eingebaute Fassung.
+  // Schnittstelle: function ({ zusammenfassung, verlauf, quelle, art, rolle }) -> Promise<string>
   var warten = false;
-  function bibliothekarSpricht(anlass) {
+  function tutorSpricht(anlass) {
+    var k = K(), h = H(), tutor = k.tutor();
     warten = true;
     $("antwortSenden").disabled = true;
     renderVerlauf(true);
     var extern = window.LESESAAL_BIBLIOTHEKAR || serverBibliothekar();
     var p = typeof extern === "function"
       ? Promise.resolve().then(function () {
-          return extern({ zusammenfassung: st.rolle, verlauf: st.verlauf.slice(), quelle: QUELLE_PLAIN, art: anlass.art });
+          return extern({ zusammenfassung: h.rolle, verlauf: h.verlauf.slice(), quelle: QUELLE_PLAIN, art: anlass.art, rolle: k.server });
         }).then(function (txt) { if (!txt) throw new Error("leer"); return String(txt); })
-          .catch(function () { return BIBLIOTHEKAR.sprich(anlass); })
-      : new Promise(function (ok) { setTimeout(function () { ok(BIBLIOTHEKAR.sprich(anlass)); }, ruhig ? 50 : 700); });
+          .catch(function () { return tutor.sprich(anlass); })
+      : new Promise(function (ok) { setTimeout(function () { ok(tutor.sprich(anlass)); }, ruhig ? 50 : 700); });
     return p.then(function (txt) {
       warten = false;
       $("antwortSenden").disabled = false;
-      st.verlauf.push({ wer: "bib", text: txt });
+      h.verlauf.push({ wer: "bib", text: txt });
       renderVerlauf();
     });
   }
@@ -1024,30 +1162,26 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
   }
   function gespraechBeenden() {
     if (st.fenster !== "gespraech") return;
+    var k = K(), h = H();
     st.fenster = null; st.dialog = null;
     $("gespraech").hidden = true;
     steuerung(true);
-    if (st.rueckmeldung && !st.lesesaalFertig && woerter(st.rolle) >= MIN_WOERTER) {
-      st.lesesaalFertig = true;
-      if (st.stufe === 1) st.stufe = 2;
-      zeigeDialog("Deine Rolle ist gesiegelt",
-        "Der Bibliothekar drückt sein Wachssiegel auf die Rolle und legt sie zu den Schriften der Akademie. Du hast Leibniz' Einwand gegen deinen Onkel sauber dargestellt, jetzt kannst du ihn analysieren.",
-        "Nächstes Ziel: Historischer Salon.", null);
-    }
+    if (h.rueckmeldung && !k.istFertig() && woerter(h.rolle) >= k.min) k.siegeln();
     hudAktualisieren();
   }
 
   function rolleAlsDatei() {
-    var teile = ["Lockes Neffe – Lesesaal: Leibniz' Kritik an der tabula rasa", "", "Meine Darstellung:", st.rolle, "", "Gespräch mit dem Bibliothekar:"];
-    st.verlauf.forEach(function (m) { teile.push("", (m.wer === "bib" ? "Bibliothekar: " : "Jonny: ") + m.text); });
+    var k = K(), h = H();
+    var teile = [k.kopf, "", k.meine, h.rolle, "", "Gespräch mit " + k.anrede + ":"];
+    h.verlauf.forEach(function (m) { teile.push("", (m.wer === "bib" ? k.figur + ": " : "Jonny: ") + m.text); });
     var daten = teile.join("\n");
     if (dl) {
-      return dl.save({ filename: "Darstellung_Leibniz.txt", data: daten }).then(function () { return true; }, function () { return false; });
+      return dl.save({ filename: k.datei, data: daten }).then(function () { return true; }, function () { return false; });
     }
     try {
       var url = URL.createObjectURL(new Blob([daten], { type: "text/plain;charset=utf-8" }));
       var a = document.createElement("a");
-      a.href = url; a.download = "Darstellung_Leibniz.txt";
+      a.href = url; a.download = k.datei;
       document.body.appendChild(a); a.click(); document.body.removeChild(a);
       setTimeout(function () { URL.revokeObjectURL(url); }, 2000);
       return Promise.resolve(true);
@@ -1064,7 +1198,7 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
   $("gBeenden").addEventListener("click", gespraechBeenden);
   $("gSichern").addEventListener("click", function () { rolleAlsDatei(); });
 
-  // ---------- Eingebauter Bibliothekar: regelbasierte Rueckmeldung nach Lockes Kernbegriffen und den Regeln fuer AFB I
+  // ---------- Eingebaute Rueckmeldung: ein Baustein fuer Bibliothekar (Lesesaal, AFB I) und Platon (Salon, AFB II)
   var MUSTERLOESUNG = "1. Problemstellung und Gegenüberstellung der Grundpositionen\n• Abgrenzung von Lockes empiristischer These, dass die Seele bei der Geburt einer leeren Tafel (tabula rasa) gleicht.\n• Entfaltung der eigenen rationalistischen Gegenposition: Die Seele enthält von Natur aus grundlegende Begriffe und Prinzipien (Innatismus), die durch Sinneseindrücke lediglich „aufgeweckt“ werden.\n2. Kritik an der rein empirischen Induktion\n• Sinneserfahrungen liefern stets nur Einzelfälle und Beobachtungen der Vergangenheit.\n• Aus wiederholten Einzelfällen lässt sich keine logische Notwendigkeit oder allgemeine Gültigkeit für die Zukunft ableiten.\n• Notwendige und universelle Wahrheiten (wie in Mathematik, Arithmetik und Geometrie) können daher nicht allein auf der Erfahrung gründen, auch wenn die Sinne den Anstoß geben, nach ihnen zu suchen.\n3. Veranschaulichung durch das Marmorblock-Gleichnis\n• Die Seele gleicht weder einer leeren Tafel noch einem völlig ungestalteten Stein.\n• Sie ähnelt einem Marmorblock, dessen Äderung bereits die Konturen einer Figur (z. B. Herkules) vorgibt.\n• Die Sinneserfahrung entspricht der Arbeit des Bildhauers: Sie schafft die Figur nicht neu, sondern legt die bereits angelegten Strukturen bloß und bringt sie zur Klarheit.\nEs müssen nicht alle Aspekte genannt werden. Eine gute Lösung erfasst den Kern der Sache.";
   var QUELLE_PLAIN = LEIBNIZ.zeilen.join(" ");
   // Zeilenangaben direkt aus dem Arbeitsblatttext, damit sie immer stimmen
@@ -1077,6 +1211,144 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
     if (!a) return "";
     return b && b !== a ? "Z. " + a + "–" + b : "Z. " + a;
   }
+  var WERTUNG = /\b(ich finde|finde ich|meiner meinung|meines erachtens|ich denke|ich glaube|gef(ä|ae)llt mir|(ü|ue)berzeugt mich|zu recht|zu unrecht)\b/i;
+  var PRAETERITUM = /\b(war|waren|hatte|hatten|sagte|meinte|beschrieb|erkl(ä|ae)rte|behauptete|schrieb|dachte|glaubte|stellte|zeigte|kritisierte)\b/gi;
+  function norm(t) { return String(t).toLowerCase().replace(/[^a-zäöüß0-9 ]+/g, " ").split(/\s+/).filter(Boolean); }
+  var GRAMME = {}, N_GRAMM = 7;
+  (function () {
+    var q = norm(QUELLE_PLAIN);
+    for (var i = 0; i + N_GRAMM <= q.length; i++) GRAMME[q.slice(i, i + N_GRAMM).join(" ")] = true;
+  })();
+  function woertlich(t) {
+    var w = norm(t);
+    for (var i = 0; i + N_GRAMM <= w.length; i++) {
+      if (GRAMME[w.slice(i, i + N_GRAMM).join(" ")]) return w.slice(i, i + N_GRAMM).join(" ");
+    }
+    return null;
+  }
+
+  // o: h (Zustand: rolle, frage, versuche, gefragt, letzteTreffer, musterAngebot, musterGezeigt), krit, bereiche,
+  //    form(t, n, zitat) -> Hinweise zur Form, zusatz(t) -> weiteres Lob oder null, glossar, muster, x (Texte)
+  function baueTutor(o) {
+    var KRIT = o.krit, BEREICHE = o.bereiche, X = o.x;
+    function trifft(k, t) { return typeof k.test === "function" ? k.test(t) : k.test.test(t); }
+
+    function urteil(t) {
+      var treffer = KRIT.filter(function (k) { return trifft(k, t); });
+      var fehlt = KRIT.filter(function (k) { return !trifft(k, t); });
+      var bereiche = {};
+      [1, 2, 3].forEach(function (b) {
+        bereiche[b] = treffer.some(function (k) { return k.bereich === b && k.kern; });
+      });
+      // je fehlendem Kernbereich der erste Kernpunkt als Hinweis
+      var kernFehlt = [1, 2, 3].filter(function (b) { return !bereiche[b]; }).map(function (b) {
+        return KRIT.filter(function (k) { return k.bereich === b && k.kern; })[0];
+      });
+      var n = woerter(t), zitat = woertlich(t);
+      var zusatz = o.zusatz(t);
+      return {
+        treffer: treffer, fehlt: fehlt, kernFehlt: kernFehlt, bereiche: bereiche,
+        kernErfasst: !kernFehlt.length, form: o.form(t, n, zitat), woerter: n, zitat: zitat, redeOk: !!zusatz, zusatz: zusatz
+      };
+    }
+    function anzahlBereiche(u) { return [1, 2, 3].filter(function (b) { return u.bereiche[b]; }).length; }
+
+    // Reihenfolge der Rueckfragen: fehlende Kernbereiche, Einleitung, dann Vertiefungen
+    function naechsteFrage() {
+      var h = o.h(), u = urteil(h.rolle);
+      var reihe = u.kernFehlt.concat(u.fehlt.filter(function (k) { return k.id === "einleitung"; }))
+        .concat(u.fehlt.filter(function (k) { return !k.kern && k.id !== "einleitung"; }));
+      for (var i = 0; i < reihe.length; i++) if (!h.gefragt[reihe[i].id]) return reihe[i];
+      return null;
+    }
+    function stelle(k) {
+      var h = o.h();
+      h.frage = k ? k.id : null; h.versuche = 0;
+      if (k) h.gefragt[k.id] = true;
+      return k ? k.frage : "";
+    }
+
+    var MUSTER_WUNSCH = /muster|l(ö|oe)sung|beispieltext|vorlage|erwartung/i;
+    var ZUSTIMMUNG = /^\s*(ja|jawohl|gern|gerne|bitte|zeig|okay|ok)\b/i;
+    function musterAngebot(vorspann) {
+      o.h().musterAngebot = true;
+      return (vorspann ? vorspann + "\n\n" : "") + X.angebot;
+    }
+
+    function sprich(anlass) {
+      var h = o.h();
+      if (anlass.art === "antwort" && h.musterAngebot) {
+        h.musterAngebot = false;
+        if (ZUSTIMMUNG.test(anlass.eingabe || "")) {
+          h.musterGezeigt = true;
+          return X.musterVor + "\n\n" + o.muster + "\n\n" + X.musterNach;
+        }
+        return X.musterNein;
+      }
+      if (anlass.art === "antwort" && MUSTER_WUNSCH.test(anlass.eingabe || "")) {
+        return musterAngebot(h.musterGezeigt ? X.musterNochmal : "");
+      }
+      if (anlass.art === "urteil") {
+        var u = urteil(h.rolle), teile = [];
+        var vorher = h.letzteTreffer;
+        h.letzteTreffer = { bereiche: anzahlBereiche(u), punkte: u.treffer.length };
+        h.gefragt = {};
+        if (anlass.erneut && vorher) {
+          teile.push(u.treffer.length > vorher.punkte
+            ? X.besser(anzahlBereiche(u), u.treffer.length, vorher.punkte)
+            : X.gleich(anzahlBereiche(u)));
+        } else {
+          teile.push(X.begruessung);
+        }
+        var lob = u.treffer.filter(function (k) { return k.kern; }).concat(u.treffer.filter(function (k) { return !k.kern; }))
+          .slice(0, 2).map(function (k) { return k.lob; });
+        if (u.zusatz && lob.length < 2) lob.push(u.zusatz);
+        if (lob.length) teile.push(X.gelingt + "\n" + lob.map(function (l) { return "• " + l; }).join("\n"));
+        var tipps = u.kernFehlt.slice(0, 2).map(function (k) { return k.mangel; });
+        if (u.fehlt.some(function (k) { return k.id === "einleitung"; })) tipps.push(KRIT[0].mangel);
+        tipps = tipps.concat(u.form).slice(0, 3);
+        if (tipps.length) teile.push(X.feilen + "\n" + tipps.map(function (l) { return "• " + l; }).join("\n"));
+        if (u.kernErfasst) {
+          teile.push("Du hast den Kern der Sache erfasst: " + BEREICHE[1] + ", " + BEREICHE[2] + " und " + BEREICHE[3] + ". Nicht jede Einzelheit muss hinein.");
+        }
+        var k = naechsteFrage();
+        if (k) teile.push((u.kernErfasst ? X.vertiefen : X.frage) + stelle(k));
+        else {
+          stelle(null);
+          teile.push(u.form.length ? X.fastFertig : X.fertig);
+        }
+        return teile.join("\n\n");
+      }
+      // Antwort auf Jonnys Eingabe
+      var e = anlass.eingabe || "";
+      var k2 = KRIT.filter(function (x) { return x.id === h.frage; })[0];
+      if (k2) {
+        if (k2.erkennt.test(e)) {
+          var weiter = naechsteFrage();
+          if (weiter) return X.richtig + "\n\nNächste Frage: " + stelle(weiter);
+          stelle(null);
+          if (!h.musterGezeigt) return musterAngebot(X.richtig + X.keineFragen);
+          return X.richtig + X.keineFragenEnde;
+        }
+        h.versuche++;
+        if (h.versuche === 1) return "Nicht ganz. " + k2.wo + X.nochmal;
+        var danach = naechsteFrage();
+        var aufl = X.hilfe + k2.hilfe;
+        if (danach) return aufl + "\n\nNächste Frage: " + stelle(danach);
+        stelle(null);
+        if (!h.musterGezeigt) return musterAngebot(aufl);
+        return aufl + X.hilfeEnde;
+      }
+      for (var i = 0; i < o.glossar.length; i++) if (o.glossar[i][0].test(e)) return o.glossar[i][1];
+      if (/danke/i.test(e)) return X.danke;
+      if (/\?/.test(e)) return X.unbekannt;
+      return X.zuhoeren;
+    }
+
+    return { urteil: urteil, sprich: sprich, kriterien: KRIT };
+  }
+
+  // ---------- Bibliothekar im Lesesaal: Darstellung (AFB I)
   var BIBLIOTHEKAR = (function () {
     // bereich: 1 Problemstellung, 2 Kritik an der Induktion, 3 Marmorblock-Gleichnis, 0 Einleitung
     // kern: ein Bereich gilt als erfasst, sobald einer seiner Kernpunkte da ist (Erwartungshorizont der Lehrkraft)
@@ -1170,162 +1442,248 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
         wo: "Lies die letzten Zeilen (" + zz("Arbeit bedürfte", "Klarheit") + ").",
         hilfe: "Die Adern müssen durch Arbeit bloßgelegt und durch Politur zur Klarheit gebracht werden (" + zz("Arbeit bedürfte", "Klarheit") + ")." }
     ];
-    var BEREICHE = { 1: "die Gegenüberstellung von tabula rasa und angeborenen Prinzipien", 2: "die Kritik an der Induktion", 3: "das Marmorblock-Gleichnis" };
     var REDE = /(leibniz|locke|der autor|der philosoph|er)\s+(\w+\s+)?(kritisiert|erl(ä|ae)utert|erkl(ä|ae)rt|behauptet|beschreibt|stellt|f(ü|ue)hrt|betont|unterscheidet|zeigt|legt|vertritt|vergleicht|definiert|bestimmt|begr(ü|ue)ndet|kommt|nennt|geht|folgert|schlie(ß|ss)t|wendet|h(ä|ae)lt|argumentiert|veranschaulicht|verdeutlicht|fragt|bestreitet|entgegnet|setzt|meint|sieht)/i;
-    var WERTUNG = /\b(ich finde|finde ich|meiner meinung|meines erachtens|ich denke|ich glaube|gef(ä|ae)llt mir|(ü|ue)berzeugt mich|zu recht|zu unrecht)\b/i;
-    var PRAETERITUM = /\b(war|waren|hatte|hatten|sagte|meinte|beschrieb|erkl(ä|ae)rte|behauptete|schrieb|dachte|glaubte|stellte|zeigte|kritisierte)\b/gi;
-
-    function norm(t) { return String(t).toLowerCase().replace(/[^a-zäöüß0-9 ]+/g, " ").split(/\s+/).filter(Boolean); }
-    var QUELLE = norm(QUELLE_PLAIN), N = 7, GRAMME = {};
-    for (var i = 0; i + N <= QUELLE.length; i++) GRAMME[QUELLE.slice(i, i + N).join(" ")] = true;
-    function woertlich(t) {
-      var w = norm(t);
-      for (var i = 0; i + N <= w.length; i++) {
-        if (GRAMME[w.slice(i, i + N).join(" ")]) return w.slice(i, i + N).join(" ");
+    return baueTutor({
+      h: function () { return st; },
+      krit: KRIT,
+      bereiche: { 1: "die Gegenüberstellung von tabula rasa und angeborenen Prinzipien", 2: "die Kritik an der Induktion", 3: "das Marmorblock-Gleichnis" },
+      muster: MUSTERLOESUNG,
+      zusatz: function (t) { return REDE.test(t) ? "Du machst sauber deutlich, dass du Leibniz wiedergibst." : null; },
+      form: function (t, n, zitat) {
+        var form = [];
+        if (WERTUNG.test(t)) form.push("Du wertest an einer Stelle selbst. Eine Darstellung bleibt sachlich, deine Meinung gehört in die Buchdruckerei.");
+        if (zitat) form.push("Du übernimmst Passagen wörtlich, etwa „" + zitat + " …“. Gib den Gedankengang mit eigenen Worten wieder.");
+        if ((t.match(PRAETERITUM) || []).length >= 2) form.push("Du erzählst in der Vergangenheit. Darstellungen stehen im Präsens.");
+        if (!REDE.test(t)) form.push("Mach deutlicher, dass du Leibniz wiedergibst, zum Beispiel mit „Leibniz kritisiert, dass …“ oder „Er veranschaulicht …“.");
+        if (n < EMPFOHLEN[0]) form.push("Deine Darstellung ist noch knapp. Für diese Aufgabe sind etwa " + EMPFOHLEN[0] + " bis " + EMPFOHLEN[1] + " Wörter angemessen.");
+        if (n > EMPFOHLEN[1] + 20) form.push("Deine Darstellung ist lang geraten. Verdichte: Streiche Wiederholungen und Nebensächliches.");
+        return form;
+      },
+      glossar: [
+        [/tabula|unbeschrieben|leere tafel/i, "Tabula rasa heißt „abgeschabte Tafel“. Locke meint: Wir bringen keine angeborenen Ideen mit, erst die Erfahrung beschreibt die Tafel. Genau das bestreitet Leibniz."],
+        [/induktion/i, "Induktion heißt: von vielen Einzelfällen auf eine allgemeine Regel schließen. Wer tausend weiße Schwäne sieht, schließt, alle Schwäne seien weiß. Sicher ist das nie."],
+        [/notwendig/i, "Eine notwendige Wahrheit kann gar nicht anders sein, etwa 2 + 2 = 4. Erfahrung zeigt nur, was bisher so war, nicht was so sein muss."],
+        [/angeboren|innat/i, "Angeborene Ideen oder Prinzipien bringt der Geist schon mit, bevor er etwas erfährt. Das ist die Gegenthese zu Lockes tabula rasa."],
+        [/rationalis/i, "Rationalisten wie Descartes und Leibniz meinen, dass sichere Erkenntnis aus der Vernunft selbst stammt, nicht allein aus der Erfahrung."],
+        [/empiris/i, "Empiristen wie Locke meinen, dass alle Erkenntnis letztlich aus der Erfahrung stammt."],
+        [/sensation|reflexion/i, "Bei Locke ist Sensation die äußere Wahrnehmung durch die Sinne, Reflexion die innere Wahrnehmung der eigenen Geistestätigkeit."],
+        [/pr(ä|ae)sens|zeitform/i, "Darstellungen stehen im Präsens, weil der Text jetzt vor uns liegt: „Leibniz kritisiert …“, nicht „Leibniz kritisierte …“."],
+        [/eigene worte|zitat|w(ö|oe)rtlich|abschreib/i, "Eigene Worte zeigen, dass du den Gedanken verstanden hast. Lies einen Absatz, leg den Text weg und schreib auf, was hängen geblieben ist."],
+        [/einleitung|anfang|erste[rn]? satz/i, "Der erste Satz nennt Autor, Titel, Jahr und Thema. Danach folgt der Argumentationsgang in der Reihenfolge des Textes."],
+        [/meinung|werten|wertung|bewerten/i, "In der Darstellung hältst du dich mit deiner Meinung zurück. Die hebst du dir für die Buchdruckerei auf, dort schreibst du deinen Kommentar."],
+        [/wie lang|wie viele w(ö|oe)rter|l(ä|ae)nge/i, "Für diese Aufgabe sind etwa " + EMPFOHLEN[0] + " bis " + EMPFOHLEN[1] + " Wörter angemessen. Es müssen nicht alle Einzelheiten hinein, aber der Kern jedes Gedankens."]
+      ],
+      x: {
+        begruessung: "Ah, eine frisch beschriebene Rolle! Lass sehen, was du über Leibniz zu berichten hast …",
+        besser: function (b, p, v) { return "Du hast nachgebessert! Jetzt sind " + b + " von 3 Kernbereichen erfasst und " + p + " Einzelaspekte, vorher waren es " + v + "."; },
+        gleich: function (b) { return "Ich habe deine neue Fassung gelesen: " + b + " von 3 Kernbereichen."; },
+        gelingt: "Das gelingt dir schon:",
+        feilen: "Daran würde ich noch feilen:",
+        vertiefen: "Wenn du vertiefen willst, eine Frage: ",
+        frage: "Eine Frage an dich: ",
+        fastFertig: "Wenn du die Form noch glättest, ist die Rolle vortrefflich. Du kannst sie überarbeiten oder das Gespräch beenden.",
+        fertig: "Vortrefflich! Du kannst das Gespräch beenden, ich siegle deine Rolle.",
+        richtig: "Genau so. Nimm das in deine Rolle auf, dann wird sie runder.",
+        keineFragen: " Mehr habe ich nicht zu fragen. Überarbeite deine Rolle mit diesen Punkten.",
+        keineFragenEnde: "\n\nMehr habe ich nicht zu fragen. Überarbeite deine Rolle mit diesen Punkten oder beende das Gespräch.",
+        nochmal: " Versuch es noch einmal.",
+        hilfe: "Ich helfe dir: ",
+        hilfeEnde: "\n\nÜberarbeite deine Rolle damit, oder beende das Gespräch.",
+        angebot: "Ich könnte dir eine Musterlösung zeigen. Bedenke aber: Wer nur liest, lernt weniger, als wer selbst verbessert. " +
+          "Möchtest du sie trotzdem sehen? Dann antworte mit „Ja“.",
+        musterVor: "Nun gut. Das erwartet deine Lehrkraft von einer gelungenen Darstellung:",
+        musterNach: "Vergleiche Punkt für Punkt mit deiner Rolle. Was fehlt dir, was hast du anders gelöst? Schreib bitte nicht ab.",
+        musterNein: "Eine weise Entscheidung. Überarbeite deine Rolle selbst, ich lese sie gern noch einmal.",
+        musterNochmal: "Du kennst sie schon, aber gern noch einmal.",
+        danke: "Gern geschehen. Ein Gelehrter fragt, bis er verstanden hat.",
+        unbekannt: "Eine gute Frage. Darauf weiß ich keine sichere Antwort. Frag deine Lehrkraft, und schau dazu in Leibniz' Text.",
+        zuhoeren: "Ich höre dir zu. Du kannst mich nach Begriffen wie tabula rasa, Induktion, notwendige Wahrheit oder angeborene Ideen fragen, oder deine Rolle überarbeiten."
       }
-      return null;
-    }
-    function trifft(k, t) { return typeof k.test === "function" ? k.test(t) : k.test.test(t); }
+    });
+  })();
 
-    function urteil(t) {
-      var treffer = KRIT.filter(function (k) { return trifft(k, t); });
-      var fehlt = KRIT.filter(function (k) { return !trifft(k, t); });
-      var bereiche = {};
-      [1, 2, 3].forEach(function (b) {
-        bereiche[b] = treffer.some(function (k) { return k.bereich === b && k.kern; });
-      });
-      // je fehlendem Kernbereich der erste Kernpunkt als Hinweis
-      var kernFehlt = [1, 2, 3].filter(function (b) { return !bereiche[b]; }).map(function (b) {
-        return KRIT.filter(function (k) { return k.bereich === b && k.kern; })[0];
-      });
-      var form = [];
-      var n = woerter(t);
-      if (WERTUNG.test(t)) form.push("Du wertest an einer Stelle selbst. Eine Darstellung bleibt sachlich, deine Meinung gehört in die Buchdruckerei.");
-      var zitat = woertlich(t);
-      if (zitat) form.push("Du übernimmst Passagen wörtlich, etwa „" + zitat + " …“. Gib den Gedankengang mit eigenen Worten wieder.");
-      if ((t.match(PRAETERITUM) || []).length >= 2) form.push("Du erzählst in der Vergangenheit. Darstellungen stehen im Präsens.");
-      if (!REDE.test(t)) form.push("Mach deutlicher, dass du Leibniz wiedergibst, zum Beispiel mit „Leibniz kritisiert, dass …“ oder „Er veranschaulicht …“.");
-      if (n < EMPFOHLEN[0]) form.push("Deine Darstellung ist noch knapp. Für diese Aufgabe sind etwa " + EMPFOHLEN[0] + " bis " + EMPFOHLEN[1] + " Wörter angemessen.");
-      if (n > EMPFOHLEN[1] + 20) form.push("Deine Darstellung ist lang geraten. Verdichte: Streiche Wiederholungen und Nebensächliches.");
-      return {
-        treffer: treffer, fehlt: fehlt, kernFehlt: kernFehlt, bereiche: bereiche,
-        kernErfasst: !kernFehlt.length, form: form, woerter: n, zitat: zitat, redeOk: REDE.test(t)
-      };
+  // ---------- Platon im Salon: Analyse (AFB II), Erwartungshorizont der Lehrkraft in LEIBNIZ.analyse.erwartung
+  var PLATON_VORSTELLUNG =
+    "Erschrick nicht, junger Freund. Ich bin Platon aus Athen, Schüler des Sokrates.\n\n" +
+    "Warum gerade ich? Lies " + zz("wie ich mit Platon") + ": Leibniz schreibt, er nehme „mit Platon“ an, dass die Seele Prinzipien in sich trägt, " +
+    "die von außen nur aufgeweckt werden. Das ist meine Lehre von der Wiedererinnerung, der Anamnesis: Lernen heißt, sich an das zu erinnern, " +
+    "was die Seele schon weiß. Im Dialog Menon findet ein Sklave einen Lehrsatz der Geometrie, ohne dass ihn jemand belehrt. " +
+    "Die leere Tafel dagegen schreibt Leibniz Aristoteles zu, meinem Schüler, und Locke (" + zz("Aristoteles", "Versuchs") + ").\n\n" +
+    "Leibniz stellt sich also auf meine Seite. Nun zeig mir, ob du durchschaust, wie er argumentiert.";
+  var PLATON = (function () {
+    // Deutungen zaehlen nur, wenn Bild und Bedeutung im selben Satz stehen
+    function imSatz(t, a, b) {
+      return String(t).split(/[.!?;:]\s/).some(function (satz) { return a.test(satz) && b.test(satz); });
     }
-    function anzahlBereiche(u) { return [1, 2, 3].filter(function (b) { return u.bereiche[b]; }).length; }
-
-    // Reihenfolge der Rueckfragen: fehlende Kernbereiche, Einleitung, dann Vertiefungen
-    function naechsteFrage() {
-      var u = urteil(st.rolle);
-      var reihe = u.kernFehlt.concat(u.fehlt.filter(function (k) { return k.id === "einleitung"; }))
-        .concat(u.fehlt.filter(function (k) { return !k.kern && k.id !== "einleitung"; }));
-      for (var i = 0; i < reihe.length; i++) if (!st.gefragt[reihe[i].id]) return reihe[i];
-      return null;
-    }
-    function stelle(k) {
-      st.frage = k ? k.id : null; st.versuche = 0;
-      if (k) st.gefragt[k.id] = true;
-      return k ? k.frage : "";
-    }
-
-    var GLOSSAR = [
-      [/tabula|unbeschrieben|leere tafel/i, "Tabula rasa heißt „abgeschabte Tafel“. Locke meint: Wir bringen keine angeborenen Ideen mit, erst die Erfahrung beschreibt die Tafel. Genau das bestreitet Leibniz."],
-      [/induktion/i, "Induktion heißt: von vielen Einzelfällen auf eine allgemeine Regel schließen. Wer tausend weiße Schwäne sieht, schließt, alle Schwäne seien weiß. Sicher ist das nie."],
-      [/notwendig/i, "Eine notwendige Wahrheit kann gar nicht anders sein, etwa 2 + 2 = 4. Erfahrung zeigt nur, was bisher so war, nicht was so sein muss."],
-      [/angeboren|innat/i, "Angeborene Ideen oder Prinzipien bringt der Geist schon mit, bevor er etwas erfährt. Das ist die Gegenthese zu Lockes tabula rasa."],
-      [/rationalis/i, "Rationalisten wie Descartes und Leibniz meinen, dass sichere Erkenntnis aus der Vernunft selbst stammt, nicht allein aus der Erfahrung."],
-      [/empiris/i, "Empiristen wie Locke meinen, dass alle Erkenntnis letztlich aus der Erfahrung stammt."],
-      [/sensation|reflexion/i, "Bei Locke ist Sensation die äußere Wahrnehmung durch die Sinne, Reflexion die innere Wahrnehmung der eigenen Geistestätigkeit."],
-      [/pr(ä|ae)sens|zeitform/i, "Darstellungen stehen im Präsens, weil der Text jetzt vor uns liegt: „Leibniz kritisiert …“, nicht „Leibniz kritisierte …“."],
-      [/eigene worte|zitat|w(ö|oe)rtlich|abschreib/i, "Eigene Worte zeigen, dass du den Gedanken verstanden hast. Lies einen Absatz, leg den Text weg und schreib auf, was hängen geblieben ist."],
-      [/einleitung|anfang|erste[rn]? satz/i, "Der erste Satz nennt Autor, Titel, Jahr und Thema. Danach folgt der Argumentationsgang in der Reihenfolge des Textes."],
-      [/meinung|werten|wertung|bewerten/i, "In der Darstellung hältst du dich mit deiner Meinung zurück. Die hebst du dir für die Buchdruckerei auf, dort schreibst du deinen Kommentar."],
-      [/wie lang|wie viele w(ö|oe)rter|l(ä|ae)nge/i, "Für diese Aufgabe sind etwa " + EMPFOHLEN[0] + " bis " + EMPFOHLEN[1] + " Wörter angemessen. Es müssen nicht alle Einzelheiten hinein, aber der Kern jedes Gedankens."]
+    var KRIT = [
+      { id: "einleitung", bereich: 0,
+        test: function (t) { return /leibniz/i.test(t) && /(neue[n]? abhandlung|1704|menschlichen verstand)/i.test(t); },
+        lob: "Deine Einleitung nennt Autor, Werk und Thema. So weiß jeder, worum es geht.",
+        mangel: "Ein Einleitungssatz mit Autor, Titel, Jahr und Thema fehlt noch.",
+        frage: "Womit beginnt eine gute Analyse, bevor sie ins Einzelne geht?",
+        erkennt: /(autor|titel|jahr|thema|werk|leibniz|1704|abhandlung|einleitung)/i,
+        wo: "Denk daran, was ein Leser zuerst wissen muss: wer, was, wann, worüber.",
+        hilfe: "Autor, Titel, Jahr und Thema: Leibniz, Neue Abhandlungen über den menschlichen Verstand, 1704, seine Kritik an Lockes tabula rasa." },
+      { id: "gegenueber", bereich: 1, kern: true,
+        test: /(entweder|disjunkt|gegen(ü|ue)berstell|stellt[^.]{0,60}gegen(ü|ue)ber|alternativ|zwei[^.]{0,30}(positionen|modelle|konzepte|m(ö|oe)glichkeiten|auffassungen|thesen|grundkonzepte)|oder ob)/i,
+        lob: "Du erkennst, dass Leibniz mit einer Entweder-oder-Gegenüberstellung zweier Positionen beginnt.",
+        mangel: "Wie eröffnet Leibniz den Text? Die Gegenüberstellung der beiden Positionen fehlt noch.",
+        frage: "Mit welcher logischen Form eröffnet Leibniz den Text? Achte auf „ob … oder ob“.",
+        erkennt: /(entweder|oder|gegen(ü|ue)ber|zwei|alternativ|disjunkt|gegensatz)/i,
+        wo: "Lies " + zz("ob die Seele an sich", "wie ich mit Platon") + " und achte auf das „oder“.",
+        hilfe: "Leibniz stellt zwei Möglichkeiten als Entweder-oder gegenüber: Die Seele ist leer wie eine Tafel (Locke), oder sie enthält ursprünglich Prinzipien (" + zz("ob die Seele an sich", "wie ich mit Platon") + ")." },
+      { id: "these", bereich: 1, kern: true,
+        test: function (t) { return imSatz(t, /(these|position|standpunkt|vertritt|behauptet|auffassung)/i, /(angeboren|prinzip|innat|aufgeweckt|platon)/i); },
+        lob: "Leibniz' These von den angeborenen Prinzipien hast du klar als These benannt.",
+        mangel: "Benenne Leibniz' These ausdrücklich: Was behauptet er gegen Locke?",
+        frage: "Welche These vertritt Leibniz selbst, und auf wen beruft er sich dabei?",
+        erkennt: /(angeboren|prinzip|platon|aufgeweckt|seele)/i,
+        wo: "Lies " + zz("Prinzipien mehrerer", "wie ich mit Platon") + ".",
+        hilfe: "Leibniz' These: Die Seele enthält ursprünglich Prinzipien, die durch äußere Gegenstände nur aufgeweckt werden. Dabei beruft er sich auf mich (" + zz("Prinzipien mehrerer", "wie ich mit Platon") + ")." },
+      { id: "empirismus", bereich: 1,
+        test: function (t) { return imSatz(t, /(locke|empiris)/i, /(tabula|leer|tafel|passiv)/i); },
+        lob: "Du ordnest die Gegenposition richtig Locke und dem Empirismus zu.",
+        mangel: "Ordne die Gegenposition zu: Wessen Lehre ist die leere Tafel?",
+        frage: "Wem schreibt Leibniz die Lehre von der leeren Tafel zu?",
+        erkennt: /(locke|aristoteles|empiris|verfasser)/i,
+        wo: "Lies " + zz("Aristoteles", "Versuchs") + ".",
+        hilfe: "Aristoteles und dem „Verfasser des Versuchs“, also Locke, dem Empiristen (" + zz("Aristoteles", "Versuchs") + ")." },
+      { id: "praemisse1", bereich: 2, kern: true,
+        test: /einzel|induktion|beispiel|wiederkehr|wiederhol/i,
+        lob: "Du rekonstruierst die erste Prämisse: Die Sinne liefern nur Einzelfälle.",
+        mangel: "Die erste Prämisse fehlt: Was liefern uns die Sinne nach Leibniz?",
+        frage: "Was liefern uns die Sinne nach Leibniz, und wie nennt man den Schluss aus vielen Einzelfällen?",
+        erkennt: /einzel|beispiel|induktion|besonder|wiederhol/i,
+        wo: "Lies " + zz("Induktion", "Einzelnes") + ".",
+        hilfe: "Prämisse 1: Die Sinne geben nur Beispiele, also Wahrheiten über Einzelnes (" + zz("Induktion", "Einzelnes") + ")." },
+      { id: "praemisse2", bereich: 2, kern: true,
+        test: /notwendig|allgemeing(ü|ue)ltig|universell|immer so|zukunft/i,
+        lob: "Auch die zweite Prämisse sitzt: Aus Wiederholung folgt keine Notwendigkeit.",
+        mangel: "Die zweite Prämisse fehlt: Warum reichen viele Beispiele nicht aus?",
+        frage: "Folgt aus tausend gleichen Beobachtungen, dass es immer so sein muss?",
+        erkennt: /nein|nicht|notwendig|allgemein|zukunft|immer/i,
+        wo: "Lies " + zz("oft wiederkehrt", "geschehen muss") + ".",
+        hilfe: "Prämisse 2: Daraus, dass etwas oft geschehen ist, folgt nicht, dass es immer so geschehen muss (" + zz("oft wiederkehrt", "geschehen muss") + ")." },
+      { id: "zwischenschluss", bereich: 2, kern: true,
+        test: /(zwischenschluss|zwischenfazit|konklusion|schlussfolger|folgert|daraus folgt|daraus erhellt|schlie(ß|ss)t (er|leibniz))/i,
+        lob: "Du zeigst den Schluss, den Leibniz aus beiden Prämissen zieht.",
+        mangel: "Der Zwischenschluss fehlt: Was folgert Leibniz aus den beiden Prämissen?",
+        frage: "Was folgt für Leibniz aus den beiden Prämissen? Achte auf „Daraus erhellt“.",
+        erkennt: /((erfahrung|sinne|empiri)[^.]{0,60}(nicht|kein))|((nicht|kein)[^.]{0,60}(erfahrung|sinne|begr(ü|ue)nd))|angeboren|prinzip|andere[nr]? ursprung/i,
+        wo: "Lies " + zz("Daraus erhellt", "Zeugnis der Sinne") + ".",
+        hilfe: "Zwischenschluss: Erfahrung allein kann Notwendigkeit und Allgemeingültigkeit nicht begründen. Notwendige Wahrheiten brauchen Prinzipien, die nicht von den Sinnen abhängen (" + zz("Daraus erhellt", "Zeugnis der Sinne") + ")." },
+      { id: "mathematik", bereich: 2,
+        test: /mathemati|arithmetik|geometrie/i,
+        lob: "Du erkennst die Mathematik als Beleg für notwendige Wahrheiten.",
+        mangel: "Welches Beispiel stützt Leibniz' Schluss, und welche Funktion hat es im Argument?",
+        frage: "Welches Beispiel führt Leibniz an, und welche Funktion hat es im Argument?",
+        erkennt: /mathe|arithm|geometr|beleg|beispiel|st(ü|ue)tz/i,
+        wo: "Lies " + zz("reinen Mathematik", "schlagendes") + ".",
+        hilfe: "Die reine Mathematik mit Arithmetik und Geometrie dient als Beleg: Ihre Lehrsätze gelten notwendig und universell, das kann keine Beobachtung leisten (" + zz("reinen Mathematik", "leisten könnte") + ")." },
+      { id: "tafel", bereich: 3,
+        test: function (t) { return imSatz(t, /(tafel|ungestalt|masse|glatt)/i, /(empiris|locke|passiv|steht f(ü|ue)r|symbolis)/i); },
+        lob: "Du deutest die leere Tafel und die ungestaltete Masse als Bild des Empirismus.",
+        mangel: "Wofür stehen die leere Tafel und die ungestaltete Masse im Bild?",
+        frage: "Wofür stehen im Bild die leere Tafel und die ungestaltete Masse?",
+        erkennt: /(locke|empiris|passiv|leer|nichts|erfahrung)/i,
+        wo: "Lies " + zz("ungestalteten", "leeren Tafel") + ".",
+        hilfe: "Die ungestaltete Masse und die leere Tafel stehen für das empiristische Modell: Der Geist ist ein passiver Empfänger (" + zz("ungestalteten", "leeren Tafel") + ")." },
+      { id: "adern", bereich: 3, kern: true,
+        test: function (t) { return imSatz(t, /(ader|(ä|ae)derung)/i, /(struktur|disposition|angeboren|anlage|vorgegeben|veranlag|rationalis|angelegt|prinzip|steht f(ü|ue)r|symbolis)/i); },
+        lob: "Du deutest die Adern im Marmor als angeborene Struktur des Geistes.",
+        mangel: "Das Gleichnis wird noch nicht gedeutet: Wofür stehen die Adern im Marmor?",
+        frage: "Wofür stehen die Adern im Marmorblock?",
+        erkennt: /(angeboren|prinzip|struktur|anlage|vorgegeben|begriff|disposition|idee)/i,
+        wo: "Lies " + zz("Adern den", "Herkules") + ".",
+        hilfe: "Die Adern stehen für die angeborenen Begriffe: Der Geist hat schon eine innere Struktur, die bestimmte Erkenntnisse vorzeichnet (" + zz("Adern den", "Herkules") + ")." },
+      { id: "arbeit", bereich: 3, kern: true,
+        test: function (t) { return imSatz(t, /(arbeit|bildhauer|politur|polier|freileg|blo(ß|ss) ?(zu ?)?leg)/i, /(sinn|erfahrung|wahrnehm)/i); },
+        lob: "Du erklärst, wofür die Arbeit am Stein steht: für die Sinneserfahrung, die freilegt, was angelegt ist.",
+        mangel: "Welche Rolle spielt im Bild die Arbeit am Stein, und wofür steht sie?",
+        frage: "Wofür steht im Bild die Arbeit, die die Adern freilegt und poliert?",
+        erkennt: /(sinn|erfahrung|wahrnehm|lern|freileg|klar)/i,
+        wo: "Lies " + zz("Arbeit bedürfte", "Klarheit") + ".",
+        hilfe: "Die Arbeit steht für die Sinneserfahrung: Sie erschafft nichts Neues, sondern legt frei, was schon angelegt ist, und bringt es zur Klarheit (" + zz("Arbeit bedürfte", "Klarheit") + ")." },
+      { id: "ziel", bereich: 3, kern: true,
+        test: function (t) {
+          return imSatz(t, /(anlass|ansto(ß|ss)|aufweck|weck)/i, /(fundament|grundlage|ursprung|begr(ü|ue)nd|quelle|beweis)/i) ||
+            /(keine?n? gegens(ä|ae)tz|nicht gegen(ei|sä|sae)|vereinbar|vermittel|verbind|zusammenwirk|erg(ä|ae)nz|vers(ö|oe)hn)/i.test(t);
+        },
+        lob: "Du benennst das gedankliche Ziel des Gleichnisses: Erfahrung ist Anlass, nicht Fundament.",
+        mangel: "Das gedankliche Ziel des Gleichnisses fehlt: Was will Leibniz über Erfahrung und angeborene Ideen zeigen?",
+        frage: "Was will Leibniz mit dem Gleichnis zeigen: Schließen sich Erfahrung und angeborene Ideen aus?",
+        erkennt: /(nein|nicht|kein|anlass|ansto|weck|zusammen|beide|erg(ä|ae)nz|vereinbar)/i,
+        wo: "Vergleiche das „aufgeweckt“ in " + zz("aufgeweckt") + " mit der Arbeit am Stein in " + zz("Arbeit bedürfte") + ".",
+        hilfe: "Das Gleichnis zeigt: Erfahrung und angeborene Ideen sind keine Gegensätze. Die Sinne sind der Anlass, der aufweckt, aber nicht das Fundament notwendiger Erkenntnis (" + zz("aufgeweckt") + ", " + zz("Arbeit bedürfte", "Klarheit") + ")." }
     ];
-
-    var MUSTER_WUNSCH = /muster|l(ö|oe)sung|beispieltext|vorlage|erwartung/i;
-    var ZUSTIMMUNG = /^\s*(ja|jawohl|gern|gerne|bitte|zeig|okay|ok)\b/i;
-    function musterAngebot(vorspann) {
-      st.musterAngebot = true;
-      return (vorspann ? vorspann + "\n\n" : "") +
-        "Ich könnte dir eine Musterlösung zeigen. Bedenke aber: Wer nur liest, lernt weniger, als wer selbst verbessert. " +
-        "Möchtest du sie trotzdem sehen? Dann antworte mit „Ja“.";
+    var ZEILEN = /\b(z\.|zz\.|zeilen?)\s*\d+/gi;
+    var FACHWORT = /(pr(ä|ae)miss|argument|these|schluss|folger|begr(ü|ue)nd|funktion|veranschaulich|verdeutlich|beleg|st(ü|ue)tzt|analogie|gleichnis|symbolis|steht f(ü|ue)r)/gi;
+    function fachwoerter(t) {
+      var gefunden = {};
+      (String(t).match(FACHWORT) || []).forEach(function (w) { gefunden[w.toLowerCase().slice(0, 6)] = true; });
+      return Object.keys(gefunden).length;
     }
-
-    function sprich(anlass) {
-      if (anlass.art === "antwort" && st.musterAngebot) {
-        st.musterAngebot = false;
-        if (ZUSTIMMUNG.test(anlass.eingabe || "")) {
-          st.musterGezeigt = true;
-          return "Nun gut. Das erwartet deine Lehrkraft von einer gelungenen Darstellung:\n\n" + MUSTERLOESUNG +
-            "\n\nVergleiche Punkt für Punkt mit deiner Rolle. Was fehlt dir, was hast du anders gelöst? Schreib bitte nicht ab.";
-        }
-        return "Eine weise Entscheidung. Überarbeite deine Rolle selbst, ich lese sie gern noch einmal.";
+    return baueTutor({
+      h: function () { return st.salon; },
+      krit: KRIT,
+      bereiche: { 1: "die Problemstellung mit Leibniz' These", 2: "die Argumentationskette gegen die Induktion", 3: "die Funktion des Marmorblock-Gleichnisses" },
+      muster: LEIBNIZ.analyse.erwartung,
+      zusatz: function (t) { return (String(t).match(ZEILEN) || []).length >= 2 ? "Du belegst deine Schritte sauber mit Zeilenangaben." : null; },
+      form: function (t, n, zitat) {
+        var form = [];
+        if (fachwoerter(t) < 3) form.push("Das liest sich noch eher wie eine Darstellung. Beim Analysieren benennst du, welche Rolle ein Gedanke spielt: These, Prämisse, Schluss, Beleg, Veranschaulichung.");
+        if ((String(t).match(ZEILEN) || []).length < 2) form.push("Belege die Schritte mit Zeilenangaben, etwa (" + zz("oft wiederkehrt", "geschehen muss") + "). Das verlangt die Aufgabe ausdrücklich.");
+        if (WERTUNG.test(t)) form.push("Du wertest an einer Stelle selbst. Deine Bewertung gehört in die Buchdruckerei, hier zeigst du, wie Leibniz argumentiert.");
+        if (zitat && !/[„“"»«]/.test(t)) form.push("Du übernimmst Passagen wörtlich, etwa „" + zitat + " …“. Kurze Zitate sind als Beleg erlaubt, dann aber in Anführungszeichen und mit Zeile.");
+        if ((t.match(PRAETERITUM) || []).length >= 2) form.push("Du schreibst in der Vergangenheit. Auch eine Analyse steht im Präsens: „Leibniz folgert …“.");
+        if (n < EMPFOHLEN_ANALYSE[0]) form.push("Deine Analyse ist noch knapp. Für diese Aufgabe sind etwa " + EMPFOHLEN_ANALYSE[0] + " bis " + EMPFOHLEN_ANALYSE[1] + " Wörter angemessen.");
+        if (n > EMPFOHLEN_ANALYSE[1] + 30) form.push("Deine Analyse ist lang geraten. Verdichte: Nicht jeder Satz des Textes braucht eine eigene Deutung.");
+        return form;
+      },
+      glossar: [
+        [/anamnesis|wiedererinner|menon/i, "Anamnesis heißt Wiedererinnerung. Ich lehre, dass die Seele das Wissen schon in sich trägt und sich beim Lernen nur erinnert. Im Menon findet ein Sklave einen Lehrsatz der Geometrie, nur weil Sokrates ihn richtig fragt."],
+        [/warum (du|gerade|platon)|wer bist|was hast du mit/i, "Leibniz beruft sich in " + zz("wie ich mit Platon") + " ausdrücklich auf mich: Die Seele trägt Prinzipien in sich, die von außen nur aufgeweckt werden. Das ist meine Lehre von der Wiedererinnerung."],
+        [/pr(ä|ae)miss/i, "Eine Prämisse ist eine Voraussetzung, aus der ein Schluss folgt. Bei Leibniz etwa: Die Sinne liefern nur Einzelfälle."],
+        [/zwischenschluss|konklusion|schlussfolger|schluss/i, "Ein Schluss ist das, was aus den Prämissen folgt. Frag dich: Welcher Satz wird bei Leibniz durch die anderen begründet?"],
+        [/disjunkt|entweder/i, "Eine disjunktive Gegenüberstellung stellt zwei Möglichkeiten als Entweder-oder nebeneinander. Leibniz eröffnet so: leere Tafel oder angeborene Prinzipien."],
+        [/analogie|gleichnis|metapher|bildlich|veranschaulich/i, "Eine Analogie überträgt Verhältnisse aus einem vertrauten Bereich auf einen schwierigen. Frag bei der Analyse: Wofür steht jedes Element, und was soll das Bild zeigen?"],
+        [/analys|operator|darstell/i, "Darstellen heißt wiedergeben, was im Text steht. Analysieren heißt zeigen, wie der Text gebaut ist: These, Gründe, Schluss, Beleg und die Funktion des Bildes, jeweils mit Zeilen belegt."],
+        [/zeile|beleg|zitier/i, "Belege jeden Schritt mit Zeilenangaben, etwa (" + zz("Daraus erhellt", "Zeugnis der Sinne") + "). Kurze Zitate sind erlaubt, wenn sie in Anführungszeichen stehen und etwas zeigen."],
+        [/induktion/i, "Induktion heißt: von vielen Einzelfällen auf eine allgemeine Regel schließen. Wer tausend weiße Schwäne sieht, schließt, alle Schwäne seien weiß. Sicher ist das nie."],
+        [/notwendig/i, "Eine notwendige Wahrheit kann gar nicht anders sein, etwa 2 + 2 = 4. Erfahrung zeigt nur, was bisher so war, nicht was so sein muss."],
+        [/tabula|leere tafel/i, "Die leere Tafel ist Lockes Bild für den Geist bei der Geburt. Leibniz schreibt es auch Aristoteles zu, meinem Schüler, der mir hier widersprochen hat."],
+        [/rationalis|empiris/i, "Empiristen wie Locke leiten alle Erkenntnis aus der Erfahrung ab. Rationalisten wie Leibniz meinen, dass notwendige Wahrheiten aus der Vernunft selbst stammen."],
+        [/meinung|werten|wertung|bewerten/i, "Deine eigene Bewertung gehört in die Buchdruckerei. Hier zeigst du, wie Leibniz argumentiert."],
+        [/pr(ä|ae)sens|zeitform/i, "Auch die Analyse steht im Präsens: „Leibniz folgert …“, nicht „Leibniz folgerte …“."],
+        [/wie lang|wie viele w(ö|oe)rter|l(ä|ae)nge/i, "Für diese Aufgabe sind etwa " + EMPFOHLEN_ANALYSE[0] + " bis " + EMPFOHLEN_ANALYSE[1] + " Wörter angemessen. Nicht jede Einzelheit muss hinein, aber der Kern jedes Schritts."]
+      ],
+      x: {
+        begruessung: "Lass sehen, wie du Leibniz' Beweisgang zerlegt hast …",
+        besser: function (b, p, v) { return "Du hast nachgebessert! Jetzt sind " + b + " von 3 Kernbereichen erfasst und " + p + " Einzelaspekte, vorher waren es " + v + "."; },
+        gleich: function (b) { return "Ich habe deine neue Fassung gelesen: " + b + " von 3 Kernbereichen."; },
+        gelingt: "Das ist dir gelungen:",
+        feilen: "Hier lohnt es, weiterzudenken:",
+        vertiefen: "Wenn du tiefer graben willst, frage ich dich: ",
+        frage: "Sag mir: ",
+        fastFertig: "Wenn du die Form noch glättest, ist deine Analyse vortrefflich. Du kannst sie überarbeiten oder das Gespräch beenden.",
+        fertig: "Vortrefflich! Du kannst das Gespräch beenden, dann siegle ich deine Analyse.",
+        richtig: "Siehst du, du wusstest es schon, du musstest dich nur erinnern. Nimm das in deine Analyse auf.",
+        keineFragen: " Mehr habe ich nicht zu fragen. Überarbeite deine Analyse mit diesen Einsichten.",
+        keineFragenEnde: "\n\nMehr habe ich nicht zu fragen. Überarbeite deine Analyse mit diesen Einsichten oder beende das Gespräch.",
+        nochmal: " Denk noch einmal nach.",
+        hilfe: "Ich helfe dir auf die Sprünge: ",
+        hilfeEnde: "\n\nÜberarbeite deine Analyse damit, oder beende das Gespräch.",
+        angebot: "Ich könnte dir zeigen, was deine Lehrkraft von einer gelungenen Analyse erwartet. Bedenke aber: Wer nur liest, lernt weniger, als wer selbst sucht. " +
+          "Möchtest du es trotzdem sehen? Dann antworte mit „Ja“.",
+        musterVor: "Wie du willst. So sieht deine Lehrkraft eine gelungene Analyse:",
+        musterNach: "Vergleiche Schritt für Schritt mit deiner Analyse. Was fehlt dir, was hast du anders gelöst? Schreib bitte nicht ab.",
+        musterNein: "Eine weise Wahl. Wer selbst sucht, findet mehr. Überarbeite deine Analyse, ich lese sie gern noch einmal.",
+        musterNochmal: "Du kennst sie schon, aber gern noch einmal.",
+        danke: "Gern geschehen. Im Theätet lasse ich Sokrates sagen: Das Staunen ist der Anfang der Philosophie.",
+        unbekannt: "Eine gute Frage. Darauf gebe ich dir keine sichere Antwort. Frag deine Lehrkraft und prüfe es am Text.",
+        zuhoeren: "Ich höre. Du kannst mich nach Begriffen fragen wie Prämisse, Schluss, Analogie, Anamnesis oder notwendige Wahrheit, oder deine Analyse überarbeiten."
       }
-      if (anlass.art === "antwort" && MUSTER_WUNSCH.test(anlass.eingabe || "")) {
-        return musterAngebot(st.musterGezeigt ? "Du kennst sie schon, aber gern noch einmal." : "");
-      }
-      if (anlass.art === "urteil") {
-        var u = urteil(st.rolle), teile = [];
-        var vorher = st.letzteTreffer;
-        st.letzteTreffer = { bereiche: anzahlBereiche(u), punkte: u.treffer.length };
-        st.gefragt = {};
-        if (anlass.erneut && vorher) {
-          teile.push(u.treffer.length > vorher.punkte
-            ? "Du hast nachgebessert! Jetzt sind " + anzahlBereiche(u) + " von 3 Kernbereichen erfasst und " + u.treffer.length + " Einzelaspekte, vorher waren es " + vorher.punkte + "."
-            : "Ich habe deine neue Fassung gelesen: " + anzahlBereiche(u) + " von 3 Kernbereichen.");
-        } else {
-          teile.push("Ah, eine frisch beschriebene Rolle! Lass sehen, was du über Leibniz zu berichten hast …");
-        }
-        var lob = u.treffer.filter(function (k) { return k.kern; }).concat(u.treffer.filter(function (k) { return !k.kern; }))
-          .slice(0, 2).map(function (k) { return k.lob; });
-        if (u.redeOk && lob.length < 2) lob.push("Du machst sauber deutlich, dass du Leibniz wiedergibst.");
-        if (lob.length) teile.push("Das gelingt dir schon:\n" + lob.map(function (l) { return "• " + l; }).join("\n"));
-        var tipps = u.kernFehlt.slice(0, 2).map(function (k) { return k.mangel; });
-        if (u.fehlt.some(function (k) { return k.id === "einleitung"; })) tipps.push(KRIT[0].mangel);
-        tipps = tipps.concat(u.form).slice(0, 3);
-        if (tipps.length) teile.push("Daran würde ich noch feilen:\n" + tipps.map(function (l) { return "• " + l; }).join("\n"));
-        if (u.kernErfasst) {
-          teile.push("Du hast den Kern der Sache erfasst: " + BEREICHE[1] + ", " + BEREICHE[2] + " und " + BEREICHE[3] + ". Nicht jede Einzelheit muss hinein.");
-        }
-        var k = naechsteFrage();
-        if (k) teile.push((u.kernErfasst ? "Wenn du vertiefen willst, eine Frage: " : "Eine Frage an dich: ") + stelle(k));
-        else {
-          stelle(null);
-          teile.push(u.form.length
-            ? "Wenn du die Form noch glättest, ist die Rolle vortrefflich. Du kannst sie überarbeiten oder das Gespräch beenden."
-            : "Vortrefflich! Du kannst das Gespräch beenden, ich siegle deine Rolle.");
-        }
-        return teile.join("\n\n");
-      }
-      // Antwort auf Jonnys Eingabe
-      var e = anlass.eingabe || "";
-      var k = KRIT.filter(function (x) { return x.id === st.frage; })[0];
-      if (k) {
-        if (k.erkennt.test(e)) {
-          var weiter = naechsteFrage();
-          var lobText = "Genau so. Nimm das in deine Rolle auf, dann wird sie runder.";
-          if (weiter) return lobText + "\n\nNächste Frage: " + stelle(weiter);
-          stelle(null);
-          if (!st.musterGezeigt) return musterAngebot(lobText + " Mehr habe ich nicht zu fragen. Überarbeite deine Rolle mit diesen Punkten.");
-          return lobText + "\n\nMehr habe ich nicht zu fragen. Überarbeite deine Rolle mit diesen Punkten oder beende das Gespräch.";
-        }
-        st.versuche++;
-        if (st.versuche === 1) return "Nicht ganz. " + k.wo + " Versuch es noch einmal.";
-        var danach = naechsteFrage();
-        var aufl = "Ich helfe dir: " + k.hilfe;
-        if (danach) return aufl + "\n\nNächste Frage: " + stelle(danach);
-        stelle(null);
-        if (!st.musterGezeigt) return musterAngebot(aufl);
-        return aufl + "\n\nÜberarbeite deine Rolle damit, oder beende das Gespräch.";
-      }
-      for (var i = 0; i < GLOSSAR.length; i++) if (GLOSSAR[i][0].test(e)) return GLOSSAR[i][1];
-      if (/danke/i.test(e)) return "Gern geschehen. Ein Gelehrter fragt, bis er verstanden hat.";
-      if (/\?/.test(e)) return "Eine gute Frage. Darauf weiß ich keine sichere Antwort. Frag deine Lehrkraft, und schau dazu in Leibniz' Text.";
-      return "Ich höre dir zu. Du kannst mich nach Begriffen wie tabula rasa, Induktion, notwendige Wahrheit oder angeborene Ideen fragen, oder deine Rolle überarbeiten.";
-    }
-
-    return { urteil: urteil, sprich: sprich, kriterien: KRIT };
+    });
   })();
 
   // ---------- Kurzer Hinweis, der aufleuchtet und von selbst verschwindet
@@ -1468,12 +1826,21 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
     klein.src = "figuren/bibliothekar_16x24.png";
     gross.src = "figuren/bibliothekar_32x48.png";
   })();
+  // Platon: Geist im Salon (erzeugt mit figuren/platon.py)
+  var PLATON_SPRITE = null, PLATON_GROSS = null;
+  (function () {
+    var klein = new Image(), gross = new Image();
+    klein.onload = function () { PLATON_SPRITE = klein; };
+    gross.onload = function () { PLATON_GROSS = gross; };
+    klein.src = "figuren/platon_16x24.png";
+    gross.src = "figuren/platon_32x48.png";
+  })();
   function malePortrait() {
-    var c = $("portrait"), g = c.getContext && c.getContext("2d");
-    if (!g || !BIB_GROSS) return;
+    var c = $("portrait"), g = c.getContext && c.getContext("2d"), bild = K().bild();
+    if (!g || !bild) return;
     g.imageSmoothingEnabled = false;
     g.clearRect(0, 0, c.width, c.height);
-    g.drawImage(BIB_GROSS, 5, 0, 22, 22, 0, 0, 22, 22);
+    g.drawImage(bild, 5, 0, 22, 22, 0, 0, 22, 22);
   }
 
   var FRAMES = {};
@@ -1548,6 +1915,44 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
       ctx.fillRect(gx - r, gy - r, 2 * r, 2 * r);
       ctx.restore();
     });
+
+    // Salon: Platons Geist steht hinter Jonny vor dem Kamin
+    if (sz.id === "salon" && st.salon.seit != null && !st.salon.fertig) {
+      var gd = sz.d.geist, pr = sz.d.portraet;
+      var galt = (t - st.salon.seit) / 900, ga = ruhig ? 1 : Math.max(0, Math.min(1, galt));
+      // Das Bild ueber dem Kamin ist leer, solange Platon im Raum steht
+      ctx.fillStyle = "#2a2226"; ctx.fillRect(pr.x, pr.y, pr.w, pr.h);
+      ctx.fillStyle = "rgba(160,200,240," + (0.12 + (ruhig ? 0 : 0.06 * Math.sin(t / 300))).toFixed(2) + ")";
+      ctx.fillRect(pr.x, pr.y, pr.w, pr.h);
+      var gx = gd.x * T + 8, gy = gd.y * T + 14;
+      var schweb = ruhig ? 0 : Math.round(Math.sin(t / 450) * 1.5);
+      ctx.save();
+      ctx.globalCompositeOperation = "lighter";
+      var gl = ctx.createRadialGradient(gx, gy - 12, 2, gx, gy - 12, 26);
+      gl.addColorStop(0, "rgba(150,200,255," + (0.35 * ga).toFixed(2) + ")");
+      gl.addColorStop(1, "rgba(150,200,255,0)");
+      ctx.fillStyle = gl; ctx.fillRect(gx - 26, gy - 38, 52, 52);
+      if (!ruhig && galt < 3) {
+        var fl = ctx.createRadialGradient(gx, gy + 6, 2, gx, gy + 6, 40);
+        fl.addColorStop(0, "rgba(255,150,60," + (0.4 * (1 - galt / 3)).toFixed(2) + ")");
+        fl.addColorStop(1, "rgba(255,150,60,0)");
+        ctx.fillStyle = fl; ctx.fillRect(gx - 40, gy - 34, 80, 80);
+      }
+      ctx.restore();
+      if (PLATON_SPRITE) {
+        ctx.save();
+        ctx.globalAlpha = 0.9 * ga;
+        ctx.drawImage(PLATON_SPRITE, gx - 8, gy - 24 + schweb);
+        ctx.restore();
+      }
+      if (!ruhig && galt < 1.6) {
+        ctx.fillStyle = "rgba(210,235,255," + Math.max(0, 1 - galt / 1.6).toFixed(2) + ")";
+        for (var gk = 0; gk < 12; gk++) {
+          var ang = gk * 0.52 + galt * 2, rad = 5 + galt * 14;
+          ctx.fillRect(Math.round(gx + Math.cos(ang) * rad), Math.round(gy - 12 + Math.sin(ang) * rad * 0.7), 1, 1);
+        }
+      }
+    }
 
     var px = Math.round(st.x), py = Math.round(st.y);
     ctx.fillStyle = "rgba(0,0,0,.28)";
@@ -1733,6 +2138,7 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
       st.rolle = daten.rolle || st.rolle; st.abgegeben = !!daten.abgegeben; st.rueckmeldung = !!daten.rueckmeldung;
       st.lesesaalFertig = !!daten.lesesaalFertig; st.verlauf = daten.verlauf || [];
       if (st.abgegeben) st.bibSeit = -1e6;
+      if (daten.salon) { Object.assign(st.salon, daten.salon); if (st.salon.abgegeben) st.salon.seit = -1e6; }
       st.start = false; $("start").hidden = true;
     }
     hudAktualisieren();
@@ -1740,7 +2146,7 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
   }
   var hot = window.claude && window.claude.hot;
   if (hot && hot.snapshot) hot.snapshot(function () { return { x: st.x, y: st.y, stufe: st.stufe, dir: st.dir, szene: st.szene, rueck: st.rueck, gesehen: st.gesehen, geladen: st.geladen,
-    rolle: st.rolle, abgegeben: st.abgegeben, rueckmeldung: st.rueckmeldung, lesesaalFertig: st.lesesaalFertig, verlauf: st.verlauf }; });
+    rolle: st.rolle, abgegeben: st.abgegeben, rueckmeldung: st.rueckmeldung, lesesaalFertig: st.lesesaalFertig, verlauf: st.verlauf, salon: st.salon }; });
   if (hot && hot.ready) hot.ready(start); else start(hot && hot.data ? hot.data : {});
 
   // Test-Hook
@@ -1749,6 +2155,7 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
     herunterladen: herunterladen, materialSchliessen: materialSchliessen,
     abgeben: abgeben, antworten: antworten, gespraechBeenden: gespraechBeenden, ueberarbeiten: ueberarbeiten,
     rolleSchliessen: rolleSchliessen, urteil: function (t) { return BIBLIOTHEKAR.urteil(t); },
+    urteilPlaton: function (t) { return PLATON.urteil(t); }, platonGespraech: platonGespraech, vorstellung: PLATON_VORSTELLUNG,
     teleport: function (tx, ty) { st.x = tx * T + 8; st.y = ty * T + 12; },
     starten: spielStarten, infoAuf: infoAuf, infoZu: infoZu, startLage: startLage, START: START
   };
