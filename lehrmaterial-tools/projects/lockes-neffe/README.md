@@ -3,7 +3,7 @@
 Topdown-Lernspiel zur Philosophie der fruehen Aufklaerung. Jonny will in die Akademie der Wissenschaften aufgenommen werden.
 
 ## Status
-Startbildschirm, spielbare Oberwelt mit begehbarem Observatorium, Lesesaal und Historischem Salon. Buchdruckerei als Probefassung (Raum, Presse, Druckermeister, Infotafel, Flugschrift), Aufgabe 3 folgt. Akademie folgt.
+Startbildschirm, spielbare Oberwelt mit begehbarem Observatorium, Lesesaal und Historischem Salon. Buchdruckerei mit Aufgabe 3, Druckermeister und Flugschrift. Die Akademie folgt.
 Titel auf dem Startbildschirm: „Lockes Welt“.
 
 ## Startbildschirm (`start/`)
@@ -50,9 +50,11 @@ Historischer Salon: 40 x 24 Kacheln, erzeugt mit `python3 innen/salon.py` (Baust
 - Figur: `figuren/platon.py` zeichnet den Geist (Stirnband, weisser Bart, Schriftrolle, Schweif statt Fuessen, kuehle Geisterfarben).
 - Entwurf der Analyse wird wie die Rolle im Browser gemerkt, "Rolle als Datei sichern" speichert `Analyse_Leibniz.txt`.
 
-Buchdruckerei (Probefassung): 40 x 24 Kacheln, erzeugt mit `python3 innen/druckerei.py`.
+Buchdruckerei: 40 x 24 Kacheln, erzeugt mit `python3 innen/druckerei.py`.
 - Aufbau: Fachwerk wie an der Fassade, grobe Dielen mit Druckerschwaerze, Steinplatten am Ofen. Links Setzregal (`setzkasten`, Kerze, hier kommt Aufgabe 3) und Setzpult (`setzpult`, schreiben), in der Mitte die Presse (`presse`, Druckermeister), rechts Ofen zum Letterngiessen, Trockengestell und der Buechertisch mit Lockes Essay und Schautafel (`tafel`). Durchs Fenster links sieht man das Muehlrad.
 - Presse: `innen/druckerei_presse.png` ist ein Sprite-Blatt mit 16 Bildern (128 x 128). Das Spiel spielt es ab: Deckel zu, Karren faehrt ein, der Meister zieht den Bengel, der Tiegel senkt sich, Karren faehrt aus, Deckel auf mit bedrucktem Bogen. Takt in `presseBild` (index.html). Bei reduzierter Bewegung steht die Presse still.
+- Ablauf: Brief der Akademie im Setzkasten (Aufgabe 3, AFB III, Stellungnahme; PDF `material/arbeitsblatt_leibniz_kommentar.pdf`, Feld `kommentar` in `leibniz.json` mit Erwartungshorizont, dazu Lockes Text im Feld `locke`) ansehen und herunterladen. Am Setzpult den Kommentar schreiben (mindestens 150, empfohlen 300 bis 550 Woerter), der Reiter "Texte" zeigt Leibniz und Locke. Nach der Abgabe ruft der Meister an die Presse, stellt sich vor (jede Position ist erlaubt, sie muss begruendet sein) und gibt Rueckmeldung. "Gespraech beenden" startet den Druck: die Presse laeuft einmal schnell durch, dann liegt die Flugschrift mit Vorschau und PDF-Download bereit = Etappe 4.
+- Kriterien des Meisters nach dem Erwartungshorizont: Vergleich (Lockes Sensation und Reflexion, komplexe Ideen, Leibniz' Anlass statt Begruendung), Abwaegung (Induktionsproblem fuer Leibniz, Metaphysik und Sparsamkeit fuer Locke, sichtbares Gegenargument), eigenes Urteil (Fazit, Synthese etwa mit Kant). Zur Form: Urteilssprache statt blosser Darstellung, Begruendungen, Zitate nur in Anfuehrungszeichen, Laenge. Die Position selbst wertet er nie.
 - Druckermeister: `figuren/druckermeister.py` (gefaltete Papiermuetze, Lederschuerze, schwarze Haende), zwei Posen: stehen und ziehen.
 - Infotafel (freiwillig, leuchtet bis sie gelesen ist): Nachbildung des Titelblatts von 1690 und kurze Texte zu Druck und Verlag (Elizabeth Holt, Thomas Basset), Lockes Namen auf dem Titel, Leibniz' liegengebliebenem Manuskript (gedruckt 1765) und dem Ende der Vorzensur 1695. Inhalte im Objekt `TAFELN` in `index.html`, dasselbe Muster laesst sich in anderen Raeumen nutzen.
 - Flugschrift: `FLUGSCHRIFT` in `index.html` setzt einen Text auf A4-Seiten im Stil von 1690 (Titelei, Zierleiste, Initiale, Blocksatz, Kustoden, FINIS, Druckerzeichen, Druckvermerk MDCXC) und speichert sie als PDF (je Seite ein Bild, ohne fremde Bibliothek). Kurze Texte werden bei Bedarf etwas kleiner gesetzt, damit sie auf eine Seite passen.

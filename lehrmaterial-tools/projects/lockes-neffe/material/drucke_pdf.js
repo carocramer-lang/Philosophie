@@ -1,11 +1,12 @@
 // Druckt die Leibniz-Arbeitsblaetter mit Chromium (Playwright) zur PDF.
-// Aufruf: node material/drucke_pdf.js [Ordner fuer Vorschaubilder] [lesesaal|analyse]
-// Ohne zweites Argument werden beide Blaetter gedruckt.
+// Aufruf: node material/drucke_pdf.js [Ordner fuer Vorschaubilder] [lesesaal|analyse|kommentar]
+// Ohne zweites Argument werden alle Blaetter gedruckt.
 const path = require("path");
 const pw = (() => { try { return require("playwright"); } catch (e) { return require("/opt/node22/lib/node_modules/playwright"); } })();
 const BLAETTER = {
   lesesaal: ["arbeitsblatt_leibniz.html", "arbeitsblatt_leibniz_tabula_rasa.pdf", "vorschau_arbeitsblatt.png"],
-  analyse: ["arbeitsblatt_leibniz_analyse.html", "arbeitsblatt_leibniz_analyse.pdf", "vorschau_arbeitsblatt_analyse.png"]
+  analyse: ["arbeitsblatt_leibniz_analyse.html", "arbeitsblatt_leibniz_analyse.pdf", "vorschau_arbeitsblatt_analyse.png"],
+  kommentar: ["arbeitsblatt_leibniz_kommentar.html", "arbeitsblatt_leibniz_kommentar.pdf", "vorschau_arbeitsblatt_kommentar.png"]
 };
 (async () => {
   const b = await pw.chromium.launch();

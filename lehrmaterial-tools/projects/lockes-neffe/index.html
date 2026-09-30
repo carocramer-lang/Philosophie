@@ -154,6 +154,8 @@ button:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
 .faksimile .f7 { font-size: 12px; line-height: 1.35; }
 .faksimile .f8 { font-family: var(--display); font-size: 14px; letter-spacing: .1em; }
 @media (max-width: 640px), (max-height: 480px) { .tafel { grid-template-columns: 1fr; } .faksimile { max-width: 240px; justify-self: center; } }
+.flugschrift .vorschau { display: grid; gap: 12px; }
+.flugschrift .vorschau img { width: 100%; max-width: 560px; margin: 0 auto; box-shadow: 0 3px 10px rgba(0, 0, 0, .3); }
 .brief { background: #f7ecd0; border: 1px solid var(--ink-soft); padding: 8px 12px; margin: 0 0 14px; font-family: var(--body); }
 .brief p { margin: 0 0 6px; }
 .brief .hk { font-weight: bold; margin-top: 8px; }
@@ -490,6 +492,11 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
     sekretaer: {
       titel: "Brief der Akademie: Leibniz analysieren", art: "text", html: "analyse",
       datei: "material/arbeitsblatt_leibniz_analyse.pdf", name: "Arbeitsblatt_Leibniz_Analyse.pdf"
+    },
+    // Buchdruckerei: Brief der Akademie im Setzkasten mit Aufgabe 3 (Stellungnahme)
+    setzkasten: {
+      titel: "Brief der Akademie: Stellung nehmen", art: "text", html: "kommentar",
+      datei: "material/arbeitsblatt_leibniz_kommentar.pdf", name: "Arbeitsblatt_Leibniz_Stellungnahme.pdf"
     }
   };
   var INFOGRAFIKEN = ["regal_links", "regal_rechts", "kartentisch"];
@@ -557,6 +564,16 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
     '<p><strong>' + esc(A.aufgabeKopf) + '</strong><br>' + esc(A.aufgabe) + '</p>' +
     '<p class="hk">' + esc(A.hinweiseKopf) + '</p><ul>' + A.hinweise.map(function (h) { return '<li>' + esc(h) + '</li>'; }).join("") + '</ul></div>' +
     LEIBNIZ_ZEILEN + '</div>';
+  var KO = LEIBNIZ.kommentar;
+  var LOCKE_ZUM_VERGLEICH = '<h3>John Locke: Der Ursprung der Ideen (1690)</h3>' + LEIBNIZ.locke.map(function (t) {
+    return '<p><strong>' + esc(t.titel) + '</strong></p>' + t.absaetze.map(function (a) { return '<p>' + esc(a) + '</p>'; }).join("");
+  }).join("");
+  var KOMMENTAR_HTML = '<div class="text"><div class="brief"><p class="quelle">An Jonny, Neffe des Herrn John Locke</p>' +
+    '<p>Zum Schluss bittet dich die Akademie um dein eigenes Urteil: Wer hat recht, dein Onkel oder Leibniz? Der Meister druckt deinen Kommentar als Flugschrift. Das Arbeitsblatt lädst du unten herunter.</p>' +
+    '<p><strong>' + esc(KO.aufgabeKopf) + '</strong><br>' + esc(KO.aufgabe) + '</p>' +
+    '<p class="hk">' + esc(KO.hinweiseKopf) + '</p><ul>' + KO.hinweise.map(function (h) { return '<li>' + esc(h) + '</li>'; }).join("") + '</ul></div>' +
+    LEIBNIZ_ZEILEN + LOCKE_ZUM_VERGLEICH + '</div>';
+  var TEXTE_HTML = '<div class="text">' + LEIBNIZ_ZEILEN + LOCKE_ZUM_VERGLEICH + '</div>';
 
   // ---------- Szenen: Oberwelt und begehbare Innenraeume
   var SZENEN = {
@@ -589,6 +606,8 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
     musterAngebot: false, musterGezeigt: false,
     werk: "lesesaal", tafeln: {},
     salon: { rolle: "", verlauf: [], abgegeben: false, rueckmeldung: false, fertig: false, seit: null,
+      frage: null, versuche: 0, gefragt: {}, letzteTreffer: null, musterAngebot: false, musterGezeigt: false },
+    druckerei: { rolle: "", verlauf: [], abgegeben: false, rueckmeldung: false, fertig: false, druckSeit: null, gefeiert: false,
       frage: null, versuche: 0, gefragt: {}, letzteTreffer: null, musterAngebot: false, musterGezeigt: false }
   };
   function fertig(id) { return !!(st.gesehen[id] && st.geladen[id]); }
@@ -599,6 +618,8 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
   var MIN_WOERTER = 80;
   var MIN_ANALYSE = 120;              // Salon: Analyse (AFB II)
   var EMPFOHLEN_ANALYSE = [250, 450];
+  var MIN_KOMMENTAR = 150;            // Buchdruckerei: Stellungnahme (AFB III)
+  var EMPFOHLEN_KOMMENTAR = [300, 550];
   var EMPFOHLEN = [150, 300];
   var RAUM = {
     observatorium: {
@@ -705,27 +726,47 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
         }
       }
     },
-    // Buchdruckerei. Probefassung: Raum, Presse, Meister und Infotafel stehen, Aufgabe 3 folgt. Bis dahin ist die Tuer offen.
+    // Buchdruckerei: Brief im Setzkasten (ansehen, herunterladen), Kommentar am Setzpult, Rueckmeldung an der Presse, dann Druck
     druckerei: {
       index: 3,
-      offen: function () { return ["setzkasten"]; },
-      leuchtet: function (id) { return id === "setzkasten" || (id === "tafel" && !st.tafeln.locke_druck); },
-      darfRaus: function () { return true; },
-      sperre: function () { return ""; },
-      ziel: function () { return "Setzkasten"; },
+      offen: function () {
+        if (!fertig("setzkasten")) return ["setzkasten"];
+        if (st.druckerei.fertig) return [];
+        return st.druckerei.abgegeben ? ["presse"] : ["setzpult"];
+      },
+      leuchtet: function (id) { return RAUM.druckerei.offen().indexOf(id) >= 0 || (id === "tafel" && !st.tafeln.locke_druck); },
+      darfRaus: function () { return st.druckerei.fertig || st.stufe > 3; },
+      sperre: function () {
+        if (!fertig("setzkasten")) return "Hol dir zuerst den Brief der Akademie im Setzkasten mit der Kerze und lade das Arbeitsblatt herunter.";
+        if (!st.druckerei.abgegeben) return "Dein Kommentar fehlt noch. Schreib ihn am Setzpult.";
+        return "Der Meister wartet an der Presse auf dich. Beende das Gespräch mit ihm, dann wird gedruckt.";
+      },
+      ziel: function () {
+        if (!fertig("setzkasten")) return "Setzkasten";
+        if (st.druckerei.fertig) return "";
+        return st.druckerei.abgegeben ? "Druckermeister" : "Setzpult";
+      },
       benutzen: function (id) {
         if (id === "tafel") { oeffneTafel("locke_druck"); return; }
-        if (id === "setzkasten") {
-          zeigeDialog("Der Setzkasten",
-            "Zwischen den Lettern liegt ein Brief mit dem roten Siegel der Akademie. Darin steht dein letzter Auftrag: dein eigener Kommentar zum Streit zwischen Locke und Leibniz.",
-            "Probefassung: Aufgabe 3 folgt.", null);
-        } else if (id === "setzpult") {
-          zeigeDialog("Das Setzpult", "Papier, Feder und ein Winkelhaken voller Lettern. Hier schreibst du bald deinen Kommentar.",
-            "Probefassung: Aufgabe 3 folgt.", null);
-        } else if (id === "presse") {
-          zeigeDialog("Der Druckermeister",
-            "„Willkommen in der Officin! Gerade drucken wir das Buch deines Onkels. Schreib deinen Kommentar, dann setze ich ihn und wir drucken ihn als Flugschrift, wie es sich gehört.“",
-            "Die Infotafel am Büchertisch erzählt, wie Lockes Buch in den Druck kam.", null);
+        if (id === "setzkasten") { oeffneMaterial("setzkasten"); return; }
+        if (id === "setzpult") {
+          if (!fertig("setzkasten")) {
+            zeigeDialog("Das Setzpult", "Papier, Feder und ein Winkelhaken voller Lettern. Worüber sollst du schreiben? Hol dir zuerst den Brief im Setzkasten mit der Kerze.",
+              "Ansehen und herunterladen, dann geht es hier weiter.", null);
+            return;
+          }
+          oeffneRolle("druckerei");
+          return;
+        }
+        if (id === "presse") {
+          if (st.druckerei.fertig) { oeffneFlugschrift(false); return; }
+          if (!st.druckerei.abgegeben) {
+            zeigeDialog("Der Druckermeister",
+              "„Willkommen in der Officin! Gerade drucken wir das Buch deines Onkels. Schreib deinen Kommentar am Setzpult, dann setze ich ihn und wir drucken ihn als Flugschrift.“",
+              fertig("setzkasten") ? "Nächstes Ziel: Setzpult." : "Den Auftrag findest du im Setzkasten mit der Kerze.", null);
+            return;
+          }
+          gespraechAmOrt("druckerei");
         }
       }
     }
@@ -880,7 +921,7 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
       img.src = m.datei; img.alt = m.alt;
       inhalt.appendChild(img);
     } else {
-      inhalt.innerHTML = m.html === "leibniz" ? LEIBNIZ_HTML : m.html === "analyse" ? ANALYSE_HTML : LOCKE_TEXT;
+      inhalt.innerHTML = m.html === "leibniz" ? LEIBNIZ_HTML : m.html === "analyse" ? ANALYSE_HTML : m.html === "kommentar" ? KOMMENTAR_HTML : LOCKE_TEXT;
     }
     inhalt.scrollTop = 0;
     $("laden").textContent = m.art === "bild" ? "Infografik herunterladen" : "Arbeitsblatt herunterladen (PDF)";
@@ -923,6 +964,16 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
     var id = st.material;
     if (!id) return Promise.resolve(false);
     $("laden").disabled = true;
+    if (id === "flugschrift") {
+      return FLUGSCHRIFT.speichern(flugschriftDaten(), "Flugschrift_Jonny_Stellungnahme.pdf").then(function (ok) { return ok; }, function () { return false; })
+        .then(function (ok) {
+          $("laden").disabled = false;
+          if (ok) st.geladen.flugschrift = true;
+          if (st.material === id) materialStatus(ok ? null : "Nicht gespeichert. Tippe noch einmal auf Herunterladen.");
+          hudAktualisieren();
+          return ok;
+        });
+    }
     return speichern(MATERIAL[id]).then(function (ok) {
       $("laden").disabled = false;
       if (ok) st.geladen[id] = true;
@@ -938,6 +989,16 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
     $("material").hidden = true;
     $("laden").hidden = false;
     if (id === "tafel") { hudAktualisieren(); return; }
+    if (id === "flugschrift") {
+      if (!st.druckerei.gefeiert) {
+        st.druckerei.gefeiert = true;
+        zeigeDialog("Deine Flugschrift ist gedruckt",
+          "Der Meister hängt den frischen Bogen zum Trocknen auf und klopft dir auf die Schulter: „Gut gesetzt, gut gedacht. Damit kannst du dich vor der Akademie sehen lassen.“",
+          "Nächstes Ziel: Akademie der Wissenschaften.", null);
+      }
+      hudAktualisieren();
+      return;
+    }
     if (id === "teleskop" && allesFertig() && st.stufe === 0) {
       st.stufe = 1;
       zeigeDialog("Alle Materialien gesichert",
@@ -992,6 +1053,7 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
       server: "platon", tutor: function () { return PLATON; }, bild: function () { return PLATON_GROSS; },
       erste: "Ich habe meine Analyse geschrieben.", erneut: "Hier ist meine überarbeitete Analyse.",
       datei: "Analyse_Leibniz.txt", kopf: "Lockes Welt – Historischer Salon: Analyse von Leibniz' Argumentation", meine: "Meine Analyse:",
+      vorstellung: function () { return PLATON_VORSTELLUNG; },
       istFertig: function () { return st.salon.fertig; },
       erscheinen: function () { if (st.salon.seit == null) st.salon.seit = jetzt(); },
       // Erste Abgabe: Platon tritt aus dem Portraet, das Gespraech beginnt am Kamin
@@ -1007,6 +1069,34 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
           "Platon rollt deine Analyse zusammen und drückt ein Siegel darauf. Dann nickt er dir zu und tritt zurück in sein Bild über dem Kamin. Leibniz' Beweisgang hast du zerlegt, jetzt darfst du ihn beurteilen.",
           "Nächstes Ziel: Buchdruckerei.", null);
       }
+    },
+    druckerei: {
+      h: function () { return st.druckerei; },
+      titel: "Dein Kommentar", aria: "Dein Kommentar", abgeben: "Dem Meister zum Setzen geben",
+      auftrag: KO.aufgabeKopf + ": " + KO.aufgabe, hinweise: KO.hinweise.concat([KO.notiz]),
+      min: MIN_KOMMENTAR, empfohlen: EMPFOHLEN_KOMMENTAR,
+      reiter: "Texte", texte: function () { return TEXTE_HTML; },
+      figur: "Druckermeister", gespraech: "Der Druckermeister", anrede: "dem Druckermeister",
+      denkt: "Der Druckermeister hält die Fahne ins Licht und liest …",
+      server: "druckermeister", tutor: function () { return DRUCKER; }, bild: function () { return MEISTER_GROSS; },
+      erste: "Ich habe meinen Kommentar geschrieben.", erneut: "Hier ist mein überarbeiteter Kommentar.",
+      datei: "Kommentar_Leibniz_Locke.txt", kopf: "Lockes Welt – Buchdruckerei: Stellungnahme zu Leibniz und Locke", meine: "Mein Kommentar:",
+      vorstellung: function () { return MEISTER_VORSTELLUNG; },
+      istFertig: function () { return st.druckerei.fertig; },
+      erscheinen: function () {},
+      ankunft: function () {
+        zeigeDialog("Der Druckermeister ruft",
+          "Von der Presse her ruft der Meister: „Fertig? Dann bring mir die Fahne, ich will sehen, ob das druckreif ist!“",
+          "Geh zur Presse und sprich mit ihm.", null);
+      },
+      // Gespraech beendet: die Presse druckt, danach liegt die Flugschrift bereit
+      siegeln: function () {
+        st.druckerei.fertig = true;
+        if (st.stufe === 3) st.stufe = 4;
+        st.druckerei.druckSeit = jetzt();
+        zeigeToast("Die Presse knarrt", "Der Meister setzt deinen Kommentar, färbt die Form ein und zieht den Bengel …");
+        setTimeout(function () { oeffneFlugschrift(true); }, ruhig ? 50 : DRUCKDAUER + 300);
+      }
     }
   };
   function K() { return WERK[st.werk]; }
@@ -1019,12 +1109,13 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
     try { return JSON.parse(window.localStorage.getItem(SPEICHER) || "{}") || {}; } catch (e) { return {}; }
   }
   function entwurfSichern() {
-    try { window.localStorage.setItem(SPEICHER, JSON.stringify({ rolle: st.rolle, analyse: st.salon.rolle })); } catch (e) { /* ohne Speicher weiter */ }
+    try { window.localStorage.setItem(SPEICHER, JSON.stringify({ rolle: st.rolle, analyse: st.salon.rolle, kommentar: st.druckerei.rolle })); } catch (e) { /* ohne Speicher weiter */ }
   }
   (function () {
     var d = entwurfLaden();
     st.rolle = d.rolle || "";
     st.salon.rolle = d.analyse || "";
+    st.druckerei.rolle = d.kommentar || "";
   })();
 
   function woerter(t) { return (String(t).match(/[A-Za-zÄÖÜäöüß0-9]+/g) || []).length; }
@@ -1043,6 +1134,7 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
       var li = document.createElement("li"); li.textContent = h; ul.appendChild(li);
     });
     $("rolleAbgeben").textContent = k.abgeben;
+    $("tabText").textContent = k.reiter || "Leibniz' Text";
     rolleReiter("rolle");
     $("rolleText").value = H().rolle;
     $("rolleText").setAttribute("aria-label", k.aria);
@@ -1058,7 +1150,7 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
     var bereich = $("rolleBereich");
     if (text) {
       bereich.className = "quelltext";
-      bereich.innerHTML = LEIBNIZ_HTML;
+      bereich.innerHTML = K().texte ? K().texte() : LEIBNIZ_HTML;
     } else if (bereich.className !== "papier") {
       bereich.className = "papier";
       bereich.innerHTML = "";
@@ -1116,12 +1208,13 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
     });
   }
   // Am Kamin: Platon stellt sich vor und gibt Rueckmeldung auf die erste Fassung
-  function platonGespraech() {
-    st.werk = "salon";
-    var h = st.salon;
+  function platonGespraech() { return gespraechAmOrt("salon"); }
+  function gespraechAmOrt(werk) {
+    st.werk = werk;
+    var k = K(), h = H();
     if (h.verlauf.length) { oeffneGespraech(); return Promise.resolve(true); }
-    h.verlauf.push({ wer: "bib", text: PLATON_VORSTELLUNG });
-    h.verlauf.push({ wer: "jonny", text: WERK.salon.erste });
+    h.verlauf.push({ wer: "bib", text: k.vorstellung() });
+    h.verlauf.push({ wer: "jonny", text: k.erste });
     st.fenster = "gespraech"; st.dialog = "gespraech";
     tastenLos();
     zeigeGespraech();
@@ -1768,6 +1861,190 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
     });
   })();
 
+
+  // ---------- Druckermeister in der Buchdruckerei: Stellungnahme (AFB III), Erwartungshorizont in LEIBNIZ.kommentar.erwartung
+  // Jede Position ist erlaubt. Der Meister prueft nur, ob verglichen, abgewogen und begruendet geurteilt wird.
+  function imSatz(t, a, b) {
+    return String(t).split(/[.!?;:]\s/).some(function (satz) { return a.test(satz) && b.test(satz); });
+  }
+  var MEISTER_VORSTELLUNG =
+    "Na, da bist du ja! Ich bin der Meister dieser Officin. Gerade drucken wir das Buch deines Onkels, und nun soll ich auch deinen Kommentar drucken.\n\n" +
+    "Merk dir eins: Ob du am Ende deinem Onkel recht gibst, Leibniz oder keinem von beiden, ist mir gleich. Deine Meinung ist deine Sache. " +
+    "Aber sie muss begründet sein, die Gegenseite ernst nehmen und in einem klaren Urteil enden. Sonst taugt sie nicht für die Presse.\n\nNun gib mir die Fahne.";
+  var DRUCKER = (function () {
+    var KRIT = [
+      { id: "einleitung", bereich: 0,
+        test: function (t) { return /leibniz/i.test(t) && /locke/i.test(t) && /(frage|streit|debatte|kontrovers|problem|these|auffassung)/i.test(t); },
+        lob: "Du führst klar in die Streitfrage zwischen Locke und Leibniz ein.",
+        mangel: "Eine kurze Einleitung fehlt: Worum geht der Streit, und was behauptet Leibniz?",
+        frage: "Womit sollte eine Stellungnahme beginnen, bevor du urteilst?",
+        erkennt: /(frage|streit|these|behaupt|worum|thema|einleitung|leibniz)/i,
+        wo: "Denk an den Leser: Er muss zuerst wissen, worüber du urteilst.",
+        hilfe: "Nenne zu Beginn die Streitfrage und Leibniz' These: Erfahrung allein kann keine allgemeine Notwendigkeit begründen (" + zz("Daraus erhellt", "Zeugnis der Sinne") + ")." },
+      { id: "locke", bereich: 1, kern: true,
+        test: function (t) { return imSatz(t, /(locke|empiris)/i, /(sensation|reflexion|erfahrung|sinne|wahrnehm)/i); },
+        lob: "Du stellst Lockes Modell dar: Alles Wissen stammt aus Sensation und Reflexion.",
+        mangel: "Lockes Gegenmodell fehlt: Woher stammt nach ihm alles Material des Denkens?",
+        frage: "Aus welchen beiden Quellen stammt nach Locke alles Wissen?",
+        erkennt: /(sensation|reflexion|erfahrung|sinne|innere|(ä|ae)u(ß|ss)ere)/i,
+        wo: "Schau in Lockes Text 1 aus dem Observatorium: Dort nennt er zwei Quellen.",
+        hilfe: "Nach Locke stammt alles Material des Denkens aus der Erfahrung: aus Sensation (äußere Wahrnehmung) und Reflexion (Wahrnehmung der eigenen Geistestätigkeit)." },
+      { id: "komplex", bereich: 1,
+        test: function (t) { return imSatz(t, /(einfach|komplex|zusammengesetzt|kombin|abstrah|abstraktion|vergleich|verbind)/i, /(idee|begriff|vorstellung|wissen)/i); },
+        lob: "Du erklärst, wie bei Locke allgemeine Begriffe aus einfachen Ideen entstehen.",
+        mangel: "Wie erklärt Locke allgemeine Begriffe ohne angeborene Ideen?",
+        frage: "Wie kommt man nach Locke von einfachen Sinnesdaten zu allgemeinen Begriffen?",
+        erkennt: /(kombin|zusammen|abstrah|vergleich|verbind|einfach|komplex)/i,
+        wo: "Denk daran, was der Verstand bei Locke mit einfachen Ideen tut.",
+        hilfe: "Bei Locke bildet der Verstand komplexe und allgemeine Begriffe selbst: durch Kombination, Vergleich und Abstraktion einfacher Ideen." },
+      { id: "leibniz", bereich: 1, kern: true,
+        test: function (t) { return imSatz(t, /(leibniz|rationalis)/i, /(notwendig|allgemein|universal|universell|anlass|angeboren|prinzip)/i); },
+        lob: "Leibniz' Gegenposition hast du treffend gegenübergestellt.",
+        mangel: "Leibniz' Position fehlt im Vergleich: Wozu reicht die Wahrnehmung nach ihm nicht?",
+        frage: "Wozu reicht die Wahrnehmung nach Leibniz nicht aus?",
+        erkennt: /(notwendig|allgemein|universal|mathe|beweis|begr(ü|ue)nd)/i,
+        wo: "Lies " + zz("Daraus erhellt", "Zeugnis der Sinne") + ".",
+        hilfe: "Für Leibniz ist die Wahrnehmung Anlass, reicht aber nicht aus, um Notwendigkeit und Allgemeingültigkeit zu begründen, etwa in der Mathematik (" + zz("Daraus erhellt", "leisten könnte") + ")." },
+      { id: "proLeibniz", bereich: 2, kern: true,
+        test: function (t) { return imSatz(t, /(induktion|sonne|wiederhol|einzelf|schw(ä|ae)n|beobacht)/i, /(notwendig|beweis|allgemein|zukunft|sicher|gewiss|garant)/i); },
+        lob: "Du stützt Leibniz mit dem Induktionsproblem, das trägt.",
+        mangel: "Ein Argument für Leibniz fehlt: Was spricht dafür, dass Beobachtung allein nicht reicht?",
+        frage: "Nur weil die Sonne jeden Tag aufgegangen ist: Beweist das, dass sie morgen aufgeht?",
+        erkennt: /(nein|nicht|kein|induktion|wahrscheinlich|gewohn)/i,
+        wo: "Denk an Leibniz' Satz über das, was oft geschehen ist (" + zz("oft wiederkehrt", "geschehen muss") + ").",
+        hilfe: "Das Induktionsproblem spricht für Leibniz: Aus noch so vielen Beobachtungen folgt keine Allgültigkeit für die Zukunft. Dass die Sonne bisher aufging, ist kein logischer Beweis für morgen." },
+      { id: "proLocke", bereich: 2, kern: true,
+        test: /(metaphysi|sparsam|ockham|rasiermesser|nicht (zu )?(beweis|nachweis|(ü|ue)berpr(ü|ue)f|beobacht)|spekulat|gewohnheit|gew(ö|oe)hnung|lernprozess|durch lernen|kinder|entwickl)/i,
+        lob: "Du nimmst auch Lockes Seite ernst, etwa mit der Sparsamkeit seines Modells.",
+        mangel: "Ein Gegenargument gegen Leibniz fehlt: Was lässt sich an angeborenen Ideen kritisieren?",
+        frage: "Kann man angeborene Ideen eigentlich beobachten oder nachweisen? Was folgt daraus für Leibniz' Position?",
+        erkennt: /(nein|nicht|metaphysi|beweis|nachweis|sparsam|ockham|spekul|lernen)/i,
+        wo: "Überlege, welches Modell mit weniger unbeweisbaren Annahmen auskommt.",
+        hilfe: "Angeborene Ideen lassen sich schwer nachweisen, das riskiert Metaphysik. Lockes Modell ist sparsamer (Ockhams Rasiermesser) und erklärt Wissen über Lernen und Gewöhnung." },
+      { id: "abwaegung", bereich: 2,
+        test: /(einerseits|andererseits|zwar|jedoch|dagegen|allerdings|dennoch|trotzdem|gegenargument|auf der anderen seite)/i,
+        lob: "Du wägst sichtbar ab: Argument und Gegenargument stehen sich gegenüber.",
+        mangel: "Mach die Abwägung sichtbar: Stell Argument und Gegenargument ausdrücklich gegenüber.",
+        frage: "Welches Gegenargument könnte jemand gegen deine Position vorbringen?",
+        erkennt: /(aber|jedoch|gegen|einwand|dagegen|kritik|allerdings)/i,
+        wo: "Versetz dich in jemanden, der deine Position ablehnt.",
+        hilfe: "Nimm das stärkste Gegenargument auf und zeige, warum es dich nicht umstimmt oder was es an deinem Urteil ändert." },
+      { id: "fazit", bereich: 3, kern: true,
+        test: /(fazit|abschlie(ß|ss)end|insgesamt|zusammenfassend|mein urteil|ich komme zu|ich halte|meines erachtens|meiner (meinung|ansicht|auffassung) nach|ich bin der (meinung|ansicht|auffassung)|(ü|ue)berzeugt mich|(ü|ue)berzeugender|ich stimme)/i,
+        lob: "Du schließt mit einem klaren eigenen Urteil.",
+        mangel: "Ein klares Fazit mit deinem eigenen Urteil fehlt noch.",
+        frage: "Wem gibst du am Ende recht, Locke, Leibniz oder beiden zum Teil, und warum?",
+        erkennt: /(locke|leibniz|beide|recht|weil|denn|(ü|ue)berzeug)/i,
+        wo: "Die Aufgabe verlangt am Ende ein eigenes begründetes Sachurteil.",
+        hilfe: "Schließe mit einem eigenen Urteil: In welcher Hinsicht überzeugt dich wer mehr, und warum? Welche Seite du wählst, entscheidest du." },
+      { id: "synthese", bereich: 3,
+        test: /(kant|synthese|sowohl[^.]{0,80}als auch|beide[^.]{0,40}(recht|seiten|positionen)|vermittel|erg(ä|ae)nz|mittelweg|zusammenspiel|verbind)/i,
+        lob: "Du führst beide Positionen in einer eigenen Synthese zusammen.",
+        mangel: "Prüfe, ob sich beide Positionen verbinden lassen.",
+        frage: "Könnten Locke und Leibniz beide ein Stück weit recht haben? Wo genau?",
+        erkennt: /(beide|sowohl|teil|verbind|zusammen|kant|erg(ä|ae)nz)/i,
+        wo: "Denk an das Marmorgleichnis: Adern und Arbeit gehören zusammen.",
+        hilfe: "Eine Synthese wäre: Die Erfahrung liefert den Stoff, die Vernunft die Ordnung. Kant hat das später so gefasst: Gedanken ohne Inhalt sind leer, Anschauungen ohne Begriffe sind blind." }
+    ];
+    var URTEIL = /((ü|ue)berzeug|schwach|stark|plausib|problemat|einleucht|trifft (nicht )?zu|recht hat|hat recht|zu recht|fragw(ü|ue)rdig|berechtigt|(ü|ue)berwiegt|spricht (f(ü|ue)r|gegen)|halte ich|ich halte|meines erachtens|meiner (meinung|ansicht))/gi;
+    var BEGRUENDUNG = /\b(weil|denn|da|deshalb|daher|folglich|somit|dadurch|darum)\b/gi;
+    function anzahl(re, t) {
+      var gefunden = {};
+      (String(t).match(re) || []).forEach(function (w) { gefunden[w.toLowerCase().slice(0, 7)] = true; });
+      return Object.keys(gefunden).length;
+    }
+    return baueTutor({
+      h: function () { return st.druckerei; },
+      krit: KRIT,
+      bereiche: { 1: "der Vergleich von Lockes und Leibniz' Modell", 2: "die Abwägung von Argument und Gegenargument", 3: "ein eigenes begründetes Urteil" },
+      muster: LEIBNIZ.kommentar.erwartung,
+      zusatz: function (t) { return (String(t).match(BEGRUENDUNG) || []).length >= 4 ? "Du begründest deine Urteile durchgehend, das trägt." : null; },
+      form: function (t, n, zitat) {
+        var form = [];
+        if (anzahl(URTEIL, t) < 2) form.push("Das liest sich noch eher wie eine Darstellung. Beim Stellungnehmen wägst du ab: Was überzeugt dich, was nicht, und warum?");
+        if ((String(t).match(BEGRUENDUNG) || []).length < 3) form.push("Begründe deine Urteile ausdrücklich, etwa mit „weil“, „denn“ oder „deshalb“.");
+        if (zitat && !/[„“"»«]/.test(t)) form.push("Du übernimmst Passagen wörtlich, etwa „" + zitat + " …“. Kurze Zitate sind erlaubt, dann aber in Anführungszeichen und mit Zeile.");
+        if (n < EMPFOHLEN_KOMMENTAR[0]) form.push("Dein Kommentar ist noch knapp. Für diese Aufgabe sind etwa " + EMPFOHLEN_KOMMENTAR[0] + " bis " + EMPFOHLEN_KOMMENTAR[1] + " Wörter angemessen.");
+        if (n > EMPFOHLEN_KOMMENTAR[1] + 40) form.push("Dein Kommentar ist lang geraten. Verdichte: Ein starkes Argument wiegt mehr als drei schwache.");
+        return form;
+      },
+      glossar: [
+        [/stellung|operator/i, "Stellung nehmen heißt: eine eigene Position beziehen und begründen, Gegenargumente abwägen und mit einem klaren Urteil enden. Ob du Locke, Leibniz oder beiden teilweise folgst, entscheidest du."],
+        [/sachurteil|werturteil/i, "Ein Sachurteil prüft, ob eine Position stimmig und gut begründet ist. Ein Werturteil fragt, ob sie gut oder wünschenswert ist. Hier ist ein Sachurteil gefragt."],
+        [/ockham|rasiermesser|sparsam/i, "Ockhams Rasiermesser ist eine Denkregel: Von zwei Erklärungen ist die vorzuziehen, die mit weniger Annahmen auskommt. Locke braucht keine angeborenen Ideen, das macht sein Modell sparsamer."],
+        [/metaphysi/i, "Metaphysik fragt nach dem, was hinter der Erfahrung liegt und sich nicht beobachten lässt. Angeborene Ideen sind so ein Fall: Man kann sie nicht direkt nachweisen."],
+        [/induktion|sonne/i, "Das Induktionsproblem: Aus noch so vielen Beobachtungen folgt keine Gewissheit für die Zukunft. Dass die Sonne jeden Tag aufging, beweist nicht logisch, dass sie morgen aufgeht."],
+        [/sensation|reflexion/i, "Bei Locke ist Sensation die äußere Wahrnehmung durch die Sinne, Reflexion die innere Wahrnehmung der eigenen Geistestätigkeit. Aus beiden stammt nach ihm alles Material des Denkens."],
+        [/einfache|komplexe|abstrah/i, "Bei Locke sind einfache Ideen wie Gelb oder Warm die Bausteine. Der Verstand verbindet, vergleicht und abstrahiert sie zu komplexen und allgemeinen Begriffen."],
+        [/kant/i, "Immanuel Kant (1724–1804) hat später Empirismus und Rationalismus verbunden: Gedanken ohne Inhalt sind leer, Anschauungen ohne Begriffe sind blind."],
+        [/meinung|welche seite|darf ich|position/i, "Deine Meinung ist erlaubt, ja gefordert. Welche Seite du wählst, ist deine Sache. Entscheidend ist, dass du sie begründest und die Gegenseite ernst nimmst."],
+        [/fazit/i, "Das Fazit bündelt deine Abwägung in einem klaren Urteil: Wem gibst du in welcher Hinsicht recht, und warum?"],
+        [/flugschrift|drucken|presse/i, "Sobald du das Gespräch beendest, setze ich deinen Kommentar und drucke ihn als Flugschrift. Die kannst du dann mitnehmen."],
+        [/wie lang|wie viele w(ö|oe)rter|l(ä|ae)nge/i, "Für diese Aufgabe sind etwa " + EMPFOHLEN_KOMMENTAR[0] + " bis " + EMPFOHLEN_KOMMENTAR[1] + " Wörter angemessen. Lieber wenige Argumente gründlich als viele flüchtig."]
+      ],
+      x: {
+        begruessung: "Dann wollen wir mal sehen, ob das druckreif ist …",
+        besser: function (b, p, v) { return "Du hast nachgebessert! Jetzt sind " + b + " von 3 Kernbereichen erfasst und " + p + " Einzelaspekte, vorher waren es " + v + "."; },
+        gleich: function (b) { return "Ich habe deine neue Fassung gelesen: " + b + " von 3 Kernbereichen."; },
+        gelingt: "Das ist schon druckreif:",
+        feilen: "Hier klemmt der Satz noch:",
+        vertiefen: "Wenn du es noch besser machen willst: ",
+        frage: "Sag mal: ",
+        fastFertig: "Wenn du die Form noch glättest, wird das eine prächtige Flugschrift. Überarbeite sie oder beende das Gespräch, dann drucken wir.",
+        fertig: "Druckreif! Beende das Gespräch, dann ziehe ich den Bengel.",
+        richtig: "Recht so! Das gehört in deinen Text.",
+        keineFragen: " Mehr habe ich nicht zu fragen. Überarbeite deinen Kommentar mit diesen Punkten.",
+        keineFragenEnde: "\n\nMehr habe ich nicht zu fragen. Überarbeite deinen Kommentar oder beende das Gespräch, dann drucken wir.",
+        nochmal: " Versuch's noch mal.",
+        hilfe: "Ich helfe dir: ",
+        hilfeEnde: "\n\nÜberarbeite deinen Kommentar damit, oder beende das Gespräch.",
+        angebot: "Ich könnte dir zeigen, was deine Lehrkraft von einer gelungenen Stellungnahme erwartet. Bedenke aber: Wer nur liest, lernt weniger, als wer selbst verbessert. " +
+          "Möchtest du es trotzdem sehen? Dann antworte mit „Ja“.",
+        musterVor: "Na gut. Diese Gesichtspunkte erwartet deine Lehrkraft:",
+        musterNach: "Das ist kein Urteil zum Abschreiben, sondern eine Liste von Gesichtspunkten. Welche Position du vertrittst, bleibt deine Sache. Prüf, was dir noch fehlt.",
+        musterNein: "Gut so. Wer selbst setzt, lernt das Handwerk. Überarbeite deinen Kommentar, ich lese ihn gern noch einmal.",
+        musterNochmal: "Du kennst ihn schon, aber gern noch einmal.",
+        danke: "Gern. Eine gute Flugschrift braucht Zeit, genau wie ein guter Druck.",
+        unbekannt: "Gute Frage. Darauf weiß ich als Drucker keine sichere Antwort. Frag deine Lehrkraft.",
+        zuhoeren: "Ich höre. Frag mich nach Begriffen wie Sachurteil, Induktionsproblem, Ockhams Rasiermesser oder Kant, oder überarbeite deinen Kommentar."
+      }
+    });
+  })();
+
+  // Flugschrift-Fenster: Vorschau der ersten Seite und Download als PDF
+  function flugschriftDaten() {
+    return { titel: "Stellungnahme",
+      frage: "zu Leibnizens Behauptung, dass die Erfahrung allein keine allgemeine Nothwendigkeit begründen könne, verglichen mit der Lehre des Herrn Locke.",
+      text: st.druckerei.rolle };
+  }
+  function oeffneFlugschrift(neu) {
+    st.material = "flugschrift"; st.dialog = "material"; st.gesehen.flugschrift = true;
+    tastenLos();
+    $("toast").hidden = true;
+    $("materialTitel").textContent = neu ? "Frisch von der Presse: deine Flugschrift" : "Deine Flugschrift";
+    var inhalt = $("materialInhalt");
+    inhalt.innerHTML = '<div class="text flugschrift"><p>Der Meister reicht dir den noch feuchten Bogen. Lade deine Flugschrift als PDF herunter, sie gehört dir.</p>' +
+      '<div class="vorschau" id="flugVorschau">Die Presse arbeitet …</div></div>';
+    inhalt.scrollTop = 0;
+    $("laden").textContent = "Flugschrift herunterladen (PDF)";
+    materialStatus(null);
+    $("material").hidden = false;
+    $("laden").focus();
+    hudAktualisieren();
+    try {
+      FLUGSCHRIFT.erstellen(flugschriftDaten()).then(function (e) {
+        var ziel = $("flugVorschau");
+        if (!ziel || st.material !== "flugschrift") return;
+        ziel.innerHTML = "";
+        e.seiten.forEach(function (c, i) {
+          var img = document.createElement("img");
+          img.src = c.toDataURL("image/jpeg", 0.8); img.alt = "Deine Flugschrift, Seite " + (i + 1);
+          ziel.appendChild(img);
+        });
+      }, function () {});
+    } catch (e) { /* Vorschau ist nur ein Zusatz */ }
+  }
+
   // ---------- Flugschrift im Stil von 1690: Jonnys Text wird auf Seiten im Format A4 gesetzt (Canvas) und als PDF gespeichert.
   // Die PDF enthaelt je Seite ein JPEG-Bild. So bleibt die alte Schrift erhalten und es braucht keine fremde Bibliothek.
   var FLUGSCHRIFT = (function () {
@@ -2160,8 +2437,11 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
     lade("figuren/druckermeister_32x48.png", function (i) { MEISTER_GROSS = i; });
   })();
   // Takt der Presse: 16 Bilder in 3,2 s, dann 1,4 s Pause mit offenem Deckel. Bilder 6 bis 9: der Meister zieht am Bengel.
+  var DRUCKDAUER = 2400;
   function presseBild(t) {
     if (ruhig) return 0;
+    var ds = st.druckerei.druckSeit;
+    if (ds != null && t - ds >= 0 && t - ds < DRUCKDAUER) return Math.min(15, Math.floor((t - ds) / DRUCKDAUER * 16));
     var zyklus = 4600, lauf = 3200, p = t % zyklus;
     return p < lauf ? Math.min(15, Math.floor(p / lauf * 16)) : 15;
   }
@@ -2492,6 +2772,8 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
       st.lesesaalFertig = !!daten.lesesaalFertig; st.verlauf = daten.verlauf || [];
       if (st.abgegeben) st.bibSeit = -1e6;
       if (daten.salon) { Object.assign(st.salon, daten.salon); if (st.salon.abgegeben) st.salon.seit = -1e6; }
+      if (daten.druckerei) { Object.assign(st.druckerei, daten.druckerei); st.druckerei.druckSeit = null; }
+      if (daten.tafeln) st.tafeln = daten.tafeln;
       st.start = false; $("start").hidden = true;
     }
     hudAktualisieren();
@@ -2499,7 +2781,7 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
   }
   var hot = window.claude && window.claude.hot;
   if (hot && hot.snapshot) hot.snapshot(function () { return { x: st.x, y: st.y, stufe: st.stufe, dir: st.dir, szene: st.szene, rueck: st.rueck, gesehen: st.gesehen, geladen: st.geladen,
-    rolle: st.rolle, abgegeben: st.abgegeben, rueckmeldung: st.rueckmeldung, lesesaalFertig: st.lesesaalFertig, verlauf: st.verlauf, salon: st.salon }; });
+    rolle: st.rolle, abgegeben: st.abgegeben, rueckmeldung: st.rueckmeldung, lesesaalFertig: st.lesesaalFertig, verlauf: st.verlauf, salon: st.salon, druckerei: st.druckerei, tafeln: st.tafeln }; });
   if (hot && hot.ready) hot.ready(start); else start(hot && hot.data ? hot.data : {});
 
   // Test-Hook
@@ -2508,7 +2790,9 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
     herunterladen: herunterladen, materialSchliessen: materialSchliessen,
     abgeben: abgeben, antworten: antworten, gespraechBeenden: gespraechBeenden, ueberarbeiten: ueberarbeiten,
     rolleSchliessen: rolleSchliessen, urteil: function (t) { return BIBLIOTHEKAR.urteil(t); },
-    urteilPlaton: function (t) { return PLATON.urteil(t); }, flugschrift: FLUGSCHRIFT, tafel: oeffneTafel, presseBild: presseBild, platonGespraech: platonGespraech, vorstellung: PLATON_VORSTELLUNG,
+    urteilPlaton: function (t) { return PLATON.urteil(t); }, flugschrift: FLUGSCHRIFT, tafel: oeffneTafel, presseBild: presseBild,
+    urteilDrucker: function (t) { return DRUCKER.urteil(t); }, meisterGespraech: function () { return gespraechAmOrt("druckerei"); },
+    oeffneFlugschrift: oeffneFlugschrift, flugschriftDaten: flugschriftDaten, platonGespraech: platonGespraech, vorstellung: PLATON_VORSTELLUNG,
     teleport: function (tx, ty) { st.x = tx * T + 8; st.y = ty * T + 12; },
     starten: spielStarten, infoAuf: infoAuf, infoZu: infoZu, startLage: startLage, START: START
   };

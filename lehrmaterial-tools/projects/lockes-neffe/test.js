@@ -288,7 +288,7 @@ async function salonAblauf() {
   G.schliessen();
   G.teleport(19, 21); bisWechsel("down", 2);
   check("Salon: danach ist die Tuer offen", G.state.szene === "welt");
-  druckereiAblauf();
+  await druckereiAblauf();
 
   // Rueckmeldungen der eingebauten Fassung
   const p1 = G.urteilPlaton(ANALYSE);
@@ -301,15 +301,29 @@ async function salonAblauf() {
   check("Platon: Zeilenangaben aus dem Arbeitsblatt", /Z\. \d/.test(hinweisP) && !/\(\)/.test(hinweisP));
 }
 
-// ---------- Buchdruckerei (Probefassung): Raum, Presse, Meister, Infotafel
-function druckereiAblauf() {
+// ---------- Buchdruckerei: Brief im Setzkasten, Kommentar am Setzpult, Druckermeister an der Presse, Flugschrift
+const KOMMENTAR = "In der Frage, ob die Seele eine leere Tafel ist, behauptet Leibniz gegen Locke, dass empirische Wahrnehmung allein keine allgemeine Notwendigkeit begründen kann. " +
+  "Für Locke stammt dagegen alles Material des Denkens aus der Erfahrung, nämlich aus Sensation und Reflexion. " +
+  "Allgemeine Begriffe entstehen bei ihm, indem der Verstand einfache Ideen kombiniert, vergleicht und abstrahiert. " +
+  "Leibniz hält die Wahrnehmung zwar für den Anlass des Erkennens, aber er bestreitet, dass sie notwendige und allgemeine Wahrheiten wie in der Mathematik begründen kann (Z. 14–20). " +
+  "Für Leibniz spricht vor allem das Induktionsproblem: Nur weil die Sonne bisher jeden Tag aufgegangen ist, ist das kein logischer Beweis dafür, dass sie morgen aufgeht. " +
+  "Das überzeugt mich, denn Beobachtungen zeigen nur, was bisher geschah. " +
+  "Andererseits ist Lockes Modell sparsamer, weil es ohne angeborene Ideen auskommt, die man nicht nachweisen kann. " +
+  "Nach Ockhams Rasiermesser ist das ein Vorteil, und Lockes Erklärung über Lernen und Gewöhnung wirkt realistisch, da Kinder Zahlen erst durch Übung verstehen. " +
+  "Allerdings erklärt Locke nicht, warum mathematische Sätze nicht nur zufällig, sondern notwendig gelten. " +
+  "Deshalb halte ich Leibniz' Einwand für berechtigt, auch wenn seine angeborenen Ideen problematisch bleiben. " +
+  "Mein Fazit: In der Frage nach der Notwendigkeit hat Leibniz recht, in der Frage, wie wir tatsächlich lernen, überzeugt Locke mehr. " +
+  "Beide Positionen ergänzen sich, und genau diese Lücke des reinen Empirismus hat später Kant geschlossen, weil bei ihm Anschauung und Begriffe zusammenwirken.";
+async function druckereiAblauf() {
   G.teleport(74, 43); bisWechsel("up", 2);
   check("Druckerei: Tuer fuehrt nach dem Salon hinein", G.state.szene === "druckerei" && !G.state.dialog);
   check("Druckerei: Eintritt auf der Eintrittsstelle", druckerei.raster[Math.floor((G.state.y - 2) / 16)][Math.floor(G.state.x / 16)] === "S");
-  lauf("up", 3.5);
+  G.teleport(19, 21); bisWechsel("down", 2);
+  check("Druckerei: Tuer gesperrt ohne Kommentar", G.state.szene === "druckerei");
+  G.teleport(19, 20); lauf("up", 3.5);
   check("Druckerei: Hauptweg fuehrt gerade zur Presse", G.state.aktion === "presse");
   G.benutzen();
-  check("Druckerei: Druckermeister begruesst Jonny", G.state.dialog === "Der Druckermeister");
+  check("Druckerei: Druckermeister begruesst Jonny", G.state.dialog === "Der Druckermeister" && !G.state.fenster);
   G.schliessen();
   G.teleport(30, 17); G.tick(1 / 60);
   check("Druckerei: Infotafel am Buechertisch", G.state.aktion === "tafel");
@@ -319,14 +333,69 @@ function druckereiAblauf() {
   check("Druckerei: Infotafel ohne Download", document.getElementById("laden").hidden === true);
   G.materialSchliessen();
   check("Druckerei: Infotafel gelesen, Download wieder da", G.state.tafeln.locke_druck && !G.state.material && document.getElementById("laden").hidden === false);
-  G.teleport(4, 6); G.tick(1 / 60);
-  check("Druckerei: Setzkasten bietet Interaktion", G.state.aktion === "setzkasten");
-  G.teleport(4, 13); G.tick(1 / 60);
-  check("Druckerei: Setzpult bietet Interaktion", G.state.aktion === "setzpult");
   const bilder = [0, 1000, 2000, 3000, 4000].map(G.presseBild);
   check("Druckerei: Presse laeuft durch ihre Bilder", new Set(bilder).size >= 4 && bilder.every(b => b >= 0 && b < druckerei.presse.bilder));
+
+  G.teleport(4, 13); G.tick(1 / 60);
+  check("Druckerei: Setzpult bietet Interaktion", G.state.aktion === "setzpult");
+  G.benutzen();
+  check("Druckerei: Setzpult gesperrt ohne Auftrag", G.state.dialog === "Das Setzpult" && !G.state.fenster);
+  G.schliessen();
+  G.teleport(4, 6); G.tick(1 / 60);
+  check("Druckerei: Setzkasten bietet Interaktion", G.state.aktion === "setzkasten");
+  G.benutzen();
+  const brief = document.getElementById("materialInhalt").innerHTML;
+  check("Druckerei: Setzkasten oeffnet Aufgabe 3 mit Hinweisen", G.state.material === "setzkasten" && /Nehmen Sie Stellung/.test(brief) && /Sensation und Reflexion/.test(brief));
+  check("Druckerei: Brief enthaelt Lockes Text zum Vergleich", /Der Ursprung der Ideen/.test(brief) && /SENSATION/.test(brief));
+  await G.herunterladen(); G.materialSchliessen();
+  check("Druckerei: Brief gesichert", G.state.gesehen.setzkasten && G.state.geladen.setzkasten);
+  G.teleport(4, 13); G.tick(1 / 60); G.benutzen();
+  check("Druckerei: Setzpult oeffnet die Rolle fuer den Kommentar", G.state.fenster === "rolle" && document.getElementById("rolleTitel").textContent === "Dein Kommentar");
+  check("Druckerei: Reiter mit beiden Texten", document.getElementById("tabText").textContent === "Texte");
+  G.state.druckerei.rolle = "Ich finde Leibniz gut.";
+  check("Druckerei: zu kurzer Kommentar wird nicht angenommen", (await G.abgeben()) === false && G.state.fenster === "rolle");
+  G.state.druckerei.rolle = KOMMENTAR;
+  await G.abgeben();
+  check("Druckerei: Abgabe ruft an die Presse", G.state.dialog === "Der Druckermeister ruft" && !G.state.fenster);
+  check("Druckerei: andere Rollen bleiben unberuehrt", G.state.rolle === GUT && G.state.salon.rolle === ANALYSE);
+  G.schliessen();
   G.teleport(19, 21); bisWechsel("down", 2);
-  check("Druckerei: Rueckweg nach draussen", G.state.szene === "welt");
+  check("Druckerei: Tuer gesperrt, solange der Meister wartet", G.state.szene === "druckerei");
+
+  G.teleport(19, 9); G.tick(1 / 60);
+  check("Druckerei: Presse bietet Interaktion", G.state.aktion === "presse");
+  await G.meisterGespraech();
+  const v = G.state.druckerei.verlauf;
+  check("Meister: stellt sich vor und erlaubt jede Position", v[0].wer === "bib" && /Deine Meinung ist deine Sache/.test(v[0].text) && /begründet/.test(v[0].text));
+  const rm = v[v.length - 1].text;
+  check("Meister: gibt Rueckmeldung", v[v.length - 1].wer === "bib" && /Das ist schon druckreif/.test(rm));
+  check("Meister: gute Stellungnahme erfasst den Kern", /Kern der Sache erfasst/.test(rm));
+  await G.antworten("Was ist Ockhams Rasiermesser?");
+  check("Meister: erklaert Begriffe", /weniger Annahmen/.test(v[v.length - 1].text));
+  await G.antworten("Zeig mir bitte den Erwartungshorizont");
+  check("Meister: Erwartungshorizont nur nach Angebot mit Hinweis", /Wer nur liest, lernt weniger/.test(v[v.length - 1].text) && !/Ockhams Rasiermesser\)/.test(v[v.length - 1].text));
+  await G.antworten("Ja");
+  check("Meister: Erwartungshorizont nach Zustimmung", /Pro Leibniz/.test(v[v.length - 1].text) && /bleibt deine Sache/.test(v[v.length - 1].text));
+  G.gespraechBeenden();
+  check("Meister: Gespraech beenden startet den Druck", G.state.druckerei.fertig && G.state.stufe === 4 && G.state.druckerei.druckSeit != null);
+  await new Promise(r => setImmediate(r)); await new Promise(r => setImmediate(r));
+  check("Druckerei: Flugschrift liegt bereit", G.state.material === "flugschrift" && /Flugschrift herunterladen/.test(document.getElementById("laden").textContent));
+  check("Druckerei: Flugschrift traegt den Kommentar", G.flugschriftDaten().text === KOMMENTAR && /Nothwendigkeit/.test(G.flugschriftDaten().frage));
+  G.materialSchliessen();
+  check("Druckerei: Glueckwunsch nach dem Druck", G.state.dialog === "Deine Flugschrift ist gedruckt");
+  G.schliessen();
+  G.teleport(19, 21); bisWechsel("down", 2);
+  check("Druckerei: danach ist die Tuer offen", G.state.szene === "welt");
+
+  // Rueckmeldungen der eingebauten Fassung
+  const d1 = G.urteilDrucker(KOMMENTAR);
+  check("Meister: gute Stellungnahme nur mit Laengenhinweis", d1.kernErfasst && d1.form.length === 1 && /noch knapp/.test(d1.form[0]));
+  const d2 = G.urteilDrucker("Leibniz meint, dass die Seele angeborene Ideen hat. Locke meint, dass alles aus der Erfahrung kommt. Leibniz vergleicht die Seele mit einem Marmorblock.");
+  check("Meister: Darstellung ohne Urteil erkannt", d2.form.some(f => /eher wie eine Darstellung/.test(f)) && d2.form.some(f => /Begründe/.test(f)));
+  check("Meister: fehlendes Fazit erkannt", !d2.bereiche[3] && d2.kernFehlt.some(k => k.id === "fazit"));
+  const d3 = G.urteilDrucker("Ich halte Locke für überzeugender, weil man angeborene Ideen nicht nachweisen kann.");
+  const d4 = G.urteilDrucker("Ich halte Leibniz für überzeugender, weil aus Beobachtungen keine Notwendigkeit folgt.");
+  check("Meister: jede Position zaehlt als Urteil", d3.bereiche[3] && d4.bereiche[3]);
 }
 
 // Druckerei-Raster: alles vom Eintritt aus erreichbar
@@ -460,6 +529,12 @@ async function musterUndKern() {
     kern.ROLLEN.platon.system.includes(kern.MUSTERLOESUNG_ANALYSE) && kern.MUSTERLOESUNG_ANALYSE.includes("Prämisse 1"));
   check("Kern: Platon erklaert den Bezug zu Leibniz", /wie ich mit Platon annehme/.test(kern.SYSTEM_PLATON) && /Anamnesis/.test(kern.SYSTEM_PLATON));
   check("Kern: Platons Musterloesung identisch mit dem Spiel", G.state.salon.verlauf.some(m => m.text.includes(kern.MUSTERLOESUNG_ANALYSE)));
+  const dm = kern.nachrichten(kern.pruefe({ zusammenfassung: "MEIN KOMMENTAR", verlauf: v.slice(0, 1), art: "urteil", rolle: "druckermeister" }));
+  check("Kern: Meister bekommt den Kommentar", dm[0].content.includes("<kommentar>\nMEIN KOMMENTAR"));
+  check("Kern: Meister kennt Aufgabe, Lockes Text und Erwartungshorizont", kern.SYSTEM_DRUCKER.includes("Nehmen Sie Stellung") &&
+    kern.SYSTEM_DRUCKER.includes("SENSATION") && kern.SYSTEM_DRUCKER.includes(kern.MUSTERLOESUNG_KOMMENTAR));
+  check("Kern: Meister bewertet nie die Position", /Bewerte nie, welche Position Jonny einnimmt/.test(kern.SYSTEM_DRUCKER));
+  check("Kern: Erwartungshorizont des Meisters identisch mit dem Spiel", G.state.druckerei.verlauf.some(m => m.text.includes(kern.MUSTERLOESUNG_KOMMENTAR)));
   check("Kern: Erwartungshorizont ohne Tippfehler", !/[一-鿿]|derive|veranschaulichung, dass/.test(kern.MUSTERLOESUNG_ANALYSE));
   check("Kern: letzte Nachricht muss von Jonny sein", wirft(() => kern.pruefe({ zusammenfassung: "x", verlauf: v.slice(0, 2) })));
   check("Kern: falsche Rolle abgewiesen", wirft(() => kern.pruefe({ zusammenfassung: "x", verlauf: [{ wer: "system", text: "x" }] })));
