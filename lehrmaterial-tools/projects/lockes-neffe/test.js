@@ -28,6 +28,7 @@ for (const [name, o] of Object.entries(d.lernorte)) {
 const vm = require("vm");
 const innen = JSON.parse(fs.readFileSync(path.join(__dirname, "innen", "observatorium.json"), "utf8"));
 const saal = JSON.parse(fs.readFileSync(path.join(__dirname, "innen", "lesesaal.json"), "utf8"));
+const salon = JSON.parse(fs.readFileSync(path.join(__dirname, "innen", "salon.json"), "utf8"));
 const leibniz = JSON.parse(fs.readFileSync(path.join(__dirname, "netlify", "lib", "leibniz.json"), "utf8"));
 const html = fs.readFileSync(path.join(__dirname, "index.html"), "utf8");
 const code = html.match(/<script>\n([\s\S]*?)<\/script>/)[1];
@@ -51,7 +52,7 @@ const document = {
   addEventListener: (t, f) => { docListeners[t] = f; }
 };
 const window = {
-  WELT: d, INNEN: { observatorium: innen, lesesaal: saal }, LEIBNIZ: leibniz, document, innerWidth: 1200, innerHeight: 800, devicePixelRatio: 1,
+  WELT: d, INNEN: { observatorium: innen, lesesaal: saal, salon }, LEIBNIZ: leibniz, document, innerWidth: 1200, innerHeight: 800, devicePixelRatio: 1,
   addEventListener() {}, matchMedia: () => ({ matches: false }),
   requestAnimationFrame: () => 0, setTimeout: () => 0
 };
@@ -203,6 +204,7 @@ async function lesesaalAblauf() {
   G.schliessen();
   G.teleport(19, 21); bisWechsel("down", 2);
   check("Lesesaal: danach ist die Tuer offen", G.state.szene === "welt" && Math.floor(G.state.y / 16) === 17);
+  salonAblauf();
 
   // Rueckmeldungen der eingebauten Fassung
   const u1 = G.urteil(GUT);
@@ -217,6 +219,49 @@ async function lesesaalAblauf() {
   check("Bibliothekar: woertliche Uebernahme erkannt", !!u3.zitat);
   const hinweis = G.urteil("x").kernFehlt.map(k => k.hilfe).join(" ");
   check("Bibliothekar: Zeilenangaben aus dem Arbeitsblatt", /Z\. \d/.test(hinweis) && !/\(\)/.test(hinweis));
+}
+
+// ---------- Salon (Probefassung): begehbar, Sekretaer und Kamin bieten Interaktionen
+function salonAblauf() {
+  G.teleport(13, 43); bisWechsel("up", 2);
+  check("Salon: Tuer fuehrt nach dem Lesesaal hinein", G.state.szene === "salon" && !G.state.dialog);
+  check("Salon: Eintritt auf der Eintrittsstelle", salon.raster[Math.floor((G.state.y - 2) / 16)][Math.floor(G.state.x / 16)] === "S");
+  lauf("up", 3.5);
+  check("Salon: Hauptweg fuehrt gerade zum Kamin", G.state.aktion === "kamin");
+  G.benutzen();
+  check("Salon: Kamin zeigt Hinweis", G.state.dialog === "Der Kamin");
+  G.schliessen();
+  G.teleport(4, 6); G.tick(1 / 60);
+  check("Salon: Sekretaer bietet Interaktion", G.state.aktion === "sekretaer");
+  G.benutzen();
+  check("Salon: Sekretaer zeigt den Brief der Akademie", G.state.dialog === "Der Sekretär");
+  G.schliessen();
+  G.teleport(19, 21); bisWechsel("down", 2);
+  check("Salon: Rueckweg nach draussen", G.state.szene === "welt");
+}
+
+// Salon-Raster: alles vom Eintritt aus erreichbar
+{
+  const a = (x, y) => salon.raster[y][x];
+  const seen = new Set([salon.eintritt.x + "," + salon.eintritt.y]), q = [[salon.eintritt.x, salon.eintritt.y]];
+  while (q.length) {
+    const [x, y] = q.shift();
+    for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+      const nx = x + dx, ny = y + dy, k = nx + "," + ny;
+      if (ny >= 0 && ny < salon.hoehe && nx >= 0 && nx < salon.breite && a(nx, ny) !== "X" && !seen.has(k)) { seen.add(k); q.push([nx, ny]); }
+    }
+  }
+  check("Salon-Raster: vollstaendig", salon.raster.length === salon.hoehe && salon.raster.every(r => r.length === salon.breite));
+  for (const s of salon.interaktionen) {
+    check("Salon-Raster: " + s.id + " erreichbar", seen.has(s.flaeche.x0 + "," + s.flaeche.y0));
+    let alleI = true;
+    for (let y = s.flaeche.y0; y <= s.flaeche.y1; y++) for (let x = s.flaeche.x0; x <= s.flaeche.x1; x++) if (a(x, y) !== "I") alleI = false;
+    check("Salon-Raster: " + s.id + " als Interaktionsflaeche markiert", alleI);
+  }
+  check("Salon-Raster: Ausgang erreichbar", salon.ausgang.every(o => seen.has(o.x + "," + o.y)));
+  let rest = 0; for (let y = 0; y < salon.hoehe; y++) for (let x = 0; x < salon.breite; x++) if (a(x, y) !== "X" && !seen.has(x + "," + y)) rest++;
+  check("Salon-Raster: keine abgeschnittenen Bodenflaechen", rest === 0);
+  check("Salon-Raster: Geist steht vor dem Kamin", a(Math.floor(salon.geist.x), salon.geist.y) === "X");
 }
 
 // Innenraum-Raster

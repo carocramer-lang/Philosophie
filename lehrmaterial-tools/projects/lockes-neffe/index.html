@@ -400,6 +400,7 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
 <script src="welt/welt_daten.js"></script>
 <script src="innen/observatorium_daten.js"></script>
 <script src="innen/lesesaal_daten.js"></script>
+<script src="innen/salon_daten.js"></script>
 <script src="material/leibniz_daten.js"></script>
 <script>
 (function () {
@@ -409,7 +410,7 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
   var INNEN = window.INNEN || {};
   var $ = function (id) { return document.getElementById(id); };
   var LEIBNIZ = window.LEIBNIZ;
-  if (!D || !INNEN.observatorium || !INNEN.lesesaal || !LEIBNIZ) { $("fehler").hidden = false; return; }
+  if (!D || !INNEN.observatorium || !INNEN.lesesaal || !INNEN.salon || !LEIBNIZ) { $("fehler").hidden = false; return; }
 
   var REIHE = ["observatorium", "lesesaal", "salon", "druckerei", "akademie"];
   var ORTE = {
@@ -490,7 +491,8 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
   var SZENEN = {
     welt: { d: D, src: "welt/welt.png", begehbar: { "#": 1, ".": 1, "E": 1 } },
     observatorium: { d: INNEN.observatorium, src: "innen/observatorium.png", begehbar: { "#": 1, "S": 1, "I": 1, "A": 1 } },
-    lesesaal: { d: INNEN.lesesaal, src: "innen/lesesaal.png", begehbar: { "#": 1, "S": 1, "I": 1, "A": 1 } }
+    lesesaal: { d: INNEN.lesesaal, src: "innen/lesesaal.png", begehbar: { "#": 1, "S": 1, "I": 1, "A": 1 } },
+    salon: { d: INNEN.salon, src: "innen/salon.png", begehbar: { "#": 1, "S": 1, "I": 1, "A": 1 } }
   };
   Object.keys(SZENEN).forEach(function (k) {
     var s = SZENEN[k];
@@ -582,6 +584,26 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
           }
           if (st.abgegeben && !st.lesesaalFertig && st.verlauf.length) { oeffneGespraech(); return; }
           oeffneRolle();
+        }
+      }
+    },
+    // Probefassung: Raum begehbar, Auftrag und Geist folgen. Bis dahin darf Jonny den Salon verlassen.
+    salon: {
+      index: 2,
+      offen: function () { return ["sekretaer"]; },
+      leuchtet: function (id) { return id === "sekretaer"; },
+      darfRaus: function () { return true; },
+      sperre: function () { return ""; },
+      ziel: function () { return "Sekretär"; },
+      benutzen: function (id) {
+        if (id === "sekretaer") {
+          zeigeDialog("Der Sekretär",
+            "Auf der Schreibplatte liegt ein Brief mit dem roten Siegel der Akademie. Darin steht dein Auftrag für die Analyse.",
+            "Probefassung: Arbeitsauftrag und Material folgen.", null);
+        } else if (id === "kamin") {
+          zeigeDialog("Der Kamin",
+            "Das Feuer knistert. Über dem Sims blickt ein Gelehrter aus seinem Rahmen, als wollte er gleich etwas sagen.",
+            "Probefassung: Hier erscheint später der Geist des Philosophen.", null);
         }
       }
     }
