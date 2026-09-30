@@ -407,10 +407,10 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
       <li>Ihr Entwurf auf der Papierrolle wird nur in Ihrem eigenen Browser gespeichert. Löschen Sie die Websitedaten, ist er weg.</li>
       <li>Die Seite liegt bei Netlify. Beim Aufruf verarbeitet der Anbieter technisch notwendige Daten wie IP-Adresse und Zeitpunkt.</li>
       <li>Schriften und Grafiken liegen auf demselben Server. Es werden keine Inhalte von Google oder anderen Drittanbietern nachgeladen.</li>
-      <li>Ist die KI für den Bibliothekar und den Philosophen eingeschaltet, werden Ihr Text und das Gespräch zur Auswertung an einen KI-Dienst übertragen. Schreiben Sie deshalb nichts Persönliches hinein.</li>
+      <li>Ist die KI für den Bibliothekar, den Philosophen und den Druckermeister eingeschaltet, werden Ihr Text und das Gespräch zur Auswertung an einen KI-Dienst übertragen. Schreiben Sie deshalb nichts Persönliches hinein.</li>
     </ul>
     <h3>KI-Hinweis</h3>
-    <p>Der Bibliothekar und der Philosoph geben automatisch erzeugte Rückmeldungen. Sie können Fehler enthalten und ersetzen keine Bewertung durch Ihre Lehrkraft.</p>
+    <p>Der Bibliothekar, der Philosoph und der Druckermeister geben automatisch erzeugte Rückmeldungen. Sie können Fehler enthalten und ersetzen keine Bewertung durch Ihre Lehrkraft.</p>
     <p>Teile der Grafiken und des Programmcodes wurden mit Unterstützung von KI erstellt.</p>
   </div>
   <div class="fuss"><span></span><div class="knoepfe"><button id="infoZu" class="haupt" type="button">Schließen</button></div></div>
@@ -731,19 +731,20 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
       index: 3,
       offen: function () {
         if (!fertig("setzkasten")) return ["setzkasten"];
-        if (st.druckerei.fertig) return [];
+        if (st.druckerei.fertig) return fertig("flugschrift") ? [] : ["presse"];
         return st.druckerei.abgegeben ? ["presse"] : ["setzpult"];
       },
       leuchtet: function (id) { return RAUM.druckerei.offen().indexOf(id) >= 0 || (id === "tafel" && !st.tafeln.locke_druck); },
-      darfRaus: function () { return st.druckerei.fertig || st.stufe > 3; },
+      darfRaus: function () { return fertig("flugschrift") || st.stufe > 3; },
       sperre: function () {
         if (!fertig("setzkasten")) return "Hol dir zuerst den Brief der Akademie im Setzkasten mit der Kerze und lade das Arbeitsblatt herunter.";
         if (!st.druckerei.abgegeben) return "Dein Kommentar fehlt noch. Schreib ihn am Setzpult.";
+        if (st.druckerei.fertig) return "Deine Flugschrift liegt noch an der Presse. Lade sie herunter, dann geht es zur Akademie.";
         return "Der Meister wartet an der Presse auf dich. Beende das Gespräch mit ihm, dann wird gedruckt.";
       },
       ziel: function () {
         if (!fertig("setzkasten")) return "Setzkasten";
-        if (st.druckerei.fertig) return "";
+        if (st.druckerei.fertig) return fertig("flugschrift") ? "" : "Flugschrift an der Presse";
         return st.druckerei.abgegeben ? "Druckermeister" : "Setzpult";
       },
       benutzen: function (id) {
@@ -968,7 +969,10 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
       return FLUGSCHRIFT.speichern(flugschriftDaten(), "Flugschrift_Jonny_Stellungnahme.pdf").then(function (ok) { return ok; }, function () { return false; })
         .then(function (ok) {
           $("laden").disabled = false;
-          if (ok) st.geladen.flugschrift = true;
+          if (ok) {
+            st.geladen.flugschrift = true;
+            if (st.stufe === 3) st.stufe = 4;       // Etappe 4 erst mit der Flugschrift in der Hand
+          }
           if (st.material === id) materialStatus(ok ? null : "Nicht gespeichert. Tippe noch einmal auf Herunterladen.");
           hudAktualisieren();
           return ok;
@@ -990,6 +994,11 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
     $("laden").hidden = false;
     if (id === "tafel") { hudAktualisieren(); return; }
     if (id === "flugschrift") {
+      if (!fertig("flugschrift")) {
+        zeigeToast("Nimm deine Flugschrift mit", "Lade sie herunter, erst dann lässt dich der Meister gehen. Er hält sie an der Presse für dich bereit.");
+        hudAktualisieren();
+        return;
+      }
       if (!st.druckerei.gefeiert) {
         st.druckerei.gefeiert = true;
         zeigeDialog("Deine Flugschrift ist gedruckt",
@@ -1092,7 +1101,6 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
       // Gespraech beendet: die Presse druckt, danach liegt die Flugschrift bereit
       siegeln: function () {
         st.druckerei.fertig = true;
-        if (st.stufe === 3) st.stufe = 4;
         st.druckerei.druckSeit = jetzt();
         zeigeToast("Die Presse knarrt", "Der Meister setzt deinen Kommentar, färbt die Form ein und zieht den Bengel …");
         setTimeout(function () { oeffneFlugschrift(true); }, ruhig ? 50 : DRUCKDAUER + 300);

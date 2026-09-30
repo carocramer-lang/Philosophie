@@ -377,12 +377,21 @@ async function druckereiAblauf() {
   await G.antworten("Ja");
   check("Meister: Erwartungshorizont nach Zustimmung", /Pro Leibniz/.test(v[v.length - 1].text) && /bleibt deine Sache/.test(v[v.length - 1].text));
   G.gespraechBeenden();
-  check("Meister: Gespraech beenden startet den Druck", G.state.druckerei.fertig && G.state.stufe === 4 && G.state.druckerei.druckSeit != null);
+  check("Meister: Gespraech beenden startet den Druck", G.state.druckerei.fertig && G.state.stufe === 3 && G.state.druckerei.druckSeit != null);
   await new Promise(r => setImmediate(r)); await new Promise(r => setImmediate(r));
   check("Druckerei: Flugschrift liegt bereit", G.state.material === "flugschrift" && /Flugschrift herunterladen/.test(document.getElementById("laden").textContent));
   check("Druckerei: Flugschrift traegt den Kommentar", G.flugschriftDaten().text === KOMMENTAR && /Nothwendigkeit/.test(G.flugschriftDaten().frage));
   G.materialSchliessen();
-  check("Druckerei: Glueckwunsch nach dem Druck", G.state.dialog === "Deine Flugschrift ist gedruckt");
+  check("Druckerei: ohne Download kein Glueckwunsch", !G.state.dialog && G.state.stufe === 3);
+  G.teleport(19, 21); bisWechsel("down", 2);
+  check("Druckerei: Tuer gesperrt ohne heruntergeladene Flugschrift", G.state.szene === "druckerei");
+  G.teleport(19, 9); G.tick(1 / 60);
+  check("Druckerei: Presse leuchtet fuer die Flugschrift", G.state.aktion === "presse");
+  G.benutzen();
+  check("Druckerei: Presse oeffnet die Flugschrift erneut", G.state.material === "flugschrift");
+  G.state.geladen.flugschrift = true;   // Download selbst braucht einen Browser, siehe Pruefung dort
+  G.materialSchliessen();
+  check("Druckerei: Glueckwunsch nach dem Download", G.state.dialog === "Deine Flugschrift ist gedruckt");
   G.schliessen();
   G.teleport(19, 21); bisWechsel("down", 2);
   check("Druckerei: danach ist die Tuer offen", G.state.szene === "welt");
@@ -533,6 +542,8 @@ async function musterUndKern() {
   check("Kern: Meister bekommt den Kommentar", dm[0].content.includes("<kommentar>\nMEIN KOMMENTAR"));
   check("Kern: Meister kennt Aufgabe, Lockes Text und Erwartungshorizont", kern.SYSTEM_DRUCKER.includes("Nehmen Sie Stellung") &&
     kern.SYSTEM_DRUCKER.includes("SENSATION") && kern.SYSTEM_DRUCKER.includes(kern.MUSTERLOESUNG_KOMMENTAR));
+  check("Info: KI-Hinweis nennt alle drei Figuren", /Der Bibliothekar, der Philosoph und der Druckermeister geben automatisch erzeugte Rückmeldungen/.test(html) &&
+    /für den Bibliothekar, den Philosophen und den Druckermeister/.test(html));
   check("Kern: Meister bewertet nie die Position", /Bewerte nie, welche Position Jonny einnimmt/.test(kern.SYSTEM_DRUCKER));
   check("Kern: Erwartungshorizont des Meisters identisch mit dem Spiel", G.state.druckerei.verlauf.some(m => m.text.includes(kern.MUSTERLOESUNG_KOMMENTAR)));
   check("Kern: Erwartungshorizont ohne Tippfehler", !/[一-鿿]|derive|veranschaulichung, dass/.test(kern.MUSTERLOESUNG_ANALYSE));
