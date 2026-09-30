@@ -4,10 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <!--HEAD-START-->
-<title>Lockes Neffe</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IM+Fell+English+SC&family=IM+Fell+English:ital@0;1&display=swap">
+<title>Lockes Welt</title>
 <style>
+/* Schriften liegen im Ordner schriften/ (SIL Open Font License), keine Verbindung zu Google */
+@font-face { font-family: "IM Fell English"; font-style: normal; font-weight: 400; font-display: swap; src: url(schriften/im-fell-english.woff2) format("woff2"); }
+@font-face { font-family: "IM Fell English"; font-style: italic; font-weight: 400; font-display: swap; src: url(schriften/im-fell-english-italic.woff2) format("woff2"); }
+@font-face { font-family: "IM Fell English SC"; font-style: normal; font-weight: 400; font-display: swap; src: url(schriften/im-fell-english-sc.woff2) format("woff2"); }
 /* Layout: Spielfeld randlos im Querformat, darueber Pergamentkarten wie Einlagen in einem Druck von 1690.
    Touch: Steuerkreuz unten links, Aktionsknopf E unten rechts, Dialoge dazwischen. */
 :root {
@@ -120,6 +122,25 @@ button:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
   -webkit-user-select: none; user-select: none; touch-action: none;
 }
 #aktion.bereit { background: var(--parchment); color: var(--seal); border: 3px solid var(--seal); box-shadow: 0 0 0 4px var(--gold); }
+
+/* Startbildschirm: Titelbild fuellt das Querformat, der sichere Bereich (Titel, Knoepfe, Figur) bleibt immer sichtbar */
+#start { position: fixed; inset: 0; overflow: hidden; background: #1c120b; transition: opacity .35s ease; }
+#start.weg { opacity: 0; pointer-events: none; }
+#startBild { position: absolute; left: 0; top: 0; display: block; max-width: none; -webkit-user-select: none; user-select: none; }
+.hotspot {
+  position: absolute; padding: 0; margin: 0; border: 0; border-radius: 8px; background: transparent; cursor: pointer;
+  -webkit-tap-highlight-color: transparent; touch-action: manipulation;
+}
+.hotspot:hover { background: rgba(255, 242, 200, .12); }
+.hotspot:active { background: rgba(0, 0, 0, .18); }
+.hotspot:focus-visible { outline: 3px solid #fff2c8; outline-offset: 3px; }
+#startInfo { border-radius: 50%; }
+#info { grid-template-rows: auto minmax(0, 1fr) auto; width: min(640px, calc(100vw - 24px)); }
+#infoText { overflow: auto; padding-right: 6px; font-size: 16px; line-height: 1.45; }
+#infoText h3 { margin: 14px 0 4px; font-family: var(--display); font-weight: 400; font-size: 19px; color: var(--seal); }
+#infoText h3:first-child { margin-top: 0; }
+#infoText p, #infoText ul { margin: 0 0 6px; }
+#infoText ul { padding-left: 20px; }
 
 #drehen {
   position: fixed; inset: 0; display: none; place-items: center; padding: 16px;
@@ -345,6 +366,33 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
 </div>
 <button id="aktion" type="button" aria-label="Benutzen" hidden>E</button>
 
+<div id="start" role="dialog" aria-modal="true" aria-label="Startbildschirm: Lernspiel Lockes Welt">
+  <img id="startBild" src="start/titelbild.jpg" alt="Lernspiel Lockes Welt: John Locke mit Buch und Feder in seiner Bibliothek" draggable="false">
+  <button id="startSpiel" class="hotspot" type="button" aria-label="Spiel starten"></button>
+  <button id="startInfo" class="hotspot" type="button" aria-label="Informationen: Impressum, Datenschutz, KI-Hinweis"></button>
+</div>
+
+<div id="info" class="karte fenster" role="dialog" aria-modal="true" aria-labelledby="infoTitel" hidden>
+  <div class="kopf"><h2 id="infoTitel">Informationen</h2></div>
+  <div id="infoText" tabindex="0">
+    <h3>Impressum</h3>
+    <p>Lernspiel „Lockes Welt“ für den Philosophieunterricht der Q2, Pelizaeus-Gymnasium Paderborn.</p>
+    <p>Verantwortlich: CRA, Pelizaeus-Gymnasium Paderborn</p>
+    <h3>Datenschutz</h3>
+    <ul>
+      <li>Keine Anmeldung, keine Namen, keine Cookies, kein Tracking.</li>
+      <li>Dein Entwurf auf der Papierrolle wird nur in deinem eigenen Browser gespeichert. Löschst du die Websitedaten, ist er weg.</li>
+      <li>Die Seite liegt bei Netlify. Beim Aufruf verarbeitet der Anbieter technisch notwendige Daten wie IP-Adresse und Zeitpunkt.</li>
+      <li>Schriften und Grafiken liegen auf demselben Server. Es werden keine Inhalte von Google oder anderen Drittanbietern nachgeladen.</li>
+      <li>Ist der KI-Bibliothekar eingeschaltet, werden dein Text und das Gespräch zur Auswertung an einen KI-Dienst übertragen. Schreib deshalb nichts Persönliches hinein.</li>
+    </ul>
+    <h3>KI-Hinweis</h3>
+    <p>Der Bibliothekar gibt automatisch erzeugte Rückmeldungen. Sie können Fehler enthalten und ersetzen keine Bewertung durch deine Lehrkraft.</p>
+    <p>Teile der Grafiken und des Programmcodes wurden mit Unterstützung von KI erstellt.</p>
+  </div>
+  <div class="fuss"><span></span><div class="knoepfe"><button id="infoZu" class="haupt" type="button">Schließen</button></div></div>
+</div>
+
 <div id="drehen" role="alert"><div><div class="handy"></div><p>Bitte das Gerät quer halten</p></div></div>
 
 <div id="fehler" hidden><div class="karte">Die Kartendaten fehlen. Öffne die Datei im Ordner <code>lockes-neffe</code>, damit die Ordner <code>welt</code> und <code>innen</code> gefunden werden.</div></div>
@@ -456,6 +504,7 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
 
   // ---------- Zustand
   var st = {
+    start: true, info: false,
     szene: "welt", x: D.start.x * T + 8, y: D.start.y * T + 12,
     dir: "up", schritt: 0, animZeit: 0, laeuft: false,
     stufe: 0, dialog: null, dialogRueck: null, aktion: null,
@@ -1539,7 +1588,7 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
     var dt = Math.min(0.05, (t - letzte) / 1000 || 0);
     letzte = t;
     if (hochMq.matches) tastenLos();
-    else if (!st.uebersicht) tick(dt);
+    else if (!st.uebersicht && !st.start) tick(dt);
     zeichnen(t);
     window.requestAnimationFrame(schleife);
   }
@@ -1550,6 +1599,12 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
     ArrowLeft: "left", KeyA: "left", ArrowRight: "right", KeyD: "right"
   };
   document.addEventListener("keydown", function (e) {
+    if (st.start) {
+      if (st.info) { if (e.code === "Escape") { e.preventDefault(); infoZu(); } return; }
+      if ((e.code === "Enter" || e.code === "Space") && !(e.target && e.target.id === "startInfo")) { e.preventDefault(); spielStarten(); }
+      else if (e.code === "KeyI") { e.preventDefault(); infoAuf(); }
+      return;
+    }
     if (st.fenster) {
       if (e.code === "Escape") { e.preventDefault(); if (st.fenster === "rolle") rolleSchliessen(); else gespraechBeenden(); }
       return;
@@ -1603,6 +1658,50 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
   $("aktion").addEventListener("pointerdown", function (e) { e.preventDefault(); benutzen(); });
   $("aktion").addEventListener("click", function (e) { if (e.detail === 0) benutzen(); });
 
+  // ---------- Startbildschirm
+  // Koordinaten im Grundbild 1408 x 768 (start/titelbild.jpg ist doppelt so gross, erzeugt von start/titelbild.html).
+  var START = {
+    w: 1408, h: 768,
+    sicher: { x: 150, y: 88, w: 1070, h: 627 },     // Titel, Knoepfe und Locke: bleibt immer ganz sichtbar
+    knopf: { x: 164, y: 508, w: 440, h: 96 },        // „SPIEL STARTEN“
+    info: { x: 1104, y: 96, w: 96, h: 96 }           // ⓘ
+  };
+  function startLage(W, H) {
+    var S = START.sicher, s = Math.max(W / START.w, H / START.h);
+    if (S.w * s > W || S.h * s > H) s = Math.min(W / S.w, H / S.h);
+    var bw = START.w * s, bh = START.h * s;
+    var ox = W / 2 - (S.x + S.w / 2) * s, oy = H / 2 - (S.y + S.h / 2) * s;
+    ox = bw >= W ? Math.min(0, Math.max(W - bw, ox)) : (W - bw) / 2;
+    oy = bh >= H ? Math.min(0, Math.max(H - bh, oy)) : (H - bh) / 2;
+    function r(b) { return { x: ox + b.x * s, y: oy + b.y * s, w: b.w * s, h: b.h * s }; }
+    return { s: s, bild: { x: ox, y: oy, w: bw, h: bh }, knopf: r(START.knopf), info: r(START.info), sicher: r(S) };
+  }
+  function startLayout() {
+    if (!st.start) return;
+    var l = startLage(window.innerWidth, window.innerHeight);
+    function setze(el, b) { el.style.left = b.x + "px"; el.style.top = b.y + "px"; el.style.width = b.w + "px"; el.style.height = b.h + "px"; }
+    setze($("startBild"), l.bild); setze($("startSpiel"), l.knopf); setze($("startInfo"), l.info);
+  }
+  function infoAuf() {
+    st.info = true; $("info").hidden = false; $("infoZu").focus();
+  }
+  function infoZu() {
+    st.info = false; $("info").hidden = true; $("startInfo").focus();
+  }
+  function spielStarten() {
+    if (!st.start || st.info) return;
+    st.start = false; tastenLos();
+    var el = $("start");
+    el.classList.add("weg");
+    window.setTimeout(function () { el.hidden = true; }, 380);
+    if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+  }
+  $("startSpiel").addEventListener("click", spielStarten);
+  $("startInfo").addEventListener("click", infoAuf);
+  $("infoZu").addEventListener("click", infoZu);
+  window.addEventListener("resize", startLayout);
+  startLayout();
+
   // ---------- Start (uebernimmt bei einem Update im Viewer den Spielstand)
   function start(daten) {
     if (daten && typeof daten.x === "number") {
@@ -1612,6 +1711,7 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
       st.rolle = daten.rolle || st.rolle; st.abgegeben = !!daten.abgegeben; st.rueckmeldung = !!daten.rueckmeldung;
       st.lesesaalFertig = !!daten.lesesaalFertig; st.verlauf = daten.verlauf || [];
       if (st.abgegeben) st.bibSeit = -1e6;
+      st.start = false; $("start").hidden = true;
     }
     hudAktualisieren();
     window.requestAnimationFrame(schleife);
@@ -1627,7 +1727,8 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
     herunterladen: herunterladen, materialSchliessen: materialSchliessen,
     abgeben: abgeben, antworten: antworten, gespraechBeenden: gespraechBeenden, ueberarbeiten: ueberarbeiten,
     rolleSchliessen: rolleSchliessen, urteil: function (t) { return BIBLIOTHEKAR.urteil(t); },
-    teleport: function (tx, ty) { st.x = tx * T + 8; st.y = ty * T + 12; }
+    teleport: function (tx, ty) { st.x = tx * T + 8; st.y = ty * T + 12; },
+    starten: spielStarten, infoAuf: infoAuf, infoZu: infoZu, startLage: startLage, START: START
   };
 })();
 </script>

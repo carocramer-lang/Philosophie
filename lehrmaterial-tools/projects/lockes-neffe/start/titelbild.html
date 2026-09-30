@@ -1,0 +1,120 @@
+<!doctype html><html lang="de"><head><meta charset="utf-8">
+<!-- Titelbild fuer den Startbildschirm: Grundbild bleibt unveraendert, Titel und Knoepfe werden im Pixelraster darueber gesetzt.
+     Erzeugen: node start/titelbild.js  (braucht Chromium/Playwright; Titelschrift Liberation Serif liegt daneben, SIL Open Font License) -->
+<style>@font-face { font-family: "Liberation Serif"; src: url(liberation-serif.ttf) format("truetype"); }</style>
+<style>body{margin:0;background:#000}canvas{display:block}</style></head><body>
+<canvas id="c"></canvas>
+<script>
+const P = new URLSearchParams(location.search);
+// Lage der Elemente im Rastergitter (1 Rasterpixel = 4 Pixel des Grundbilds 1408 x 768)
+const L = Object.assign({ cx: 96, ls: -1, bw: 108, r: 9 }, JSON.parse(decodeURIComponent(P.get("l") || "%7B%7D")));
+async function los() {
+  await document.fonts.load("36px 'Liberation Serif'");
+  await document.fonts.ready;
+  const img = new Image(); img.src = "titelbild_grund.jpg"; await img.decode();
+  const LW = 352, LH = 192, S = 8;           // Rastergitter: 1 Rasterpixel = 4 Bildpixel, Ausgabe doppelt
+  const low = document.createElement("canvas"); low.width = LW; low.height = LH;
+  const g = low.getContext("2d");
+
+  // Pixelgenauer Text: in eigene Ebene zeichnen, Alpha hart schneiden
+  function text(str, font, x, y, farbe, align, spacing) {
+    const t = document.createElement("canvas"); t.width = LW; t.height = LH;
+    const k = t.getContext("2d"); k.font = font; k.textAlign = "left"; k.textBaseline = "alphabetic";
+    if (spacing) k.letterSpacing = spacing + "px";
+    let w = k.measureText(str).width; if (spacing) w -= spacing;
+    const x0 = align === "center" ? Math.round(x - w / 2) : Math.round(x);
+    k.fillStyle = "#fff"; k.fillText(str, x0, Math.round(y));
+    const d = k.getImageData(0, 0, LW, LH), m = new Uint8Array(LW * LH);
+    for (let i = 0; i < m.length; i++) m[i] = d.data[i * 4 + 3] > 110 ? 1 : 0;
+    return m;
+  }
+  function maske(m, farbe, dx, dy) {
+    g.fillStyle = farbe;
+    for (let y = 0; y < LH; y++) for (let x = 0; x < LW; x++) if (m[y * LW + x]) g.fillRect(x + (dx||0), y + (dy||0), 1, 1);
+  }
+  function kontur(m, farbe, r) {
+    g.fillStyle = farbe;
+    for (let y = 0; y < LH; y++) for (let x = 0; x < LW; x++) {
+      if (m[y * LW + x]) continue;
+      let n = false;
+      for (let yy = -r; yy <= r && !n; yy++) for (let xx = -r; xx <= r && !n; xx++) {
+        if (Math.abs(xx) + Math.abs(yy) > r) continue;
+        const X = x + xx, Y = y + yy; if (X >= 0 && Y >= 0 && X < LW && Y < LH && m[Y * LW + X]) n = true;
+      }
+      if (n) g.fillRect(x, y, 1, 1);
+    }
+  }
+  // Eigene 5x7-Pixelschrift, fett (jede Spalte doppelt)
+  const GL = { L:["10000","10000","10000","10000","10000","10000","11111"], E:["11111","10000","10000","11110","10000","10000","11111"],
+    R:["11110","10001","10001","11110","10100","10010","10001"], N:["10001","11001","10101","10011","10001","10001","10001"],
+    S:["01111","10000","10000","01110","00001","00001","11110"], P:["11110","10001","10001","11110","10000","10000","10000"],
+    I:["11111","00100","00100","00100","00100","00100","11111"], T:["11111","00100","00100","00100","00100","00100","00100"],
+    A:["01110","10001","10001","11111","10001","10001","10001"] };
+  function pix(str, x, y, abstand, align) {
+    const breite = (ch) => ch === " " ? 3 : 6;
+    let w = 0; for (const ch of str) w += breite(ch) + abstand; w -= abstand;
+    let px0 = align === "center" ? Math.round(x - w / 2) : x;
+    const m = new Uint8Array(LW * LH);
+    for (const ch of str) {
+      const gl = GL[ch];
+      if (gl) gl.forEach((z, yy) => { for (let xx = 0; xx < 5; xx++) if (z[xx] === "1") { m[(y + yy) * LW + px0 + xx] = 1; m[(y + yy) * LW + px0 + xx + 1] = 1; } });
+      px0 += breite(ch) + abstand;
+    }
+    m.breite = w; return m;
+  }
+  // Abdunklung links hinter dem Titel, in Stufen (Pixel-Look)
+  for (let x = 0; x < 175; x++) {
+    const a = Math.min(0.72, Math.max(0, (175 - x) / 175) * 0.9);
+    const q = Math.round(a * 8) / 8;
+    g.fillStyle = "rgba(18,10,6," + q + ")"; g.fillRect(x, 0, 1, LH);
+  }
+
+  const cx = L.cx || 104;
+  // Kicker
+  const k1 = pix("LERNSPIEL", cx, (L.ky || 44) - 7, 2, "center");
+  kontur(k1, "#1a0f08", 1); maske(k1, "#e8c46a");
+  g.fillStyle = "#e8c46a"; g.fillRect(cx - k1.breite / 2 - 16, (L.ky||44) - 4, 10, 1); g.fillRect(cx + k1.breite / 2 + 6, (L.ky||44) - 4, 10, 1);
+  // Titel
+  const f = (L.fs || 36) + "px 'Liberation Serif'";
+  const t1 = text("Lockes", f, cx, L.t1 || 80, "#fff", "center", L.ls || 0);
+  const t2 = text("Welt", f, cx, L.t2 || 112, "#fff", "center", L.ls || 0);
+  const tm = t1.map((v, i) => v | t2[i]);
+  // harter Schatten, Kontur, Füllung mit Verlauf
+  maske(tm, "#120904", 2, 2); kontur(tm, "#2a1608", 1);
+  for (let y = 0; y < LH; y++) for (let x = 0; x < LW; x++) if (tm[y * LW + x]) {
+    const oben = (L.t1||80) - 26, rel = y;
+    const c = ((y % 32) < 0) ? "" : null;
+    g.fillStyle = y < (L.t1||80) - 12 || (y > (L.t1||80) + 4 && y < (L.t2||112) - 12) ? "#fff2c8" : "#f0c860";
+    g.fillRect(x, y, 1, 1);
+  }
+  // Button
+  const bw = L.bw || 100, bh = L.bh || 22, bx = Math.round(cx - bw / 2), by = L.by || 128;
+  g.fillStyle = "#120904"; g.fillRect(bx + 2, by + 3, bw, bh);                  // Schatten
+  g.fillStyle = "#1a0f08"; g.fillRect(bx, by - 1, bw, bh + 2); g.fillRect(bx - 1, by, bw + 2, bh);  // Kontur
+  g.fillStyle = "#e8c46a"; g.fillRect(bx + 1, by, bw - 2, bh); g.fillRect(bx, by + 1, bw, bh - 2);  // Goldrand
+  g.fillStyle = "#8a2424"; g.fillRect(bx + 2, by + 2, bw - 4, bh - 4);          // Wachsrot
+  g.fillStyle = "#b03a32"; g.fillRect(bx + 2, by + 2, bw - 4, 3);               // Licht oben
+  g.fillStyle = "#621818"; g.fillRect(bx + 2, by + bh - 5, bw - 4, 3);          // Schatten unten
+  const bt = pix("SPIEL STARTEN", cx + 6, by + 8, 1, "center");
+  maske(bt, "#3a0c0c", 0, 1); maske(bt, "#fff2c8");
+  // Dreieck
+  const tx = Math.round(cx + 6 - bt.breite / 2) - 9, ty = by + 7;
+  for (let i = 0; i < 4; i++) { g.fillStyle = "#3a0c0c"; g.fillRect(tx + i, ty + i + 1, 1, 8 - 2 * i); g.fillStyle = "#fff2c8"; g.fillRect(tx + i, ty + i, 1, 8 - 2 * i); }
+  // Info-Button
+  const ix = L.ix || 288, iy = L.iy || 36, r = L.r || 8;
+  for (let y = -r - 2; y <= r + 2; y++) for (let x = -r - 2; x <= r + 2; x++) {
+    const d = Math.sqrt(x * x + y * y);
+    let c = null;
+    if (d <= r - 1.5) c = "#fff2c8"; else if (d <= r) c = "#e8c46a"; else if (d <= r + 1.2) c = "#1a0f08";
+    if (c) { g.fillStyle = c; g.fillRect(ix + x, iy + y, 1, 1); }
+  }
+  g.fillStyle = "#1f2c5c"; g.fillRect(ix - 1, iy - 5, 2, 2); g.fillRect(ix - 1, iy - 2, 2, 7); g.fillRect(ix - 2, iy - 2, 1, 1); g.fillRect(ix - 2, iy + 4, 4, 1);
+
+  const c = document.getElementById("c"); c.width = LW * S; c.height = LH * S;
+  const o = c.getContext("2d"); o.imageSmoothingEnabled = false;
+  o.drawImage(img, 0, 0, c.width, c.height); o.drawImage(low, 0, 0, c.width, c.height);
+  function box(m){let a=LW,b=LH,c2=0,d=0;for(let y=0;y<LH;y++)for(let x=0;x<LW;x++)if(m[y*LW+x]){a=Math.min(a,x);b=Math.min(b,y);c2=Math.max(c2,x);d=Math.max(d,y);}return [a,b,c2,d];}
+  window.FERTIG = { titel: box(tm), kicker: box(k1), bx, by, bw, bh, ix, iy, r };
+}
+los().catch(e => { window.FEHLER = String(e); });
+</script></body></html>

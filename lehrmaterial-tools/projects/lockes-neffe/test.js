@@ -53,13 +53,37 @@ const document = {
 const window = {
   WELT: d, INNEN: { observatorium: innen, lesesaal: saal }, LEIBNIZ: leibniz, document, innerWidth: 1200, innerHeight: 800, devicePixelRatio: 1,
   addEventListener() {}, matchMedia: () => ({ matches: false }),
-  requestAnimationFrame: () => 0
+  requestAnimationFrame: () => 0, setTimeout: () => 0
 };
 window.window = window;
 function Image() {}
 vm.runInNewContext(code, { window, document, Image, Math, Object, Array, Uint8ClampedArray, setTimeout: f => { Promise.resolve().then(f); return 0; }, clearTimeout() {}, Promise, String, RegExp, JSON });
 const G = window.__game;
 check("Spiel: Test-Hook vorhanden", !!G);
+
+// Startbildschirm: sicherer Bereich und Knoepfe in allen Querformaten sichtbar und gross genug
+const taste = code => docListeners.keydown({ code, preventDefault() {}, target: null });
+check("Start: Spiel beginnt mit dem Startbildschirm", G.state.start === true);
+taste("ArrowLeft");
+check("Start: Pfeiltasten bewegen Jonny noch nicht", !G.keys.left);
+const formate = { "Smartphone 844x390": [844, 390], "Smartphone 740x360": [740, 360], "Smartphone mit Browserleiste 844x340": [844, 340],
+  "Tablet 1024x768": [1024, 768], "Tablet 1180x820": [1180, 820], "Desktop 1920x1080": [1920, 1080], "Desktop 1280x800": [1280, 800], "Breitbild 2560x1080": [2560, 1080] };
+for (const [name, [W, H]] of Object.entries(formate)) {
+  const l = G.startLage(W, H), s = l.sicher, eps = 0.5;
+  const drin = b => b.x >= -eps && b.y >= -eps && b.x + b.w <= W + eps && b.y + b.h <= H + eps;
+  check("Start " + name + ": sicherer Bereich ganz sichtbar", drin(s) && drin(l.knopf) && drin(l.info));
+  check("Start " + name + ": Knoepfe tippbar (mind. 44 px)", l.knopf.h >= 44 && l.info.w >= 44 && l.info.h >= 44);
+  check("Start " + name + ": Knoepfe getrennt", l.info.x > l.knopf.x + l.knopf.w + 40);
+}
+taste("KeyI");
+check("Start: I oeffnet die Informationen", G.state.info === true);
+taste("Enter");
+check("Start: bei offener Info startet Enter das Spiel nicht", G.state.start === true);
+taste("Escape");
+check("Start: Escape schliesst die Informationen", G.state.info === false && G.state.start === true);
+taste("Enter");
+check("Start: Enter startet das Spiel", G.state.start === false);
+check("Start: Titelbild vorhanden", fs.existsSync(path.join(__dirname, "start", "titelbild.jpg")) && /src="start\/titelbild\.jpg"/.test(html));
 // Laeuft, bis sich die Szene aendert (hoechstens sek Sekunden)
 const bisWechsel = (dir, sek) => {
   const vorher = G.state.szene; G.keys[dir] = true;

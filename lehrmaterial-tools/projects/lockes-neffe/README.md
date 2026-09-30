@@ -3,7 +3,16 @@
 Topdown-Lernspiel zur Philosophie der fruehen Aufklaerung. Jonny will in die Akademie der Wissenschaften aufgenommen werden.
 
 ## Status
-Spielbare Oberwelt mit begehbarem Observatorium und Lesesaal. Salon, Druckerei, Akademie und der Startbildschirm folgen.
+Startbildschirm, spielbare Oberwelt mit begehbarem Observatorium und Lesesaal. Salon, Druckerei und Akademie folgen.
+Titel auf dem Startbildschirm: „Lockes Welt“.
+
+## Startbildschirm (`start/`)
+- `titelbild_grund.jpg`: Illustration der Lehrkraft, unveraendert.
+- `titelbild.html` setzt Titel, „SPIEL STARTEN“ und ⓘ im Pixelraster darueber, `node start/titelbild.js` rendert `titelbild.jpg` (2816 x 1536).
+- Im Spiel (`START` in `index.html`) fuellt das Bild den Bildschirm. Der sichere Bereich mit Titel, Knoepfen und Locke bleibt auf Smartphone, Tablet und Desktop immer ganz sichtbar, notfalls mit schmalen dunklen Raendern. Unsichtbare Schaltflaechen liegen genau ueber den gezeichneten Knoepfen.
+- Tastatur: Enter oder Leertaste startet, I oeffnet die Informationen, Escape schliesst sie.
+- Wer Titel oder Knoepfe verschiebt, muss die Koordinaten in `START` anpassen (Grundbild 1408 x 768).
+- Schriften: `schriften/` (IM Fell English) und `start/liberation-serif.ttf` (nur fuer das Erzeugen des Titelbilds) liegen lokal, Lizenz jeweils SIL Open Font License (OFL-Dateien daneben). Die Seite laedt nichts von Google.
 
 ## Spielen
 `index.html` im Browser oeffnen (auch per Doppelklick, kein Server noetig).
