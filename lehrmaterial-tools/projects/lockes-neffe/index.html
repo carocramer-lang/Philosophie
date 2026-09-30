@@ -381,13 +381,13 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
     <h3>Datenschutz</h3>
     <ul>
       <li>Keine Anmeldung, keine Namen, keine Cookies, kein Tracking.</li>
-      <li>Dein Entwurf auf der Papierrolle wird nur in deinem eigenen Browser gespeichert. Löschst du die Websitedaten, ist er weg.</li>
+      <li>Ihr Entwurf auf der Papierrolle wird nur in Ihrem eigenen Browser gespeichert. Löschen Sie die Websitedaten, ist er weg.</li>
       <li>Die Seite liegt bei Netlify. Beim Aufruf verarbeitet der Anbieter technisch notwendige Daten wie IP-Adresse und Zeitpunkt.</li>
       <li>Schriften und Grafiken liegen auf demselben Server. Es werden keine Inhalte von Google oder anderen Drittanbietern nachgeladen.</li>
-      <li>Ist der KI-Bibliothekar eingeschaltet, werden dein Text und das Gespräch zur Auswertung an einen KI-Dienst übertragen. Schreib deshalb nichts Persönliches hinein.</li>
+      <li>Ist die KI für den Bibliothekar und den Philosophen eingeschaltet, werden Ihr Text und das Gespräch zur Auswertung an einen KI-Dienst übertragen. Schreiben Sie deshalb nichts Persönliches hinein.</li>
     </ul>
     <h3>KI-Hinweis</h3>
-    <p>Der Bibliothekar gibt automatisch erzeugte Rückmeldungen. Sie können Fehler enthalten und ersetzen keine Bewertung durch deine Lehrkraft.</p>
+    <p>Der Bibliothekar und der Philosoph geben automatisch erzeugte Rückmeldungen. Sie können Fehler enthalten und ersetzen keine Bewertung durch Ihre Lehrkraft.</p>
     <p>Teile der Grafiken und des Programmcodes wurden mit Unterstützung von KI erstellt.</p>
   </div>
   <div class="fuss"><span></span><div class="knoepfe"><button id="infoZu" class="haupt" type="button">Schließen</button></div></div>
@@ -1347,11 +1347,11 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
 
   // ---------- Jonny als Pixel-Sprite (16 x 24, 1 px Rand fuer die Kontur)
   var C = {
-    wig: "#f2efe8", wigS: "#c9c6cf", wigD: "#a19cab", hi: "#ffffff",
+    wig: "#dedbd6", wigS: "#b3aeab", wigD: "#8d8886", hi: "#f4f2ee",
     skin: "#f0c8a6", skinS: "#d49a78", mouth: "#b0604e",
-    coat: "#2e3a78", coatD: "#1f2552", coatL: "#4a5aa6", gold: "#e2b64a",
+    coat: "#3d2d2b", coatD: "#2a1f1f", coatL: "#56423a", gold: "#e2b64a",
     white: "#f4f2ec", book: "#8a4b2a", bookD: "#5e3019", page: "#f1e6c8",
-    breeches: "#2a2430", stock: "#eeeeee", shoe: "#1e1a1c",
+    breeches: "#a57a4b", stock: "#7e8a8a", shoe: "#4a3026",
     lens: "#bfe3f4", rim: "#3a3440", bow: "#1a1a22", line: "#1c1624"
   };
   function sprite(dir, s) {
@@ -1405,7 +1405,7 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
       }
     } else {
       var hinten = [6, 5, 7][s], vorn = [8, 9, 7][s];
-      bein(hinten, 0, "#cfcfd6");
+      bein(hinten, 0, "#667171");
       bein(vorn, s === 2 ? 1 : 0);
       p(5, 16, 6, 2, C.breeches);
       p(4, 10, 7, 6, C.coat);
