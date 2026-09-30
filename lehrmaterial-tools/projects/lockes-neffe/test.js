@@ -29,6 +29,7 @@ const vm = require("vm");
 const innen = JSON.parse(fs.readFileSync(path.join(__dirname, "innen", "observatorium.json"), "utf8"));
 const saal = JSON.parse(fs.readFileSync(path.join(__dirname, "innen", "lesesaal.json"), "utf8"));
 const salon = JSON.parse(fs.readFileSync(path.join(__dirname, "innen", "salon.json"), "utf8"));
+const druckerei = JSON.parse(fs.readFileSync(path.join(__dirname, "innen", "druckerei.json"), "utf8"));
 const leibniz = JSON.parse(fs.readFileSync(path.join(__dirname, "netlify", "lib", "leibniz.json"), "utf8"));
 const html = fs.readFileSync(path.join(__dirname, "index.html"), "utf8");
 const code = html.match(/<script>\n([\s\S]*?)<\/script>/)[1];
@@ -52,7 +53,7 @@ const document = {
   addEventListener: (t, f) => { docListeners[t] = f; }
 };
 const window = {
-  WELT: d, INNEN: { observatorium: innen, lesesaal: saal, salon }, LEIBNIZ: leibniz, document, innerWidth: 1200, innerHeight: 800, devicePixelRatio: 1,
+  WELT: d, INNEN: { observatorium: innen, lesesaal: saal, salon, druckerei }, LEIBNIZ: leibniz, document, innerWidth: 1200, innerHeight: 800, devicePixelRatio: 1,
   addEventListener() {}, matchMedia: () => ({ matches: false }),
   requestAnimationFrame: () => 0, setTimeout: () => 0
 };
@@ -287,6 +288,7 @@ async function salonAblauf() {
   G.schliessen();
   G.teleport(19, 21); bisWechsel("down", 2);
   check("Salon: danach ist die Tuer offen", G.state.szene === "welt");
+  druckereiAblauf();
 
   // Rueckmeldungen der eingebauten Fassung
   const p1 = G.urteilPlaton(ANALYSE);
@@ -297,6 +299,59 @@ async function salonAblauf() {
   check("Platon: fehlende Deutung des Gleichnisses erkannt", !p2.bereiche[3] && p2.kernFehlt.some(k => k.id === "adern"));
   const hinweisP = G.urteilPlaton("x").kernFehlt.map(k => k.hilfe).join(" ");
   check("Platon: Zeilenangaben aus dem Arbeitsblatt", /Z\. \d/.test(hinweisP) && !/\(\)/.test(hinweisP));
+}
+
+// ---------- Buchdruckerei (Probefassung): Raum, Presse, Meister, Infotafel
+function druckereiAblauf() {
+  G.teleport(74, 43); bisWechsel("up", 2);
+  check("Druckerei: Tuer fuehrt nach dem Salon hinein", G.state.szene === "druckerei" && !G.state.dialog);
+  check("Druckerei: Eintritt auf der Eintrittsstelle", druckerei.raster[Math.floor((G.state.y - 2) / 16)][Math.floor(G.state.x / 16)] === "S");
+  lauf("up", 3.5);
+  check("Druckerei: Hauptweg fuehrt gerade zur Presse", G.state.aktion === "presse");
+  G.benutzen();
+  check("Druckerei: Druckermeister begruesst Jonny", G.state.dialog === "Der Druckermeister");
+  G.schliessen();
+  G.teleport(30, 17); G.tick(1 / 60);
+  check("Druckerei: Infotafel am Buechertisch", G.state.aktion === "tafel");
+  G.benutzen();
+  const tafel = document.getElementById("materialInhalt").innerHTML;
+  check("Druckerei: Infotafel zeigt Titelblatt und Geschichte", G.state.material === "tafel" && /Humane Understanding/.test(tafel) && /Thomas Basset/.test(tafel) && /1765/.test(tafel));
+  check("Druckerei: Infotafel ohne Download", document.getElementById("laden").hidden === true);
+  G.materialSchliessen();
+  check("Druckerei: Infotafel gelesen, Download wieder da", G.state.tafeln.locke_druck && !G.state.material && document.getElementById("laden").hidden === false);
+  G.teleport(4, 6); G.tick(1 / 60);
+  check("Druckerei: Setzkasten bietet Interaktion", G.state.aktion === "setzkasten");
+  G.teleport(4, 13); G.tick(1 / 60);
+  check("Druckerei: Setzpult bietet Interaktion", G.state.aktion === "setzpult");
+  const bilder = [0, 1000, 2000, 3000, 4000].map(G.presseBild);
+  check("Druckerei: Presse laeuft durch ihre Bilder", new Set(bilder).size >= 4 && bilder.every(b => b >= 0 && b < druckerei.presse.bilder));
+  G.teleport(19, 21); bisWechsel("down", 2);
+  check("Druckerei: Rueckweg nach draussen", G.state.szene === "welt");
+}
+
+// Druckerei-Raster: alles vom Eintritt aus erreichbar
+{
+  const a = (x, y) => druckerei.raster[y][x];
+  const seen = new Set([druckerei.eintritt.x + "," + druckerei.eintritt.y]), q = [[druckerei.eintritt.x, druckerei.eintritt.y]];
+  while (q.length) {
+    const [x, y] = q.shift();
+    for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+      const nx = x + dx, ny = y + dy, k = nx + "," + ny;
+      if (ny >= 0 && ny < druckerei.hoehe && nx >= 0 && nx < druckerei.breite && a(nx, ny) !== "X" && !seen.has(k)) { seen.add(k); q.push([nx, ny]); }
+    }
+  }
+  check("Druckerei-Raster: vollstaendig", druckerei.raster.length === druckerei.hoehe && druckerei.raster.every(r => r.length === druckerei.breite));
+  for (const s of druckerei.interaktionen) {
+    check("Druckerei-Raster: " + s.id + " erreichbar", seen.has(s.flaeche.x0 + "," + s.flaeche.y0));
+    let alleI = true;
+    for (let y = s.flaeche.y0; y <= s.flaeche.y1; y++) for (let x = s.flaeche.x0; x <= s.flaeche.x1; x++) if (a(x, y) !== "I") alleI = false;
+    check("Druckerei-Raster: " + s.id + " als Interaktionsflaeche markiert", alleI);
+  }
+  check("Druckerei-Raster: Ausgang erreichbar", druckerei.ausgang.every(o => seen.has(o.x + "," + o.y)));
+  let rest = 0; for (let y = 0; y < druckerei.hoehe; y++) for (let x = 0; x < druckerei.breite; x++) if (a(x, y) !== "X" && !seen.has(x + "," + y)) rest++;
+  check("Druckerei-Raster: keine abgeschnittenen Bodenflaechen", rest === 0);
+  check("Druckerei-Raster: Meister steht auf gesperrter Kachel", a(Math.floor(druckerei.meister.x), druckerei.meister.y) === "X");
+  check("Druckerei: Sprite-Blatt der Presse vorhanden", fs.existsSync(path.join(__dirname, "innen", "druckerei_presse.png")));
 }
 
 // Salon-Raster: alles vom Eintritt aus erreichbar

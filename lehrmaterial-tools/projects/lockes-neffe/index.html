@@ -137,6 +137,23 @@ button:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
 #startInfo { border-radius: 50%; }
 #info { grid-template-rows: auto minmax(0, 1fr) auto; width: min(640px, calc(100vw - 24px)); }
 #infoText { overflow: auto; padding-right: 6px; font-size: 16px; line-height: 1.45; }
+/* Infotafel: Nachbildung des Titelblatts neben kurzen Texten */
+.tafel { display: grid; grid-template-columns: minmax(170px, 230px) 1fr; gap: 18px; padding: 14px 18px 18px; font-size: 17px; line-height: 1.5; }
+.tafel p { margin: 0 0 10px; }
+.tafel .klein { font-size: 15px; font-style: italic; color: var(--ink-soft); }
+.faksimile { align-self: start; background: #f6efdc; border: 1px solid #b9a67e; box-shadow: 3px 3px 0 rgba(43, 33, 24, .25);
+  padding: 14px 12px; text-align: center; font-family: var(--body); color: #2a2320; transform: rotate(-1.2deg); }
+.faksimile div { margin: 2px 0; }
+.faksimile .f1, .faksimile .f3 { font-family: var(--display); letter-spacing: .12em; font-size: 15px; }
+.faksimile .f2 { font-family: var(--display); font-size: 34px; letter-spacing: .08em; line-height: 1; }
+.faksimile .f4 { font-size: 21px; font-style: italic; }
+.faksimile .f5 { font-size: 14px; }
+.faksimile .flinie { height: 0; border-top: 1px solid #2a2320; margin: 6px 8px; }
+.faksimile .fzier { font-size: 20px; line-height: 1; color: #8e2a22; }
+.faksimile .f6 { font-family: var(--display); letter-spacing: .1em; font-size: 14px; }
+.faksimile .f7 { font-size: 12px; line-height: 1.35; }
+.faksimile .f8 { font-family: var(--display); font-size: 14px; letter-spacing: .1em; }
+@media (max-width: 640px), (max-height: 480px) { .tafel { grid-template-columns: 1fr; } .faksimile { max-width: 240px; justify-self: center; } }
 .brief { background: #f7ecd0; border: 1px solid var(--ink-soft); padding: 8px 12px; margin: 0 0 14px; font-family: var(--body); }
 .brief p { margin: 0 0 6px; }
 .brief .hk { font-weight: bold; margin-top: 8px; }
@@ -405,6 +422,7 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
 <script src="innen/observatorium_daten.js"></script>
 <script src="innen/lesesaal_daten.js"></script>
 <script src="innen/salon_daten.js"></script>
+<script src="innen/druckerei_daten.js"></script>
 <script src="material/leibniz_daten.js"></script>
 <script>
 (function () {
@@ -414,7 +432,7 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
   var INNEN = window.INNEN || {};
   var $ = function (id) { return document.getElementById(id); };
   var LEIBNIZ = window.LEIBNIZ;
-  if (!D || !INNEN.observatorium || !INNEN.lesesaal || !INNEN.salon || !LEIBNIZ) { $("fehler").hidden = false; return; }
+  if (!D || !INNEN.observatorium || !INNEN.lesesaal || !INNEN.salon || !INNEN.druckerei || !LEIBNIZ) { $("fehler").hidden = false; return; }
 
   var REIHE = ["observatorium", "lesesaal", "salon", "druckerei", "akademie"];
   var ORTE = {
@@ -488,6 +506,43 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
     '<p>Daraus folgt unmittelbar: Erstens: Unser Wissen reicht nicht weiter als unsere Ideen. Zweitens: Unser Wissen ist noch enger als unsere Ideen, weil wir nicht immer die Übereinstimmung oder Nichtübereinstimmung zwischen ihnen wahrnehmen können. Wir besitzen keine intuitive oder demonstrative Gewissheit über die unendliche Natur der Dinge. Unser sensitives Wissen erstreckt sich nicht einmal so weit wie unsere Vorstellungen selbst. Wir tappen in vielen Bereichen der Wirklichkeit völlig im Dunkeln.</p>' +
     '</div>';
 
+  // ---------- Infotafeln: freiwillige Hintergrundgeschichten, spaeter auch in anderen Raeumen moeglich
+  var TAFELN = {
+    locke_druck: {
+      titel: "Aus der Officin: Wie Lockes Buch gedruckt wurde",
+      html: '<div class="tafel"><div class="faksimile" aria-label="Nachbildung des Titelblatts von 1690">' +
+        '<div class="f1">AN</div><div class="f2">ESSAY</div><div class="f3">CONCERNING</div>' +
+        '<div class="f4">Humane Understanding.</div><div class="f5">In Four Books.</div><div class="flinie"></div>' +
+        '<div class="fzier">❦</div><div class="flinie"></div><div class="f6">LONDON:</div>' +
+        '<div class="f7">Printed by <i>Eliz. Holt</i>, for <i>Thomas Basset</i>, at the George in <i>Fleetstreet</i>, near St. <i>Dunstan</i>’s Church.</div>' +
+        '<div class="f8">MDCXC.</div></div>' +
+        '<div class="tafeltext">' +
+        '<p><strong>Gedruckt in der Fleet Street.</strong> Im Dezember 1689 erscheint in London der „Essay Concerning Human Understanding“ deines Onkels. ' +
+        'Auf dem Titelblatt steht schon das Jahr 1690. Gedruckt hat ihn die Druckerin Elizabeth Holt für den Verleger Thomas Basset.</p>' +
+        '<p><strong>Mit Namen.</strong> Es ist das einzige seiner großen Werke, das Locke zu Lebzeiten unter seinem Namen veröffentlicht. ' +
+        'Seine „Zwei Abhandlungen über die Regierung“ erscheinen im selben Jahr ohne Verfassernamen.</p>' +
+        '<p><strong>Das Buch, das liegen blieb.</strong> Leibniz schreibt seine Antwort, die „Neuen Abhandlungen“, um 1704. Als Locke im selben Jahr stirbt, ' +
+        'legt Leibniz das Manuskript beiseite: Mit einem Toten will er nicht streiten. Gedruckt wird es erst 1765, fast fünfzig Jahre nach Leibniz’ Tod.</p>' +
+        '<p><strong>Locke und die Pressefreiheit.</strong> Wer in England druckt, braucht bis 1695 eine staatliche Erlaubnis. Locke kritisiert dieses Gesetz ' +
+        'scharf. 1695 wird es nicht verlängert, die Zensur vor dem Druck endet.</p>' +
+        '<p class="klein">Übrigens: Die englischen Wörter „uppercase“ und „lowercase“ stammen aus der Werkstatt. Die Großbuchstaben lagen im oberen Setzkasten, die kleinen im unteren.</p>' +
+        '</div></div>'
+    }
+  };
+  function oeffneTafel(id) {
+    var t = TAFELN[id];
+    st.material = "tafel"; st.dialog = "material"; st.tafeln[id] = true;
+    tastenLos();
+    $("materialTitel").textContent = t.titel;
+    $("materialInhalt").innerHTML = t.html;
+    $("materialInhalt").scrollTop = 0;
+    $("laden").hidden = true;
+    $("materialStatus").textContent = "";
+    $("material").hidden = false;
+    $("zu").focus();
+    hudAktualisieren();
+  }
+
   function esc(t) { return String(t).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
   var LEIBNIZ_ZEILEN = '<h3>' + esc(LEIBNIZ.quelle) + '</h3><div class="zeilen">' +
     LEIBNIZ.zeilen.map(function (z, i) {
@@ -508,7 +563,8 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
     welt: { d: D, src: "welt/welt.png", begehbar: { "#": 1, ".": 1, "E": 1 } },
     observatorium: { d: INNEN.observatorium, src: "innen/observatorium.png", begehbar: { "#": 1, "S": 1, "I": 1, "A": 1 } },
     lesesaal: { d: INNEN.lesesaal, src: "innen/lesesaal.png", begehbar: { "#": 1, "S": 1, "I": 1, "A": 1 } },
-    salon: { d: INNEN.salon, src: "innen/salon.png", begehbar: { "#": 1, "S": 1, "I": 1, "A": 1 } }
+    salon: { d: INNEN.salon, src: "innen/salon.png", begehbar: { "#": 1, "S": 1, "I": 1, "A": 1 } },
+    druckerei: { d: INNEN.druckerei, src: "innen/druckerei.png", begehbar: { "#": 1, "S": 1, "I": 1, "A": 1 } }
   };
   Object.keys(SZENEN).forEach(function (k) {
     var s = SZENEN[k];
@@ -531,7 +587,7 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
     fenster: null, rolle: "", abgegeben: false, rueckmeldung: false, lesesaalFertig: false,
     verlauf: [], bibSeit: null, frage: null, versuche: 0, gefragt: {}, letzteTreffer: null,
     musterAngebot: false, musterGezeigt: false,
-    werk: "lesesaal",
+    werk: "lesesaal", tafeln: {},
     salon: { rolle: "", verlauf: [], abgegeben: false, rueckmeldung: false, fertig: false, seit: null,
       frage: null, versuche: 0, gefragt: {}, letzteTreffer: null, musterAngebot: false, musterGezeigt: false }
   };
@@ -646,6 +702,30 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
             return;
           }
           platonGespraech();
+        }
+      }
+    },
+    // Buchdruckerei. Probefassung: Raum, Presse, Meister und Infotafel stehen, Aufgabe 3 folgt. Bis dahin ist die Tuer offen.
+    druckerei: {
+      index: 3,
+      offen: function () { return ["setzkasten"]; },
+      leuchtet: function (id) { return id === "setzkasten" || (id === "tafel" && !st.tafeln.locke_druck); },
+      darfRaus: function () { return true; },
+      sperre: function () { return ""; },
+      ziel: function () { return "Setzkasten"; },
+      benutzen: function (id) {
+        if (id === "tafel") { oeffneTafel("locke_druck"); return; }
+        if (id === "setzkasten") {
+          zeigeDialog("Der Setzkasten",
+            "Zwischen den Lettern liegt ein Brief mit dem roten Siegel der Akademie. Darin steht dein letzter Auftrag: dein eigener Kommentar zum Streit zwischen Locke und Leibniz.",
+            "Probefassung: Aufgabe 3 folgt.", null);
+        } else if (id === "setzpult") {
+          zeigeDialog("Das Setzpult", "Papier, Feder und ein Winkelhaken voller Lettern. Hier schreibst du bald deinen Kommentar.",
+            "Probefassung: Aufgabe 3 folgt.", null);
+        } else if (id === "presse") {
+          zeigeDialog("Der Druckermeister",
+            "„Willkommen in der Officin! Gerade drucken wir das Buch deines Onkels. Schreib deinen Kommentar, dann setze ich ihn und wir drucken ihn als Flugschrift, wie es sich gehört.“",
+            "Die Infotafel am Büchertisch erzählt, wie Lockes Buch in den Druck kam.", null);
         }
       }
     }
@@ -856,6 +936,8 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
     if (!id) return;
     st.material = null; st.dialog = null;
     $("material").hidden = true;
+    $("laden").hidden = false;
+    if (id === "tafel") { hudAktualisieren(); return; }
     if (id === "teleskop" && allesFertig() && st.stufe === 0) {
       st.stufe = 1;
       zeigeDialog("Alle Materialien gesichert",
@@ -1686,6 +1768,248 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
     });
   })();
 
+  // ---------- Flugschrift im Stil von 1690: Jonnys Text wird auf Seiten im Format A4 gesetzt (Canvas) und als PDF gespeichert.
+  // Die PDF enthaelt je Seite ein JPEG-Bild. So bleibt die alte Schrift erhalten und es braucht keine fremde Bibliothek.
+  var FLUGSCHRIFT = (function () {
+    var BW = 1240, BH = 1754;                 // A4 bei 150 dpi
+    var TINTE = "#2a2320", ROT = "#8e2a22";
+    var RAND = 150, BREITE = BW - 2 * RAND;
+    var SERIF = "'IM Fell English', Georgia, serif", KAPITAELCHEN = "'IM Fell English SC', Georgia, serif";
+
+    function papier(g, seite) {
+      g.fillStyle = "#f0e5cb"; g.fillRect(0, 0, BW, BH);
+      var zz = seite * 7919 + 17;
+      function zufall() { zz = (zz * 16807) % 2147483647; return zz / 2147483647; }
+      for (var i = 0; i < 9000; i++) {        // Faserstruktur
+        g.fillStyle = zufall() < 0.5 ? "rgba(120,90,50,0.05)" : "rgba(255,255,240,0.08)";
+        g.fillRect(zufall() * BW, zufall() * BH, 1 + zufall() * 3, 1);
+      }
+      for (var k = 0; k < 7; k++) {           // Stockflecken
+        var x = zufall() * BW, y = zufall() * BH, r = 8 + zufall() * 26;
+        var fl = g.createRadialGradient(x, y, 0, x, y, r);
+        fl.addColorStop(0, "rgba(150,100,50,0.13)"); fl.addColorStop(1, "rgba(150,100,50,0)");
+        g.fillStyle = fl; g.fillRect(x - r, y - r, 2 * r, 2 * r);
+      }
+      var v = g.createRadialGradient(BW / 2, BH / 2, BH * 0.35, BW / 2, BH / 2, BH * 0.75);
+      v.addColorStop(0, "rgba(120,80,30,0)"); v.addColorStop(1, "rgba(120,80,30,0.22)");
+      g.fillStyle = v; g.fillRect(0, 0, BW, BH);
+      // doppelter Rahmen
+      g.strokeStyle = TINTE; g.lineWidth = 4; g.strokeRect(90, 90, BW - 180, BH - 180);
+      g.lineWidth = 1.5; g.strokeRect(102, 102, BW - 204, BH - 204);
+    }
+    function blatt(g, x, y, s, links) {       // kleines Blattornament
+      g.save(); g.translate(x, y); g.scale(links ? -s : s, s);
+      g.beginPath(); g.moveTo(0, 0); g.bezierCurveTo(10, -14, 30, -12, 38, 0); g.bezierCurveTo(30, 12, 10, 14, 0, 0);
+      g.fill(); g.restore();
+    }
+    function zierleiste(g, y) {
+      g.fillStyle = TINTE;
+      g.fillRect(RAND, y, BREITE, 3); g.fillRect(RAND, y + 30, BREITE, 3);
+      for (var x = RAND + 30; x < BW - RAND - 20; x += 60) {
+        blatt(g, x, y + 16, 0.55, false); blatt(g, x + 44, y + 16, 0.55, true);
+        g.beginPath(); g.arc(x + 22, y + 16, 3.5, 0, Math.PI * 2); g.fill();
+      }
+    }
+    function schlussstueck(g, y) {
+      g.fillStyle = TINTE;
+      blatt(g, BW / 2 + 8, y, 1.1, false); blatt(g, BW / 2 - 8, y, 1.1, true);
+      g.beginPath(); g.arc(BW / 2, y, 6, 0, Math.PI * 2); g.fill();
+      g.fillRect(BW / 2 - 150, y - 1, 90, 2); g.fillRect(BW / 2 + 60, y - 1, 90, 2);
+    }
+    // Druckerzeichen: Holzschnitt einer Presse im Oval mit dem alten Druckermotto
+    function druckerzeichen(g, cx, cy) {
+      g.save();
+      g.strokeStyle = TINTE; g.fillStyle = TINTE;
+      g.lineWidth = 5; g.beginPath(); g.ellipse(cx, cy, 150, 175, 0, 0, Math.PI * 2); g.stroke();
+      g.lineWidth = 1.5; g.beginPath(); g.ellipse(cx, cy, 138, 163, 0, 0, Math.PI * 2); g.stroke();
+      for (var k = 0; k < 36; k++) {           // Schraffur wie im Holzschnitt
+        var a = k / 36 * Math.PI * 2;
+        g.beginPath(); g.moveTo(cx + Math.cos(a) * 139, cy + Math.sin(a) * 164); g.lineTo(cx + Math.cos(a) * 149, cy + Math.sin(a) * 174); g.stroke();
+      }
+      var x0 = cx - 70, y0 = cy - 110;
+      g.fillRect(x0, y0, 22, 210); g.fillRect(x0 + 118, y0, 22, 210);                 // Wangen
+      g.fillRect(x0 - 10, y0 - 12, 160, 16); g.fillRect(x0 - 4, y0 + 18, 148, 22);      // Krone, Kopf
+      g.fillRect(x0 + 22, y0 + 88, 96, 12);                                            // Buechse
+      for (var yy = y0 + 40; yy < y0 + 112; yy += 8) g.fillRect(cx - 6, yy, 12, 5);     // Spindel
+      g.fillRect(x0 + 30, y0 + 116, 80, 12);                                           // Tiegel
+      g.fillRect(x0 + 24, y0 + 140, 92, 20);                                           // Karren
+      g.lineWidth = 6; g.beginPath(); g.moveTo(cx, y0 + 64); g.lineTo(cx + 120, y0 + 84); g.stroke();   // Bengel
+      g.beginPath(); g.arc(cx + 122, y0 + 84, 7, 0, Math.PI * 2); g.fill();
+      g.fillRect(x0 - 26, y0 + 208, 192, 6);                                           // Boden
+      g.restore();
+      mitte(g, "VERITAS · FILIA · TEMPORIS", cy + 222, "26px " + KAPITAELCHEN, TINTE, 5);
+    }
+    function mitte(g, text, y, font, farbe, sperren) {
+      g.font = font; g.fillStyle = farbe || TINTE; g.textAlign = "center";
+      if (sperren && g.letterSpacing !== undefined) g.letterSpacing = sperren + "px";
+      g.fillText(text, BW / 2 + (sperren ? sperren / 2 : 0), y);
+      if (g.letterSpacing !== undefined) g.letterSpacing = "0px";
+      g.textAlign = "left";
+    }
+    function umbrechen(g, text, breite) {
+      var zeilen = [], worte = text.split(/\s+/).filter(Boolean), z = [];
+      worte.forEach(function (w) {
+        var probe = z.concat([w]).join(" ");
+        if (z.length && g.measureText(probe).width > breite) { zeilen.push(z); z = [w]; } else z.push(w);
+      });
+      if (z.length) zeilen.push(z);
+      return zeilen;
+    }
+    function blocksatz(g, worte, x, y, breite, letzte) {
+      if (letzte || worte.length < 2) { g.fillText(worte.join(" "), x, y); return; }
+      var summe = worte.reduce(function (s, w) { return s + g.measureText(w).width; }, 0);
+      var luecke = (breite - summe) / (worte.length - 1);
+      if (luecke > 40) { g.fillText(worte.join(" "), x, y); return; }
+      worte.forEach(function (w) { g.fillText(w, x, y); x += g.measureText(w).width + luecke; });
+    }
+
+    // daten: { titel: [Zeilen], frage, text, probe }
+    function seiten(daten, groesse) {
+      var liste = [], g = null, seite = 0, y = 0;
+      var SCHRIFT = groesse + "px " + SERIF, ZH = Math.round(groesse * 1.52), UNTEN = BH - 300;
+      function neueSeite() {
+        var c = document.createElement("canvas"); c.width = BW; c.height = BH;
+        g = c.getContext("2d"); seite++; papier(g, seite); liste.push(c);
+        g.textBaseline = "alphabetic";
+        if (seite > 1) { mitte(g, "[ " + seite + " ]", 170, "26px " + SERIF); y = 240; }
+      }
+      neueSeite();
+      // Titelei
+      mitte(g, "Des jungen Herrn", 205, "italic 34px " + SERIF);
+      mitte(g, "JONNY,", 290, "86px " + KAPITAELCHEN, TINTE, 8);
+      mitte(g, "Neffen des Herrn John Locke,", 345, "italic 34px " + SERIF);
+      g.fillStyle = TINTE; g.fillRect(BW / 2 - 200, 378, 400, 2);
+      mitte(g, (daten.titel || "Stellungnahme").toUpperCase(), 450, "58px " + KAPITAELCHEN, ROT, 6);
+      g.font = "italic 31px " + SERIF;
+      var fz = umbrechen(g, daten.frage || "", BREITE - 120);
+      var fy = 505;
+      fz.forEach(function (w) { mitte(g, w.join(" "), fy, "italic 31px " + SERIF); fy += 42; });
+      if (daten.probe) { mitte(g, "( Probedruck )", fy + 4, "italic 24px " + SERIF, ROT); fy += 36; }
+      zierleiste(g, fy + 12);
+      y = fy + 110;
+
+      // Textkoerper mit Zierinitiale
+      var absaetze = String(daten.text || "").split(/\n\s*\n|\n/).map(function (a) { return a.trim(); }).filter(Boolean);
+      g.font = SCHRIFT;
+      absaetze.forEach(function (abs, ai) {
+        var einzug = 0, initialBreite = 0, initialZeilen = 0;
+        if (ai === 0) {
+          var erster = abs.charAt(0);
+          abs = abs.slice(1);
+          var ib = 3 * ZH - 6;
+          g.fillStyle = "#e8dcbc"; g.fillRect(RAND, y - ZH + 8, ib, ib);
+          g.strokeStyle = TINTE; g.lineWidth = 3; g.strokeRect(RAND, y - ZH + 8, ib, ib);
+          g.lineWidth = 1; g.strokeRect(RAND + 7, y - ZH + 15, ib - 14, ib - 14);
+          g.fillStyle = "rgba(42,35,32,0.35)";
+          for (var d = 0; d < 4; d++) {
+            blatt(g, RAND + 14, y - ZH + 22 + d * 26, 0.28, false);
+            blatt(g, RAND + ib - 14, y - ZH + 22 + d * 26, 0.28, true);
+          }
+          g.fillStyle = ROT; g.font = "116px " + KAPITAELCHEN; g.textAlign = "center";
+          g.fillText(erster.toUpperCase(), RAND + ib / 2, y + 2 * ZH - 18);
+          g.textAlign = "left"; g.font = SCHRIFT;
+          initialBreite = ib + 18; initialZeilen = 3;
+        } else {
+          einzug = 44;
+        }
+        var worte = abs.split(/\s+/).filter(Boolean), zeile = [], zeilenNr = 0;
+        function breiteJetzt() { return BREITE - (zeilenNr < initialZeilen ? initialBreite : 0) - (zeilenNr === 0 ? einzug : 0); }
+        function xJetzt() { return RAND + (zeilenNr < initialZeilen ? initialBreite : 0) + (zeilenNr === 0 ? einzug : 0); }
+        function setze(letzte) {
+          if (y > UNTEN) {
+            // Kustode: das erste Wort der naechsten Seite unten rechts, wie in alten Drucken
+            g.textAlign = "right"; g.fillText(zeile[0], BW - RAND, UNTEN + ZH + 10); g.textAlign = "left";
+            neueSeite(); g.font = SCHRIFT; g.fillStyle = TINTE;
+          }
+          g.fillStyle = TINTE;
+          blocksatz(g, zeile, xJetzt(), y, breiteJetzt(), letzte);
+          y += ZH; zeilenNr++;
+        }
+        worte.forEach(function (w) {
+          var probe = zeile.concat([w]).join(" ");
+          if (zeile.length && g.measureText(probe).width > breiteJetzt()) { setze(false); zeile = [w]; } else zeile.push(w);
+        });
+        if (zeile.length) setze(true);
+        if (ai === 0 && zeilenNr < initialZeilen) y += (initialZeilen - zeilenNr) * ZH;
+        y += 10;
+      });
+      // Schluss und Druckvermerk
+      if (y > UNTEN - 60) neueSeite();
+      schlussstueck(g, y + 30);
+      mitte(g, "FINIS.", y + 100, "34px " + KAPITAELCHEN, TINTE, 6);
+      if (BH - 300 - (y + 140) > 470) druckerzeichen(g, BW / 2, (y + 140 + BH - 300) / 2 - 20);
+      g.fillStyle = TINTE; g.fillRect(RAND, BH - 262, BREITE, 2);
+      mitte(g, "LONDON,", BH - 218, "30px " + KAPITAELCHEN, TINTE, 4);
+      mitte(g, "Gedruckt in der Officin am Mühlrad, für die Akademie der Wissenschaften.", BH - 178, "italic 27px " + SERIF);
+      mitte(g, "M DC XC.", BH - 138, "28px " + KAPITAELCHEN, TINTE, 6);
+      return liste;
+    }
+
+    // Einfache PDF: je Seite ein JPEG (DCTDecode), A4 hoch
+    function pdf(bilder) {
+      var teile = [], laenge = 0, xref = [];
+      function schreib(x) {
+        var b = typeof x === "string" ? new TextEncoder().encode(x) : x;
+        teile.push(b); laenge += b.length;
+      }
+      schreib("%PDF-1.4\n"); schreib(new Uint8Array([37, 226, 227, 207, 211, 10]));
+      var n = bilder.length, kids = [];
+      for (var i = 0; i < n; i++) kids.push((3 + i * 3) + " 0 R");
+      function obj(nr, inhalt) { xref[nr] = laenge; schreib(nr + " 0 obj\n"); inhalt(); schreib("\nendobj\n"); }
+      obj(1, function () { schreib("<< /Type /Catalog /Pages 2 0 R >>"); });
+      obj(2, function () { schreib("<< /Type /Pages /Kids [" + kids.join(" ") + "] /Count " + n + " >>"); });
+      bilder.forEach(function (b, i) {
+        var p = 3 + i * 3;
+        var inhalt = "q 595.28 0 0 841.89 0 0 cm /Im0 Do Q";
+        obj(p, function () {
+          schreib("<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595.28 841.89] /Resources << /XObject << /Im0 " + (p + 2) + " 0 R >> >> /Contents " + (p + 1) + " 0 R >>");
+        });
+        obj(p + 1, function () { schreib("<< /Length " + inhalt.length + " >>\nstream\n" + inhalt + "\nendstream"); });
+        obj(p + 2, function () {
+          schreib("<< /Type /XObject /Subtype /Image /Width " + b.w + " /Height " + b.h +
+            " /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length " + b.bytes.length + " >>\nstream\n");
+          schreib(b.bytes); schreib("\nendstream");
+        });
+      });
+      var start = laenge, anzahl = 3 + n * 3;
+      schreib("xref\n0 " + anzahl + "\n0000000000 65535 f \n");
+      for (var k = 1; k < anzahl; k++) schreib(("0000000000" + xref[k]).slice(-10) + " 00000 n \n");
+      schreib("trailer\n<< /Size " + anzahl + " /Root 1 0 R >>\nstartxref\n" + start + "\n%%EOF\n");
+      var alles = new Uint8Array(laenge), o = 0;
+      teile.forEach(function (t) { alles.set(t, o); o += t.length; });
+      return alles;
+    }
+    function jpeg(c) {
+      var d = c.toDataURL("image/jpeg", 0.88), s = atob(d.split(",")[1]), b = new Uint8Array(s.length);
+      for (var i = 0; i < s.length; i++) b[i] = s.charCodeAt(i);
+      return { bytes: b, w: c.width, h: c.height };
+    }
+    function erstellen(daten) {
+      var fonts = document.fonts && document.fonts.load
+        ? Promise.all(["29px 'IM Fell English'", "italic 29px 'IM Fell English'", "58px 'IM Fell English SC'"].map(function (f) { return document.fonts.load(f); }))
+        : Promise.resolve();
+      return fonts.then(function () {
+        // Passt der Text knapp nicht auf eine Seite, wird die Schrift etwas kleiner gesetzt, sonst folgen weitere Seiten
+        var s = null;
+        [29, 27, 25].some(function (gr) { s = seiten(daten, gr); return s.length === 1; });
+        if (s.length > 1) s = seiten(daten, 29);
+        return { seiten: s, pdf: pdf(s.map(jpeg)) };
+      });
+    }
+    function speichern(daten, dateiname) {
+      return erstellen(daten).then(function (e) {
+        var blob = new Blob([e.pdf], { type: "application/pdf" });
+        if (dl) return dl.save({ filename: dateiname, data: blob }).then(function () { return true; }, function () { return false; });
+        var url = URL.createObjectURL(blob), a = document.createElement("a");
+        a.href = url; a.download = dateiname;
+        document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
+        return true;
+      });
+    }
+    return { erstellen: erstellen, speichern: speichern, pdf: pdf };
+  })();
+
   // ---------- Kurzer Hinweis, der aufleuchtet und von selbst verschwindet
   var toastTimer = null;
   function zeigeToast(titel, text) {
@@ -1826,6 +2150,22 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
     klein.src = "figuren/bibliothekar_16x24.png";
     gross.src = "figuren/bibliothekar_32x48.png";
   })();
+  // Druckerei: Presse als Sprite-Blatt (innen/druckerei.py), Druckermeister stehend und ziehend (figuren/druckermeister.py)
+  var PRESSE_BLATT = null, MEISTER_STEHT = null, MEISTER_ZIEHT = null, MEISTER_GROSS = null;
+  (function () {
+    function lade(src, fertig) { var i = new Image(); i.onload = function () { fertig(i); }; i.src = src; }
+    lade("innen/druckerei_presse.png", function (i) { PRESSE_BLATT = i; });
+    lade("figuren/druckermeister_16x24.png", function (i) { MEISTER_STEHT = i; });
+    lade("figuren/druckermeister_ziehen_16x24.png", function (i) { MEISTER_ZIEHT = i; });
+    lade("figuren/druckermeister_32x48.png", function (i) { MEISTER_GROSS = i; });
+  })();
+  // Takt der Presse: 16 Bilder in 3,2 s, dann 1,4 s Pause mit offenem Deckel. Bilder 6 bis 9: der Meister zieht am Bengel.
+  function presseBild(t) {
+    if (ruhig) return 0;
+    var zyklus = 4600, lauf = 3200, p = t % zyklus;
+    return p < lauf ? Math.min(15, Math.floor(p / lauf * 16)) : 15;
+  }
+
   // Platon: Geist im Salon (erzeugt mit figuren/platon.py)
   var PLATON_SPRITE = null, PLATON_GROSS = null;
   (function () {
@@ -1915,6 +2255,19 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
       ctx.fillRect(gx - r, gy - r, 2 * r, 2 * r);
       ctx.restore();
     });
+
+    // Druckerei: Presse und Meister stehen immer hinter Jonny (ihre Kacheln liegen weiter oben)
+    if (sz.id === "druckerei" && PRESSE_BLATT) {
+      var pr_ = sz.d.presse, bild = presseBild(t), ms = sz.d.meister;
+      ctx.drawImage(PRESSE_BLATT, bild * pr_.w, 0, pr_.w, pr_.h, pr_.x, pr_.y, pr_.w, pr_.h);
+      var mf = bild >= 6 && bild <= 9 ? MEISTER_ZIEHT : MEISTER_STEHT;
+      if (mf) {
+        var mx = Math.round(ms.x * T), my = ms.y * T + 14;
+        ctx.fillStyle = "rgba(0,0,0,.28)";
+        ctx.beginPath(); ctx.ellipse(mx + 1, my - 1, 6, 2.5, 0, 0, Math.PI * 2); ctx.fill();
+        ctx.drawImage(mf, mx - 8, my - 24);
+      }
+    }
 
     // Salon: Platons Geist steht hinter Jonny vor dem Kamin
     if (sz.id === "salon" && st.salon.seit != null && !st.salon.fertig) {
@@ -2155,7 +2508,7 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
     herunterladen: herunterladen, materialSchliessen: materialSchliessen,
     abgeben: abgeben, antworten: antworten, gespraechBeenden: gespraechBeenden, ueberarbeiten: ueberarbeiten,
     rolleSchliessen: rolleSchliessen, urteil: function (t) { return BIBLIOTHEKAR.urteil(t); },
-    urteilPlaton: function (t) { return PLATON.urteil(t); }, platonGespraech: platonGespraech, vorstellung: PLATON_VORSTELLUNG,
+    urteilPlaton: function (t) { return PLATON.urteil(t); }, flugschrift: FLUGSCHRIFT, tafel: oeffneTafel, presseBild: presseBild, platonGespraech: platonGespraech, vorstellung: PLATON_VORSTELLUNG,
     teleport: function (tx, ty) { st.x = tx * T + 8; st.y = ty * T + 12; },
     starten: spielStarten, infoAuf: infoAuf, infoZu: infoZu, startLage: startLage, START: START
   };
