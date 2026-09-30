@@ -440,7 +440,8 @@ function akademieAblauf() {
   G.materialSchliessen();
   G.teleport(29, 20); G.tick(1 / 60); G.benutzen();
   check("Akademie: Sanduhr fragt vor dem Neustart", G.state.dialog === "Neues Spiel?" && document.getElementById("nein").hidden === false &&
-    document.getElementById("weiter").textContent === "Ja, neu beginnen");
+    document.getElementById("weiter").textContent === "Ja, neu beginnen" &&
+    /Texte .* auf diesem Gerät gelöscht/.test(document.getElementById("dialogNotiz").textContent));
   G.frageAbbrechen();
   check("Akademie: Abbrechen loescht nichts", !G.state.dialog && G.state.rolle === GUT);
   G.benutzen(); G.schliessen();
