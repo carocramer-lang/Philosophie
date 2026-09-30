@@ -30,6 +30,7 @@ const innen = JSON.parse(fs.readFileSync(path.join(__dirname, "innen", "observat
 const saal = JSON.parse(fs.readFileSync(path.join(__dirname, "innen", "lesesaal.json"), "utf8"));
 const salon = JSON.parse(fs.readFileSync(path.join(__dirname, "innen", "salon.json"), "utf8"));
 const druckerei = JSON.parse(fs.readFileSync(path.join(__dirname, "innen", "druckerei.json"), "utf8"));
+const akademie = JSON.parse(fs.readFileSync(path.join(__dirname, "innen", "akademie.json"), "utf8"));
 const leibniz = JSON.parse(fs.readFileSync(path.join(__dirname, "netlify", "lib", "leibniz.json"), "utf8"));
 const html = fs.readFileSync(path.join(__dirname, "index.html"), "utf8");
 const code = html.match(/<script>\n([\s\S]*?)<\/script>/)[1];
@@ -53,7 +54,7 @@ const document = {
   addEventListener: (t, f) => { docListeners[t] = f; }
 };
 const window = {
-  WELT: d, INNEN: { observatorium: innen, lesesaal: saal, salon, druckerei }, LEIBNIZ: leibniz, document, innerWidth: 1200, innerHeight: 800, devicePixelRatio: 1,
+  WELT: d, INNEN: { observatorium: innen, lesesaal: saal, salon, druckerei, akademie }, LEIBNIZ: leibniz, document, innerWidth: 1200, innerHeight: 800, devicePixelRatio: 1,
   addEventListener() {}, matchMedia: () => ({ matches: false }),
   requestAnimationFrame: () => 0, setTimeout: () => 0
 };
@@ -389,12 +390,13 @@ async function druckereiAblauf() {
   check("Druckerei: Presse leuchtet fuer die Flugschrift", G.state.aktion === "presse");
   G.benutzen();
   check("Druckerei: Presse oeffnet die Flugschrift erneut", G.state.material === "flugschrift");
-  G.state.geladen.flugschrift = true;   // Download selbst braucht einen Browser, siehe Pruefung dort
+  G.state.geladen.flugschrift = true; G.state.stufe = 4;   // wie nach dem Download (braucht einen Browser, dort geprueft)
   G.materialSchliessen();
   check("Druckerei: Glueckwunsch nach dem Download", G.state.dialog === "Deine Flugschrift ist gedruckt");
   G.schliessen();
   G.teleport(19, 21); bisWechsel("down", 2);
   check("Druckerei: danach ist die Tuer offen", G.state.szene === "welt");
+  akademieAblauf();
 
   // Rueckmeldungen der eingebauten Fassung
   const d1 = G.urteilDrucker(KOMMENTAR);
@@ -405,6 +407,66 @@ async function druckereiAblauf() {
   const d3 = G.urteilDrucker("Ich halte Locke für überzeugender, weil man angeborene Ideen nicht nachweisen kann.");
   const d4 = G.urteilDrucker("Ich halte Leibniz für überzeugender, weil aus Beobachtungen keine Notwendigkeit folgt.");
   check("Meister: jede Position zaehlt als Urteil", d3.bereiche[3] && d4.bereiche[3]);
+}
+
+// ---------- Akademie: Siegel, Aufnahme, Urkunde, Onkel John, Mappe, Sanduhr
+function akademieAblauf() {
+  check("Akademie: Ziel nach der Druckerei", G.state.stufe === 4);
+  G.teleport(74, 17); bisWechsel("up", 2);
+  check("Akademie: Tuer fuehrt hinein", G.state.szene === "akademie");
+  check("Akademie: Siegel leuchten beim Betreten", G.state.akademie.seit != null);
+  G.teleport(19, 21); bisWechsel("down", 2);
+  check("Akademie: Tuer gesperrt vor der Aufnahme", G.state.szene === "akademie");
+  G.teleport(29, 20); G.tick(1 / 60); G.benutzen();
+  check("Akademie: Sanduhr vor der Aufnahme gesperrt", G.state.dialog === "Die Sanduhr");
+  G.schliessen();
+  G.teleport(19, 20); lauf("up", 3.5);
+  check("Akademie: Hauptweg fuehrt gerade zum Praesidenten", G.state.aktion === "praesident");
+  G.benutzen();
+  check("Akademie: Praesident spricht", G.state.dialog === "Der Präsident der Akademie" && /Tritt näher/.test(document.getElementById("dialogText").textContent));
+  G.schliessen();
+  check("Akademie: zweite Rede folgt", G.state.dialog === "Der Präsident der Akademie" && /jüngstes Mitglied/.test(document.getElementById("dialogText").textContent));
+  G.schliessen();
+  check("Akademie: Urkunde liegt bereit", G.state.material === "urkunde" && /Urkunde herunterladen/.test(document.getElementById("laden").textContent));
+  G.materialSchliessen();
+  check("Akademie: Onkel John gratuliert", G.state.dialog === "Onkel John" && /eigenes Urteil/.test(document.getElementById("dialogText").textContent));
+  G.schliessen();
+  check("Akademie: Aufnahme bestanden", G.state.akademie.fertig && G.state.stufe === 5 && document.getElementById("ziel").textContent === "Aufnahme bestanden");
+  G.teleport(8, 6); G.tick(1 / 60); G.benutzen();
+  check("Akademie: Mappe am Pult", G.state.material === "mappe" && /Mappe herunterladen/.test(document.getElementById("laden").textContent));
+  const abschnitte = G.mappeAbschnitte();
+  check("Akademie: Mappe enthaelt alle drei Texte mit Gespraechen", abschnitte.length === 3 && abschnitte[0].text === GUT && abschnitte[1].text === ANALYSE &&
+    abschnitte[2].text === KOMMENTAR && abschnitte.every(a => a.verlauf.length > 0));
+  G.materialSchliessen();
+  G.teleport(29, 20); G.tick(1 / 60); G.benutzen();
+  check("Akademie: Sanduhr fragt vor dem Neustart", G.state.dialog === "Neues Spiel?" && document.getElementById("nein").hidden === false &&
+    document.getElementById("weiter").textContent === "Ja, neu beginnen");
+  G.frageAbbrechen();
+  check("Akademie: Abbrechen loescht nichts", !G.state.dialog && G.state.rolle === GUT);
+  G.benutzen(); G.schliessen();
+  check("Akademie: Neues Spiel leert die gespeicherten Texte", G.state.rolle === "" && G.state.salon.rolle === "" && G.state.druckerei.rolle === "");
+  G.teleport(19, 21); bisWechsel("down", 2);
+  check("Akademie: danach ist die Tuer offen", G.state.szene === "welt");
+}
+
+// Akademie-Raster: alles vom Eintritt aus erreichbar
+{
+  const a = (x, y) => akademie.raster[y][x];
+  const seen = new Set([akademie.eintritt.x + "," + akademie.eintritt.y]), q = [[akademie.eintritt.x, akademie.eintritt.y]];
+  while (q.length) {
+    const [x, y] = q.shift();
+    for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+      const nx = x + dx, ny = y + dy, k = nx + "," + ny;
+      if (ny >= 0 && ny < akademie.hoehe && nx >= 0 && nx < akademie.breite && a(nx, ny) !== "X" && !seen.has(k)) { seen.add(k); q.push([nx, ny]); }
+    }
+  }
+  check("Akademie-Raster: vollstaendig", akademie.raster.length === akademie.hoehe && akademie.raster.every(r => r.length === akademie.breite));
+  for (const s of akademie.interaktionen) check("Akademie-Raster: " + s.id + " erreichbar", seen.has(s.flaeche.x0 + "," + s.flaeche.y0));
+  check("Akademie-Raster: Ausgang erreichbar", akademie.ausgang.every(o => seen.has(o.x + "," + o.y)));
+  let rest = 0; for (let y = 0; y < akademie.hoehe; y++) for (let x = 0; x < akademie.breite; x++) if (a(x, y) !== "X" && !seen.has(x + "," + y)) rest++;
+  check("Akademie-Raster: keine abgeschnittenen Bodenflaechen", rest === 0);
+  check("Akademie-Raster: Figuren stehen auf gesperrten Kacheln", a(Math.floor(akademie.praesident.x), akademie.praesident.y) === "X" && a(Math.floor(akademie.locke.x), akademie.locke.y) === "X");
+  check("Akademie: vier Siegel an der Wand", akademie.siegel.length === 4);
 }
 
 // Druckerei-Raster: alles vom Eintritt aus erreichbar

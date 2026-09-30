@@ -86,7 +86,8 @@ body.touch #dialog { width: min(560px, calc(100vw - 2 * (var(--steuer) + var(--r
 #dialog h2::after { content: ""; display: block; width: 64px; height: 2px; background: var(--seal); margin-top: 6px; }
 #dialog p { margin: 0; font-size: 18px; line-height: 1.4; }
 #dialog .notiz { font-style: italic; font-size: 15px; color: var(--ink-soft); }
-#dialog .zeile { display: flex; justify-content: flex-end; }
+#dialog .zeile { display: flex; justify-content: flex-end; gap: 10px; }
+#nein { font-family: var(--display); font-size: 17px; padding: 5px 16px; min-height: 44px; cursor: pointer; }
 button {
   font: inherit; color: var(--ink); background: var(--parchment);
   border: 2px solid var(--ink); border-radius: 2px;
@@ -332,7 +333,7 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
   <h2 id="dialogTitel">Observatorium</h2>
   <p id="dialogText"></p>
   <p id="dialogNotiz" class="notiz"></p>
-  <div class="zeile"><button id="weiter" type="button">Weiter</button></div>
+  <div class="zeile"><button id="nein" type="button" hidden>Abbrechen</button><button id="weiter" type="button">Weiter</button></div>
 </div>
 
 <div id="material" class="karte" role="dialog" aria-modal="true" aria-labelledby="materialTitel" hidden>
@@ -425,6 +426,7 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
 <script src="innen/lesesaal_daten.js"></script>
 <script src="innen/salon_daten.js"></script>
 <script src="innen/druckerei_daten.js"></script>
+<script src="innen/akademie_daten.js"></script>
 <script src="material/leibniz_daten.js"></script>
 <script>
 (function () {
@@ -434,7 +436,7 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
   var INNEN = window.INNEN || {};
   var $ = function (id) { return document.getElementById(id); };
   var LEIBNIZ = window.LEIBNIZ;
-  if (!D || !INNEN.observatorium || !INNEN.lesesaal || !INNEN.salon || !INNEN.druckerei || !LEIBNIZ) { $("fehler").hidden = false; return; }
+  if (!D || !INNEN.observatorium || !INNEN.lesesaal || !INNEN.salon || !INNEN.druckerei || !INNEN.akademie || !LEIBNIZ) { $("fehler").hidden = false; return; }
 
   var REIHE = ["observatorium", "lesesaal", "salon", "druckerei", "akademie"];
   var ORTE = {
@@ -456,7 +458,7 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
     },
     akademie: {
       name: "Akademie der Wissenschaften",
-      auftrag: "Die Gelehrten erheben sich. Onkel John wäre stolz: Die Vernunft lebt in dir weiter. Die Aufnahmeprüfung kann beginnen.",
+      auftrag: "Die Gelehrten erheben sich, und unter ihnen sitzt Onkel John. Der Präsident erwartet dich am Podium.",
       danach: ""
     }
   };
@@ -581,7 +583,8 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
     observatorium: { d: INNEN.observatorium, src: "innen/observatorium.png", begehbar: { "#": 1, "S": 1, "I": 1, "A": 1 } },
     lesesaal: { d: INNEN.lesesaal, src: "innen/lesesaal.png", begehbar: { "#": 1, "S": 1, "I": 1, "A": 1 } },
     salon: { d: INNEN.salon, src: "innen/salon.png", begehbar: { "#": 1, "S": 1, "I": 1, "A": 1 } },
-    druckerei: { d: INNEN.druckerei, src: "innen/druckerei.png", begehbar: { "#": 1, "S": 1, "I": 1, "A": 1 } }
+    druckerei: { d: INNEN.druckerei, src: "innen/druckerei.png", begehbar: { "#": 1, "S": 1, "I": 1, "A": 1 } },
+    akademie: { d: INNEN.akademie, src: "innen/akademie.png", begehbar: { "#": 1, "S": 1, "I": 1, "A": 1 } }
   };
   Object.keys(SZENEN).forEach(function (k) {
     var s = SZENEN[k];
@@ -607,6 +610,7 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
     werk: "lesesaal", tafeln: {},
     salon: { rolle: "", verlauf: [], abgegeben: false, rueckmeldung: false, fertig: false, seit: null,
       frage: null, versuche: 0, gefragt: {}, letzteTreffer: null, musterAngebot: false, musterGezeigt: false },
+    akademie: { seit: null, fertig: false },
     druckerei: { rolle: "", verlauf: [], abgegeben: false, rueckmeldung: false, fertig: false, druckSeit: null, gefeiert: false,
       frage: null, versuche: 0, gefragt: {}, letzteTreffer: null, musterAngebot: false, musterGezeigt: false }
   };
@@ -770,6 +774,44 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
           gespraechAmOrt("druckerei");
         }
       }
+    },
+    // Akademie: Abschluss. Vier Siegel leuchten, der Praesident nimmt Jonny auf, Onkel John gratuliert.
+    // Danach: Mappe mit allen Texten am Pult, Sanduhr fuer ein neues Spiel.
+    akademie: {
+      index: 4,
+      betreten: function () {
+        if (st.akademie.seit != null) return;
+        st.akademie.seit = jetzt();
+        zeigeToast("Vier Siegel leuchten auf", "Observatorium, Lesesaal, Salon und Buchdruckerei: Über dem Podium glüht für jede Station ein Siegel.");
+      },
+      offen: function () { return st.akademie.fertig ? [] : ["praesident"]; },
+      leuchtet: function (id) {
+        if (id === "praesident") return !st.akademie.fertig;
+        return st.akademie.fertig && (id === "sanduhr" || (id === "archiv" && !st.geladen.mappe));
+      },
+      darfRaus: function () { return st.akademie.fertig; },
+      sperre: function () { return "Der Präsident erwartet dich am Podium. Tritt vor, bevor du gehst."; },
+      ziel: function () { return st.akademie.fertig ? "" : "Präsident der Akademie"; },
+      benutzen: function (id) {
+        if (id === "praesident") { if (st.akademie.fertig) oeffneUrkunde(false); else zeremonie(); return; }
+        if (id === "archiv") {
+          if (!st.akademie.fertig) {
+            zeigeDialog("Das Mitgliederbuch", "Ein großes Buch mit den Namen aller Mitglieder. Noch fehlt deiner.", "Tritt zuerst vor den Präsidenten.", null);
+            return;
+          }
+          oeffneMappe();
+          return;
+        }
+        if (id === "sanduhr") {
+          if (!st.akademie.fertig) {
+            zeigeDialog("Die Sanduhr", "Der Sand rinnt noch. Deine Zeit hier ist nicht um.", "Tritt zuerst vor den Präsidenten.", null);
+            return;
+          }
+          zeigeFrage("Neues Spiel?",
+            "Wenn du die Sanduhr umdrehst, beginnt das Spiel von vorn. Alle Texte, die auf diesem Gerät gespeichert sind, werden gelöscht. Hast du deine Flugschrift, deine Urkunde und deine Mappe gesichert?",
+            "Die nächste Person startet dann mit einer leeren Rolle.", "Ja, neu beginnen", neuesSpiel);
+        }
+      }
     }
   };
 
@@ -855,6 +897,7 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
     sz = SZENEN[id]; st.szene = id;
     var e = sz.d.eintritt;
     st.x = (e.x + 1) * T; st.y = e.y * T + 12; st.dir = e.blick || "up";
+    if (RAUM[id] && RAUM[id].betreten) RAUM[id].betreten();
     hudAktualisieren();
   }
   function hinausgehen() {
@@ -865,8 +908,12 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
   }
 
   // ---------- Dialoge
-  function zeigeDialog(titel, text, notiz, rueckY) {
+  // danach: wird nach "Weiter" aufgerufen (Folgedialoge der Zeremonie)
+  var nachDialog = null, jaAktion = null;
+  function zeigeDialog(titel, text, notiz, rueckY, danach) {
     st.dialog = titel; st.dialogRueck = rueckY;
+    nachDialog = danach || null; jaAktion = null;
+    $("nein").hidden = true; $("weiter").textContent = "Weiter";
     tastenLos();
     $("dialogTitel").textContent = titel;
     $("dialogText").textContent = text;
@@ -881,6 +928,22 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
     if (st.dialogRueck != null) { st.y = st.dialogRueck; st.dir = "down"; }
     st.dialogRueck = null;
     $("dialog").hidden = true;
+    var ja = jaAktion, danach = nachDialog;
+    jaAktion = null; nachDialog = null;
+    $("nein").hidden = true; $("weiter").textContent = "Weiter";
+    if (ja) ja(); else if (danach) danach();
+  }
+  // Frage mit zwei Knoepfen: "Weiter" fuehrt ja aus, "Abbrechen" schliesst nur
+  function zeigeFrage(titel, text, notiz, jaText, ja) {
+    zeigeDialog(titel, text, notiz, null);
+    jaAktion = ja;
+    $("weiter").textContent = jaText;
+    $("nein").hidden = false;
+    $("nein").focus();
+  }
+  function frageAbbrechen() {
+    jaAktion = null; nachDialog = null;
+    dialogSchliessen();
   }
 
   // Lernorte ohne Innenraum: kurzer Text an der Tuer
@@ -965,6 +1028,18 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
     var id = st.material;
     if (!id) return Promise.resolve(false);
     $("laden").disabled = true;
+    if (id === "urkunde" || id === "mappe") {
+      var werk = id === "urkunde" ? FLUGSCHRIFT.erstellenUrkunde() : FLUGSCHRIFT.erstellenMappe(mappeAbschnitte());
+      var name = id === "urkunde" ? "Aufnahmeurkunde_Jonny.pdf" : "Mappe_Jonny_Texte_und_Rueckmeldungen.pdf";
+      return werk.then(function (e) { return FLUGSCHRIFT.sichern(e, name); }).then(function (ok) { return ok; }, function () { return false; })
+        .then(function (ok) {
+          $("laden").disabled = false;
+          if (ok) st.geladen[id] = true;
+          if (st.material === id) materialStatus(ok ? null : "Nicht gespeichert. Tippe noch einmal auf Herunterladen.");
+          hudAktualisieren();
+          return ok;
+        });
+    }
     if (id === "flugschrift") {
       return FLUGSCHRIFT.speichern(flugschriftDaten(), "Flugschrift_Jonny_Stellungnahme.pdf").then(function (ok) { return ok; }, function () { return false; })
         .then(function (ok) {
@@ -993,6 +1068,12 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
     $("material").hidden = true;
     $("laden").hidden = false;
     if (id === "tafel") { hudAktualisieren(); return; }
+    if (id === "urkunde") {
+      if (urkundeNeu) { urkundeNeu = false; glueckwunsch(); }
+      hudAktualisieren();
+      return;
+    }
+    if (id === "mappe") { hudAktualisieren(); return; }
     if (id === "flugschrift") {
       if (!fertig("flugschrift")) {
         zeigeToast("Nimm deine Flugschrift mit", "Lade sie herunter, erst dann lässt dich der Meister gehen. Er hält sie an der Presse für dich bereit.");
@@ -2053,6 +2134,77 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
     } catch (e) { /* Vorschau ist nur ein Zusatz */ }
   }
 
+  // ---------- Akademie: Zeremonie, Urkunde, Mappe, neues Spiel
+  function zeremonie() {
+    zeigeDialog("Der Präsident der Akademie",
+      "„Tritt näher, Jonny, Neffe des Herrn Locke! Die Akademie hat deine Arbeiten geprüft: die Fakten aus dem Observatorium, deine Darstellung aus dem Lesesaal, deine Analyse aus dem Salon und deinen Kommentar aus der Buchdruckerei.“",
+      "Über dem Podium leuchten vier Siegel.", null, function () {
+        zeigeDialog("Der Präsident der Akademie",
+          "„Du hast gelernt, einen Text treu wiederzugeben, seinen Bau zu durchschauen und ihn begründet zu beurteilen. Hiermit nehmen wir dich als jüngstes Mitglied in die Akademie der Wissenschaften auf.“",
+          "Der Präsident reicht dir die Urkunde.", null, function () { oeffneUrkunde(true); });
+      });
+  }
+  function glueckwunsch() {
+    zeigeDialog("Onkel John",
+      "Dein Onkel tritt aus der Reihe der Gelehrten und legt dir die Hand auf die Schulter: „Niemandes Wissen reicht weiter als seine Erfahrung, so habe ich es geschrieben. Deine ist heute gewachsen. Du kennst jetzt nicht nur meine Gründe, sondern auch die von Leibniz, und du hast dir ein eigenes Urteil gebildet. Das ist mehr wert als jede Urkunde.“",
+      "Am Pult links liegt deine Mappe mit allen Texten. Die Sanduhr unten rechts startet ein neues Spiel.", null, function () {
+        st.akademie.fertig = true;
+        if (st.stufe === 4) st.stufe = 5;
+        zeigeToast("Aufnahme bestanden", "Willkommen in der Akademie der Wissenschaften!");
+        hudAktualisieren();
+      });
+  }
+  function pdfFenster(id, titel, einleitung, knopf) {
+    st.material = id; st.dialog = "material"; st.gesehen[id] = true;
+    tastenLos();
+    $("toast").hidden = true;
+    $("materialTitel").textContent = titel;
+    $("materialInhalt").innerHTML = '<div class="text flugschrift"><p>' + einleitung + '</p><div class="vorschau" id="pdfVorschau">Einen Augenblick …</div></div>';
+    $("materialInhalt").scrollTop = 0;
+    $("laden").textContent = knopf;
+    materialStatus(null);
+    $("material").hidden = false;
+    $("laden").focus();
+    hudAktualisieren();
+  }
+  function vorschau(versprechen, id) {
+    try {
+      versprechen().then(function (e) {
+        var ziel = $("pdfVorschau");
+        if (!ziel || st.material !== id) return;
+        ziel.innerHTML = "";
+        e.seiten.slice(0, 2).forEach(function (c, i) {
+          var img = document.createElement("img");
+          img.src = c.toDataURL("image/jpeg", 0.8); img.alt = "Vorschau, Seite " + (i + 1);
+          ziel.appendChild(img);
+        });
+      }, function () {});
+    } catch (e) { /* Vorschau ist nur ein Zusatz */ }
+  }
+  var urkundeNeu = false;
+  function oeffneUrkunde(neu) {
+    urkundeNeu = neu;
+    pdfFenster("urkunde", "Deine Aufnahmeurkunde", "Mit dem Siegel der Akademie und der Unterschrift deines Onkels. Lade sie herunter, sie gehört dir.", "Urkunde herunterladen (PDF)");
+    vorschau(function () { return FLUGSCHRIFT.erstellenUrkunde(); }, "urkunde");
+  }
+  function mappeAbschnitte() {
+    return [
+      { titel: "Darstellung", aufgabe: LEIBNIZ.aufgabeKopf + ": " + LEIBNIZ.aufgabe, text: st.rolle, verlauf: st.verlauf, gegenueber: "dem Bibliothekar", figur: "Bibliothekar" },
+      { titel: "Analyse", aufgabe: LEIBNIZ.analyse.aufgabeKopf + ": " + LEIBNIZ.analyse.aufgabe, text: st.salon.rolle, verlauf: st.salon.verlauf, gegenueber: "Platon", figur: "Platon" },
+      { titel: "Stellungnahme", aufgabe: LEIBNIZ.kommentar.aufgabeKopf + ": " + LEIBNIZ.kommentar.aufgabe, text: st.druckerei.rolle, verlauf: st.druckerei.verlauf, gegenueber: "dem Druckermeister", figur: "Druckermeister" }
+    ];
+  }
+  function oeffneMappe() {
+    var zahlen = mappeAbschnitte().map(function (a) { return a.titel + ": " + woerter(a.text) + " Wörter"; }).join(" · ");
+    pdfFenster("mappe", "Deine Mappe", "Alle drei Texte mit Aufgaben und den Gesprächen mit Bibliothekar, Platon und Druckermeister. " + zahlen + ".", "Mappe herunterladen (PDF)");
+    vorschau(function () { return FLUGSCHRIFT.erstellenMappe(mappeAbschnitte()); }, "mappe");
+  }
+  function neuesSpiel() {
+    try { window.localStorage.removeItem(SPEICHER); } catch (e) { /* ohne Speicher weiter */ }
+    st.rolle = ""; st.salon.rolle = ""; st.druckerei.rolle = "";
+    if (window.location && window.location.reload) window.location.reload();
+  }
+
   // ---------- Flugschrift im Stil von 1690: Jonnys Text wird auf Seiten im Format A4 gesetzt (Canvas) und als PDF gespeichert.
   // Die PDF enthaelt je Seite ein JPEG-Bild. So bleibt die alte Schrift erhalten und es braucht keine fremde Bibliothek.
   var FLUGSCHRIFT = (function () {
@@ -2061,7 +2213,8 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
     var RAND = 150, BREITE = BW - 2 * RAND;
     var SERIF = "'IM Fell English', Georgia, serif", KAPITAELCHEN = "'IM Fell English SC', Georgia, serif";
 
-    function papier(g, seite) {
+    function papier(g, seite, pw, ph) {
+      var BW = pw || 1240, BH = ph || 1754;
       g.fillStyle = "#f0e5cb"; g.fillRect(0, 0, BW, BH);
       var zz = seite * 7919 + 17;
       function zufall() { zz = (zz * 16807) % 2147483647; return zz / 2147483647; }
@@ -2127,7 +2280,7 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
     function mitte(g, text, y, font, farbe, sperren) {
       g.font = font; g.fillStyle = farbe || TINTE; g.textAlign = "center";
       if (sperren && g.letterSpacing !== undefined) g.letterSpacing = sperren + "px";
-      g.fillText(text, BW / 2 + (sperren ? sperren / 2 : 0), y);
+      g.fillText(text, g.canvas.width / 2 + (sperren ? sperren / 2 : 0), y);
       if (g.letterSpacing !== undefined) g.letterSpacing = "0px";
       g.textAlign = "left";
     }
@@ -2245,9 +2398,10 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
       obj(2, function () { schreib("<< /Type /Pages /Kids [" + kids.join(" ") + "] /Count " + n + " >>"); });
       bilder.forEach(function (b, i) {
         var p = 3 + i * 3;
-        var inhalt = "q 595.28 0 0 841.89 0 0 cm /Im0 Do Q";
+        var quer = b.w > b.h, pb = quer ? "841.89" : "595.28", ph = quer ? "595.28" : "841.89";
+        var inhalt = "q " + pb + " 0 0 " + ph + " 0 0 cm /Im0 Do Q";
         obj(p, function () {
-          schreib("<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595.28 841.89] /Resources << /XObject << /Im0 " + (p + 2) + " 0 R >> >> /Contents " + (p + 1) + " 0 R >>");
+          schreib("<< /Type /Page /Parent 2 0 R /MediaBox [0 0 " + pb + " " + ph + "] /Resources << /XObject << /Im0 " + (p + 2) + " 0 R >> >> /Contents " + (p + 1) + " 0 R >>");
         });
         obj(p + 1, function () { schreib("<< /Length " + inhalt.length + " >>\nstream\n" + inhalt + "\nendstream"); });
         obj(p + 2, function () {
@@ -2264,6 +2418,110 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
       teile.forEach(function (t) { alles.set(t, o); o += t.length; });
       return alles;
     }
+
+    // Aufnahmeurkunde der Akademie, A4 quer
+    function urkunde(daten) {
+      var UW = 1754, UH = 1240;
+      var c = document.createElement("canvas"); c.width = UW; c.height = UH;
+      var g = c.getContext("2d"); g.textBaseline = "alphabetic";
+      papier(g, 9, UW, UH);
+      g.strokeStyle = TINTE; g.lineWidth = 3; g.strokeRect(130, 130, UW - 260, UH - 260);
+      g.fillStyle = ROT;                        // Eckornamente
+      [[150, 150, false], [UW - 150, 150, true], [150, UH - 150, false], [UW - 150, UH - 150, true]].forEach(function (e) {
+        blatt(g, e[0], e[1], 0.9, e[2]);
+      });
+      // Wappen: Schild mit drei Sternen und aufgeschlagenem Buch
+      var wx = UW / 2, wy = 200;
+      g.fillStyle = "#2c4478"; g.beginPath(); g.moveTo(wx - 38, wy - 34); g.lineTo(wx + 38, wy - 34); g.lineTo(wx + 38, wy + 6);
+      g.quadraticCurveTo(wx + 38, wy + 40, wx, wy + 52); g.quadraticCurveTo(wx - 38, wy + 40, wx - 38, wy + 6); g.closePath(); g.fill();
+      g.strokeStyle = "#b8902e"; g.lineWidth = 4; g.stroke();
+      g.fillStyle = "#e8c860";
+      [-20, 0, 20].forEach(function (d) { g.beginPath(); g.arc(wx + d, wy - 16, 5, 0, Math.PI * 2); g.fill(); });
+      g.fillStyle = "#f4ecd4"; g.fillRect(wx - 20, wy + 2, 40, 22); g.fillStyle = "#8a7a5a"; g.fillRect(wx - 1, wy + 2, 2, 22);
+      mitte(g, "DIE AKADEMIE DER WISSENSCHAFTEN ZU LONDON", 318, "40px " + KAPITAELCHEN, TINTE, 6);
+      mitte(g, "bezeuget hiermit, dass", 382, "italic 34px " + SERIF);
+      mitte(g, "JONNY,", 486, "112px " + KAPITAELCHEN, ROT, 10);
+      mitte(g, "Neffe des Herrn John Locke,", 548, "italic 36px " + SERIF);
+      mitte(g, "nach bestandener Prüfung in Darstellung, Analyse und Stellungnahme", 620, "32px " + SERIF);
+      mitte(g, "als jüngstes Mitglied in die Akademie aufgenommen worden ist.", 668, "32px " + SERIF);
+      mitte(g, "Gegeben zu London, im Jahre des Herrn MDCXC.", 724, "italic 28px " + SERIF);
+      // vier kleine Siegel der Stationen
+      var orte = ["Observatorium", "Lesesaal", "Salon", "Buchdruckerei"];
+      orte.forEach(function (o, i) {
+        var sx = UW / 2 + (i - 1.5) * 230, sy = 800;
+        g.fillStyle = "#8e2a22"; g.beginPath(); g.arc(sx, sy, 30, 0, Math.PI * 2); g.fill();
+        g.fillStyle = "#b8483a"; g.beginPath(); g.arc(sx - 6, sy - 6, 12, 0, Math.PI * 2); g.fill();
+        g.strokeStyle = "#5e1a14"; g.lineWidth = 2; g.beginPath(); g.arc(sx, sy, 22, 0, Math.PI * 2); g.stroke();
+        g.font = "22px " + KAPITAELCHEN; g.fillStyle = TINTE; g.textAlign = "center"; g.fillText(o, sx, sy + 62); g.textAlign = "left";
+      });
+      // Unterschriften und grosses Wachssiegel mit Band
+      g.fillStyle = TINTE;
+      g.fillRect(260, 1010, 420, 2); g.fillRect(UW - 680, 1010, 420, 2);
+      g.font = "italic 44px " + SERIF; g.textAlign = "center";
+      g.fillText("J. Locke", UW - 470, 998);
+      g.lineWidth = 3; g.strokeStyle = TINTE; g.beginPath(); g.moveTo(320, 995);             // Namenszug des Praesidenten
+      for (var q = 0; q <= 60; q++) g.lineTo(320 + q * 5, 988 - Math.sin(q * 0.7) * 14 - (q < 8 ? q * 2 : 0));
+      g.stroke();
+      g.font = "26px " + KAPITAELCHEN;
+      g.fillText("Der Präsident", 470, 1050); g.fillText("Mitglied der Akademie", UW - 470, 1050);
+      g.textAlign = "left";
+      var sx0 = UW / 2, sy0 = 975;
+      g.fillStyle = "#6a1c16";
+      g.beginPath(); g.moveTo(sx0 - 30, sy0 + 20); g.lineTo(sx0 - 55, sy0 + 105); g.lineTo(sx0 - 30, sy0 + 92); g.lineTo(sx0 - 10, sy0 + 110); g.closePath(); g.fill();
+      g.beginPath(); g.moveTo(sx0 + 30, sy0 + 20); g.lineTo(sx0 + 55, sy0 + 105); g.lineTo(sx0 + 30, sy0 + 92); g.lineTo(sx0 + 10, sy0 + 110); g.closePath(); g.fill();
+      g.fillStyle = "#9c2a22"; g.beginPath();
+      for (var k = 0; k <= 24; k++) { var a = k / 24 * Math.PI * 2, r = 70 + (k % 2 ? 5 : 0); g.lineTo(sx0 + Math.cos(a) * r, sy0 + Math.sin(a) * r); }
+      g.closePath(); g.fill();
+      g.strokeStyle = "#6a1c16"; g.lineWidth = 3; g.beginPath(); g.arc(sx0, sy0, 52, 0, Math.PI * 2); g.stroke();
+      g.fillStyle = "#c4574a"; g.beginPath(); g.arc(sx0 - 14, sy0 - 16, 16, 0, Math.PI * 2); g.fill();
+      g.fillStyle = "#6a1c16"; g.font = "40px " + KAPITAELCHEN; g.textAlign = "center"; g.fillText("A", sx0, sy0 + 14); g.textAlign = "left";
+      return c;
+    }
+
+    // Mappe: alle Texte mit Aufgaben und Rueckmeldungen, A4 hoch, mehrseitig
+    function mappe(abschnitte) {
+      var liste = [], g = null, y = 0, seite = 0;
+      var SCHRIFT = "24px " + SERIF, ZH = 36, UNTEN = BH - 190;
+      function neueSeite() {
+        var c = document.createElement("canvas"); c.width = BW; c.height = BH;
+        g = c.getContext("2d"); g.textBaseline = "alphabetic"; seite++; papier(g, seite + 20); liste.push(c);
+        if (seite > 1) { mitte(g, "[ " + seite + " ]", 170, "24px " + SERIF); y = 230; }
+      }
+      function zeilen(text, font, einzug, farbe) {
+        g.font = font;
+        String(text).split(/\n+/).forEach(function (abs) {
+          if (!abs.trim()) return;
+          umbrechen(g, abs, BREITE - einzug).forEach(function (w) {
+            if (y > UNTEN) { neueSeite(); g.font = font; }
+            g.fillStyle = farbe || TINTE; g.fillText(w.join(" "), RAND + einzug, y); y += ZH;
+          });
+          y += 6;
+        });
+      }
+      neueSeite();
+      mitte(g, "MAPPE", 240, "70px " + KAPITAELCHEN, ROT, 10);
+      mitte(g, "des jungen Herrn Jonny, Neffen des Herrn John Locke", 296, "italic 32px " + SERIF);
+      mitte(g, "Darstellung, Analyse und Stellungnahme mit den Rückmeldungen", 346, "26px " + SERIF);
+      zierleiste(g, 380);
+      y = 490;
+      abschnitte.forEach(function (a) {
+        if (y > UNTEN - 200) neueSeite();
+        mitte(g, a.titel.toUpperCase(), y, "36px " + KAPITAELCHEN, ROT, 4); y += 50;
+        zeilen(a.aufgabe, "italic 22px " + SERIF, 0, "#4a3e36"); y += 10;
+        if (!String(a.text || "").trim()) { zeilen("(Noch nicht geschrieben.)", "italic 24px " + SERIF, 0); y += 30; return; }
+        zeilen(a.text, SCHRIFT, 0); y += 14;
+        if (a.verlauf && a.verlauf.length) {
+          if (y > UNTEN - 80) neueSeite();
+          g.font = "26px " + KAPITAELCHEN; g.fillStyle = TINTE; g.fillText("Gespräch mit " + a.gegenueber, RAND, y); y += 42;
+          a.verlauf.forEach(function (m) {
+            zeilen((m.wer === "bib" ? a.figur : "Jonny") + ": " + String(m.text).replace(/\n• /g, "\n– "), (m.wer === "bib" ? "" : "italic ") + "22px " + SERIF, 20);
+          });
+        }
+        y += 40;
+      });
+      return liste;
+    }
+
     function jpeg(c) {
       var d = c.toDataURL("image/jpeg", 0.88), s = atob(d.split(",")[1]), b = new Uint8Array(s.length);
       for (var i = 0; i < s.length; i++) b[i] = s.charCodeAt(i);
@@ -2281,6 +2539,26 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
         return { seiten: s, pdf: pdf(s.map(jpeg)) };
       });
     }
+    function fontsBereit() {
+      return document.fonts && document.fonts.load
+        ? Promise.all(["29px 'IM Fell English'", "italic 29px 'IM Fell English'", "58px 'IM Fell English SC'"].map(function (f) { return document.fonts.load(f); }))
+        : Promise.resolve();
+    }
+    function erstellenUrkunde() {
+      return fontsBereit().then(function () { var c = urkunde(); return { seiten: [c], pdf: pdf([jpeg(c)]) }; });
+    }
+    function erstellenMappe(abschnitte) {
+      return fontsBereit().then(function () { var s = mappe(abschnitte); return { seiten: s, pdf: pdf(s.map(jpeg)) }; });
+    }
+    function sichern(e, dateiname) {
+      var blob = new Blob([e.pdf], { type: "application/pdf" });
+      if (dl) return dl.save({ filename: dateiname, data: blob }).then(function () { return true; }, function () { return false; });
+      var url = URL.createObjectURL(blob), a = document.createElement("a");
+      a.href = url; a.download = dateiname;
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
+      return true;
+    }
     function speichern(daten, dateiname) {
       return erstellen(daten).then(function (e) {
         var blob = new Blob([e.pdf], { type: "application/pdf" });
@@ -2292,7 +2570,7 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
         return true;
       });
     }
-    return { erstellen: erstellen, speichern: speichern, pdf: pdf };
+    return { erstellen: erstellen, speichern: speichern, pdf: pdf, erstellenUrkunde: erstellenUrkunde, erstellenMappe: erstellenMappe, sichern: sichern };
   })();
 
   // ---------- Kurzer Hinweis, der aufleuchtet und von selbst verschwindet
@@ -2454,6 +2732,16 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
     return p < lauf ? Math.min(15, Math.floor(p / lauf * 16)) : 15;
   }
 
+  // Akademie: Praesident und Onkel John (figuren/akademie_figuren.py)
+  var PRAESIDENT_BILD = null, LOCKE_BILD = null;
+  (function () {
+    var p = new Image(), l = new Image();
+    p.onload = function () { PRAESIDENT_BILD = p; };
+    l.onload = function () { LOCKE_BILD = l; };
+    p.src = "figuren/praesident_16x24.png";
+    l.src = "figuren/locke_16x24.png";
+  })();
+
   // Platon: Geist im Salon (erzeugt mit figuren/platon.py)
   var PLATON_SPRITE = null, PLATON_GROSS = null;
   (function () {
@@ -2555,6 +2843,32 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
         ctx.beginPath(); ctx.ellipse(mx + 1, my - 1, 6, 2.5, 0, 0, Math.PI * 2); ctx.fill();
         ctx.drawImage(mf, mx - 8, my - 24);
       }
+    }
+
+    // Akademie: Siegel leuchten nacheinander auf, Praesident und Onkel John stehen vor dem Podium
+    if (sz.id === "akademie") {
+      var ak = sz.d, seit = st.akademie.seit == null ? -1e9 : st.akademie.seit;
+      ak.siegel.forEach(function (sg, i) {
+        var an = ruhig ? 1 : Math.max(0, Math.min(1, (t - seit - 500 - i * 650) / 400));
+        if (an <= 0) return;
+        var puls = ruhig ? 0 : Math.sin(t / 500 + i) * 0.08;
+        ctx.save();
+        ctx.globalCompositeOperation = "lighter";
+        var gl = ctx.createRadialGradient(sg.x, sg.y, 2, sg.x, sg.y, 22);
+        gl.addColorStop(0, "rgba(255,210,120," + (0.75 * an + puls).toFixed(2) + ")");
+        gl.addColorStop(1, "rgba(255,190,90,0)");
+        ctx.fillStyle = gl; ctx.fillRect(sg.x - 22, sg.y - 22, 44, 44);
+        ctx.restore();
+        ctx.fillStyle = "rgba(255,236,170," + (0.9 * an).toFixed(2) + ")";
+        ctx.fillRect(sg.x - 1, sg.y - 4, 2, 8); ctx.fillRect(sg.x - 4, sg.y - 1, 8, 2);
+      });
+      [[ak.praesident, PRAESIDENT_BILD], [ak.locke, LOCKE_BILD]].forEach(function (f) {
+        if (!f[1]) return;
+        var fx = Math.round(f[0].x * T), fy = f[0].y * T + 14;
+        ctx.fillStyle = "rgba(0,0,0,.28)";
+        ctx.beginPath(); ctx.ellipse(fx + 1, fy - 1, 6, 2.5, 0, 0, Math.PI * 2); ctx.fill();
+        ctx.drawImage(f[1], fx - 8, fy - 24);
+      });
     }
 
     // Salon: Platons Geist steht hinter Jonny vor dem Kamin
@@ -2682,7 +2996,8 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
       return;
     }
     if (st.dialog) {
-      if (e.code === "Space" || e.code === "Enter" || e.code === "Escape") { e.preventDefault(); dialogSchliessen(); }
+      if (e.code === "Escape" && jaAktion) { e.preventDefault(); frageAbbrechen(); return; }
+      if (e.code === "Space" || e.code === "Enter" || e.code === "Escape") { e.preventDefault(); if (document.activeElement === $("nein")) frageAbbrechen(); else dialogSchliessen(); }
       return;
     }
     if (e.code === "KeyE") { e.preventDefault(); if (!e.repeat) benutzen(); return; }
@@ -2696,6 +3011,7 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
   });
   window.addEventListener("blur", tastenLos);
   $("weiter").addEventListener("click", dialogSchliessen);
+  $("nein").addEventListener("click", frageAbbrechen);
   $("zu").addEventListener("click", materialSchliessen);
   $("laden").addEventListener("click", herunterladen);
 
@@ -2782,6 +3098,7 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
       if (daten.salon) { Object.assign(st.salon, daten.salon); if (st.salon.abgegeben) st.salon.seit = -1e6; }
       if (daten.druckerei) { Object.assign(st.druckerei, daten.druckerei); st.druckerei.druckSeit = null; }
       if (daten.tafeln) st.tafeln = daten.tafeln;
+      if (daten.akademie) { st.akademie.fertig = !!daten.akademie.fertig; if (daten.akademie.seit != null) st.akademie.seit = -1e6; }
       st.start = false; $("start").hidden = true;
     }
     hudAktualisieren();
@@ -2789,7 +3106,7 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
   }
   var hot = window.claude && window.claude.hot;
   if (hot && hot.snapshot) hot.snapshot(function () { return { x: st.x, y: st.y, stufe: st.stufe, dir: st.dir, szene: st.szene, rueck: st.rueck, gesehen: st.gesehen, geladen: st.geladen,
-    rolle: st.rolle, abgegeben: st.abgegeben, rueckmeldung: st.rueckmeldung, lesesaalFertig: st.lesesaalFertig, verlauf: st.verlauf, salon: st.salon, druckerei: st.druckerei, tafeln: st.tafeln }; });
+    rolle: st.rolle, abgegeben: st.abgegeben, rueckmeldung: st.rueckmeldung, lesesaalFertig: st.lesesaalFertig, verlauf: st.verlauf, salon: st.salon, druckerei: st.druckerei, tafeln: st.tafeln, akademie: st.akademie }; });
   if (hot && hot.ready) hot.ready(start); else start(hot && hot.data ? hot.data : {});
 
   // Test-Hook
@@ -2800,7 +3117,8 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
     rolleSchliessen: rolleSchliessen, urteil: function (t) { return BIBLIOTHEKAR.urteil(t); },
     urteilPlaton: function (t) { return PLATON.urteil(t); }, flugschrift: FLUGSCHRIFT, tafel: oeffneTafel, presseBild: presseBild,
     urteilDrucker: function (t) { return DRUCKER.urteil(t); }, meisterGespraech: function () { return gespraechAmOrt("druckerei"); },
-    oeffneFlugschrift: oeffneFlugschrift, flugschriftDaten: flugschriftDaten, platonGespraech: platonGespraech, vorstellung: PLATON_VORSTELLUNG,
+    oeffneFlugschrift: oeffneFlugschrift, flugschriftDaten: flugschriftDaten,
+    mappeAbschnitte: mappeAbschnitte, neuesSpiel: neuesSpiel, frageAbbrechen: frageAbbrechen, platonGespraech: platonGespraech, vorstellung: PLATON_VORSTELLUNG,
     teleport: function (tx, ty) { st.x = tx * T + 8; st.y = ty * T + 12; },
     starten: spielStarten, infoAuf: infoAuf, infoZu: infoZu, startLage: startLage, START: START
   };

@@ -3,7 +3,7 @@
 Topdown-Lernspiel zur Philosophie der fruehen Aufklaerung. Jonny will in die Akademie der Wissenschaften aufgenommen werden.
 
 ## Status
-Startbildschirm, spielbare Oberwelt mit begehbarem Observatorium, Lesesaal und Historischem Salon. Buchdruckerei mit Aufgabe 3, Druckermeister und Flugschrift. Die Akademie folgt.
+Startbildschirm, spielbare Oberwelt mit begehbarem Observatorium, Lesesaal und Historischem Salon. Buchdruckerei mit Aufgabe 3, Druckermeister und Flugschrift, Akademie der Wissenschaften als Abschluss. Das Spiel ist vollstaendig spielbar.
 Titel auf dem Startbildschirm: „Lockes Welt“.
 
 ## Startbildschirm (`start/`)
@@ -58,6 +58,13 @@ Buchdruckerei: 40 x 24 Kacheln, erzeugt mit `python3 innen/druckerei.py`.
 - Druckermeister: `figuren/druckermeister.py` (gefaltete Papiermuetze, Lederschuerze, schwarze Haende), zwei Posen: stehen und ziehen.
 - Infotafel (freiwillig, leuchtet bis sie gelesen ist): Nachbildung des Titelblatts von 1690 und kurze Texte zu Druck und Verlag (Elizabeth Holt, Thomas Basset), Lockes Namen auf dem Titel, Leibniz' liegengebliebenem Manuskript (gedruckt 1765) und dem Ende der Vorzensur 1695. Inhalte im Objekt `TAFELN` in `index.html`, dasselbe Muster laesst sich in anderen Raeumen nutzen.
 - Flugschrift: `FLUGSCHRIFT` in `index.html` setzt einen Text auf A4-Seiten im Stil von 1690 (Titelei, Zierleiste, Initiale, Blocksatz, Kustoden, FINIS, Druckerzeichen, Druckvermerk MDCXC) und speichert sie als PDF (je Seite ein Bild, ohne fremde Bibliothek). Kurze Texte werden bei Bedarf etwas kleiner gesetzt, damit sie auf eine Seite passen.
+
+Akademie der Wissenschaften (Abschluss): 40 x 24 Kacheln, erzeugt mit `python3 innen/akademie.py`.
+- Aufbau: Festsaal mit Marmorboden, Baenke mit Gelehrten, Podium mit gruenem Tisch und Zeremonienzepter, Wappen und vier Siegelplaetze an der Wand, Mitgliederbuch am Pult links (`archiv`), Tisch mit Sanduhr unten rechts (`sanduhr`).
+- Figuren: `figuren/akademie_figuren.py` zeichnet den Praesidenten (Allongeperuecke, roter Rock, Urkunde) und Onkel John (eigenes langes Haar, schlichter dunkler Rock). Der Praesident nimmt Jonny auf, Locke ist als Mitglied der Akademie dabei (historisch seit 1668 Mitglied der Royal Society) und gratuliert.
+- Ablauf: Beim Betreten leuchten die vier Siegel nacheinander auf. Am Podium (`praesident`) zwei kurze Reden, dann die Aufnahmeurkunde (PDF, A4 quer, mit Siegeln der Stationen und Lockes Unterschrift). Nach dem Schliessen gratuliert Onkel John (mit einem Satz aus seinem Essay, II.1.19). Danach: Aufnahme bestanden, Etappe 5, die Tuer ist offen.
+- Mappe am Pult: alle drei Texte mit Aufgaben und den Gespraechen mit Bibliothekar, Platon und Druckermeister als mehrseitige PDF.
+- Neues Spiel: erst nach der Aufnahme. Die Sanduhr fragt nach, dann werden die gespeicherten Texte auf dem Geraet geloescht und das Spiel beginnt von vorn.
 
 ### Bibliothekar und Platon (Rueckmeldung)
 Zwei Quellen, das Spiel waehlt automatisch:
