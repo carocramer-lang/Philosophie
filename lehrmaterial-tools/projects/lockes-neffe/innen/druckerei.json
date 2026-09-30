@@ -1,0 +1,139 @@
+{
+ "name": "druckerei",
+ "kachelgroesse": 16,
+ "breite": 40,
+ "hoehe": 24,
+ "legende": {
+  "#": "Boden, begehbar",
+  "X": "Wand oder Moebel",
+  "A": "Ausgang (Tuer nach draussen)",
+  "S": "Eintrittsstelle, begehbar",
+  "I": "Interaktionsflaeche vor einem Objekt, begehbar"
+ },
+ "eintritt": {
+  "x": 19,
+  "y": 20,
+  "blick": "up"
+ },
+ "ausgang": [
+  {
+   "x": 18,
+   "y": 22
+  },
+  {
+   "x": 19,
+   "y": 22
+  },
+  {
+   "x": 20,
+   "y": 22
+  },
+  {
+   "x": 21,
+   "y": 22
+  }
+ ],
+ "interaktionen": [
+  {
+   "id": "setzkasten",
+   "markiert": true,
+   "flaeche": {
+    "x0": 3,
+    "y0": 5,
+    "x1": 6,
+    "y1": 6
+   },
+   "objekt": {
+    "x0": 3,
+    "y0": 3,
+    "x1": 6,
+    "y1": 4
+   }
+  },
+  {
+   "id": "setzpult",
+   "markiert": false,
+   "flaeche": {
+    "x0": 3,
+    "y0": 13,
+    "x1": 6,
+    "y1": 13
+   },
+   "objekt": {
+    "x0": 3,
+    "y0": 11,
+    "x1": 6,
+    "y1": 12
+   }
+  },
+  {
+   "id": "presse",
+   "markiert": false,
+   "flaeche": {
+    "x0": 18,
+    "y0": 9,
+    "x1": 21,
+    "y1": 9
+   },
+   "objekt": {
+    "x0": 17,
+    "y0": 3,
+    "x1": 22,
+    "y1": 8
+   }
+  },
+  {
+   "id": "tafel",
+   "markiert": false,
+   "flaeche": {
+    "x0": 29,
+    "y0": 17,
+    "x1": 33,
+    "y1": 17
+   },
+   "objekt": {
+    "x0": 29,
+    "y0": 15,
+    "x1": 33,
+    "y1": 16
+   }
+  }
+ ],
+ "presse": {
+  "x": 256,
+  "y": 16,
+  "w": 128,
+  "h": 128,
+  "bilder": 16
+ },
+ "meister": {
+  "x": 24.3,
+  "y": 4
+ },
+ "raster": [
+  "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+  "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+  "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+  "XX#XXXX#XX#####X#XXXXXX#X####XX##XXX#XXX",
+  "XX#XXXX#XX#######XXXXXX#X####XX##XXX#XXX",
+  "X##IIII##########XXXXXX################X",
+  "X##IIII##########XXXXXX################X",
+  "X################XXXXXX################X",
+  "X###########X####XXXXXX####X###########X",
+  "X#################IIII##########XXXXX##X",
+  "X###############################XXXXX##X",
+  "X##XXXX################################X",
+  "X##XXXX################################X",
+  "X##IIII################################X",
+  "X######################################X",
+  "X###########X##############X#XXXXX#####X",
+  "X############################XXXXX#####X",
+  "XX#XXXXX#####################IIIII###X#X",
+  "X##XXXXX###############################X",
+  "X######################################X",
+  "XX################SSSS#############X#X#X",
+  "X######################################X",
+  "XXXXXXXXXXXXXXXXXXAAAAXXXXXXXXXXXXXXXXXX",
+  "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+ ]
+}

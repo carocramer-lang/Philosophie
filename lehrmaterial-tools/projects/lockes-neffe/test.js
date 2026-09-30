@@ -28,6 +28,9 @@ for (const [name, o] of Object.entries(d.lernorte)) {
 const vm = require("vm");
 const innen = JSON.parse(fs.readFileSync(path.join(__dirname, "innen", "observatorium.json"), "utf8"));
 const saal = JSON.parse(fs.readFileSync(path.join(__dirname, "innen", "lesesaal.json"), "utf8"));
+const salon = JSON.parse(fs.readFileSync(path.join(__dirname, "innen", "salon.json"), "utf8"));
+const druckerei = JSON.parse(fs.readFileSync(path.join(__dirname, "innen", "druckerei.json"), "utf8"));
+const akademie = JSON.parse(fs.readFileSync(path.join(__dirname, "innen", "akademie.json"), "utf8"));
 const leibniz = JSON.parse(fs.readFileSync(path.join(__dirname, "netlify", "lib", "leibniz.json"), "utf8"));
 const html = fs.readFileSync(path.join(__dirname, "index.html"), "utf8");
 const code = html.match(/<script>\n([\s\S]*?)<\/script>/)[1];
@@ -51,7 +54,7 @@ const document = {
   addEventListener: (t, f) => { docListeners[t] = f; }
 };
 const window = {
-  WELT: d, INNEN: { observatorium: innen, lesesaal: saal }, LEIBNIZ: leibniz, document, innerWidth: 1200, innerHeight: 800, devicePixelRatio: 1,
+  WELT: d, INNEN: { observatorium: innen, lesesaal: saal, salon, druckerei, akademie }, LEIBNIZ: leibniz, document, innerWidth: 1200, innerHeight: 800, devicePixelRatio: 1,
   addEventListener() {}, matchMedia: () => ({ matches: false }),
   requestAnimationFrame: () => 0, setTimeout: () => 0
 };
@@ -203,6 +206,7 @@ async function lesesaalAblauf() {
   G.schliessen();
   G.teleport(19, 21); bisWechsel("down", 2);
   check("Lesesaal: danach ist die Tuer offen", G.state.szene === "welt" && Math.floor(G.state.y / 16) === 17);
+  await salonAblauf();
 
   // Rueckmeldungen der eingebauten Fassung
   const u1 = G.urteil(GUT);
@@ -217,6 +221,319 @@ async function lesesaalAblauf() {
   check("Bibliothekar: woertliche Uebernahme erkannt", !!u3.zitat);
   const hinweis = G.urteil("x").kernFehlt.map(k => k.hilfe).join(" ");
   check("Bibliothekar: Zeilenangaben aus dem Arbeitsblatt", /Z\. \d/.test(hinweis) && !/\(\)/.test(hinweis));
+}
+
+// ---------- Salon: Brief der Akademie, Analyse schreiben, Platon am Kamin
+const ANALYSE = "In der Vorrede zu seinen Neuen Abhandlungen über den menschlichen Verstand (1704) begründet Gottfried Wilhelm Leibniz seine These angeborener Prinzipien gegen Lockes Empirismus. " +
+  "Er eröffnet den Text mit einer disjunktiven Gegenüberstellung zweier Positionen (Z. 1–5): Entweder ist die Seele eine leere Tafel, wie Locke und Aristoteles meinen, oder sie enthält ursprünglich Prinzipien, die durch äußere Gegenstände nur aufgeweckt werden. " +
+  "Leibniz vertritt die zweite Position und beruft sich dabei auf Platon. Im zweiten Abschnitt (Z. 6–13) kritisiert er die Induktion. " +
+  "Die erste Prämisse lautet, dass die Sinne nur Beispiele, also Wahrheiten über Einzelnes liefern (Z. 9–10). " +
+  "Die zweite Prämisse besagt, dass aus noch so vielen Einzelfällen keine allgemeine Notwendigkeit folgt, denn was oft geschehen ist, muss nicht immer so geschehen (Z. 11–13). " +
+  "Daraus folgert Leibniz im Zwischenschluss, dass notwendige Wahrheiten Prinzipien besitzen müssen, die nicht vom Zeugnis der Sinne abhängen (Z. 14–17). " +
+  "Als Beleg dient die reine Mathematik, deren Lehrsätze universell und notwendig gelten (Z. 18–20). Die Sinne geben nur den Anstoß, nach diesen Wahrheiten zu suchen. " +
+  "Im letzten Abschnitt (Z. 21–28) veranschaulicht Leibniz seine These durch das Gleichnis vom geäderten Marmorblock. " +
+  "Die leere Tafel und die ungestaltete Masse stehen für das empiristische Modell eines passiven Geistes. " +
+  "Die Adern symbolisieren dagegen die angeborene Struktur der Seele, die bestimmte Erkenntnisse vorzeichnet. " +
+  "Die Arbeit des Bildhauers steht für die Sinneserfahrung, die nichts Neues erschafft, sondern die Adern freilegt und zur Klarheit bringt. " +
+  "Das gedankliche Ziel des Gleichnisses ist es zu zeigen, dass Erfahrung und angeborene Ideen keine Gegensätze sind: Die Sinne sind der Anlass, aber nicht das Fundament notwendiger Erkenntnis.";
+async function salonAblauf() {
+  G.teleport(13, 43); bisWechsel("up", 2);
+  check("Salon: Tuer fuehrt nach dem Lesesaal hinein", G.state.szene === "salon" && !G.state.dialog);
+  check("Salon: Eintritt auf der Eintrittsstelle", salon.raster[Math.floor((G.state.y - 2) / 16)][Math.floor(G.state.x / 16)] === "S");
+  G.teleport(19, 21); bisWechsel("down", 2);
+  check("Salon: Tuer gesperrt ohne Analyse", G.state.szene === "salon");
+  G.teleport(19, 20); lauf("up", 3.5);
+  check("Salon: Hauptweg fuehrt gerade zum Kamin", G.state.aktion === "kamin");
+  G.benutzen();
+  check("Salon: Kamin verweist zuerst auf den Sekretaer", G.state.dialog === "Der Kamin" && !G.state.fenster);
+  G.schliessen();
+
+  G.teleport(4, 6); G.tick(1 / 60);
+  check("Salon: Sekretaer bietet Interaktion", G.state.aktion === "sekretaer");
+  G.benutzen();
+  check("Salon: Sekretaer oeffnet den Brief der Akademie", G.state.material === "sekretaer");
+  check("Salon: Brief zeigt Analyseauftrag und Hinweise", /Analysieren Sie die Argumentationsstruktur/.test(document.getElementById("materialInhalt").innerHTML) &&
+    /Zeilenangaben/.test(document.getElementById("materialInhalt").innerHTML));
+  await G.herunterladen(); G.materialSchliessen();
+  check("Salon: Brief gesichert", G.state.gesehen.sekretaer && G.state.geladen.sekretaer);
+  G.benutzen();
+  check("Salon: Sekretaer oeffnet die Rolle fuer die Analyse", G.state.fenster === "rolle" && document.getElementById("rolleTitel").textContent === "Deine Analyse");
+  check("Salon: Rolle zeigt den Analyseauftrag", /Analysieren Sie/.test(document.getElementById("rolleAuftrag").textContent));
+  G.state.salon.rolle = "Leibniz argumentiert gegen Locke.";
+  check("Salon: zu kurze Analyse wird nicht angenommen", (await G.abgeben()) === false && G.state.fenster === "rolle");
+  G.state.salon.rolle = ANALYSE;
+  await G.abgeben();
+  check("Salon: Abgabe ruft Platon aus dem Bild", G.state.dialog === "Das Feuer lodert auf" && G.state.salon.seit != null && !G.state.fenster);
+  check("Salon: Lesesaal-Rolle bleibt unberuehrt", G.state.rolle === GUT);
+  G.schliessen();
+  G.teleport(19, 21); bisWechsel("down", 2);
+  check("Salon: Tuer gesperrt, solange Platon wartet", G.state.szene === "salon");
+
+  G.teleport(19, 6); G.tick(1 / 60);
+  check("Salon: Kamin bietet Interaktion", G.state.aktion === "kamin");
+  await G.platonGespraech();
+  const v = G.state.salon.verlauf;
+  check("Platon: stellt sich vor", v[0].wer === "bib" && /Ich bin Platon/.test(v[0].text));
+  check("Platon: erklaert den Bezug zu Leibniz mit Zeile", /Z\. 5/.test(v[0].text) && /mit Platon/.test(v[0].text) && /Anamnesis/.test(v[0].text));
+  const rm = v[v.length - 1].text;
+  check("Platon: gibt Rueckmeldung zur Analyse", v[v.length - 1].wer === "bib" && /Das ist dir gelungen/.test(rm));
+  check("Platon: gute Analyse erfasst den Kern", /Kern der Sache erfasst/.test(rm));
+  await G.antworten("Was ist eine Prämisse?");
+  check("Platon: erklaert Begriffe", /Voraussetzung, aus der ein Schluss folgt/.test(v[v.length - 1].text));
+  await G.antworten("Kann ich die Musterlösung sehen?");
+  check("Platon: Musterloesung nur nach Angebot mit Hinweis", /Wer nur liest, lernt weniger/.test(v[v.length - 1].text) && !/Prämisse 1/.test(v[v.length - 1].text));
+  await G.antworten("Ja, bitte");
+  check("Platon: Musterloesung nach Zustimmung", /Prämisse 1/.test(v[v.length - 1].text) && /Schreib bitte nicht ab/.test(v[v.length - 1].text));
+  G.gespraechBeenden();
+  check("Platon: Gespraech beenden siegelt die Analyse", G.state.salon.fertig && G.state.stufe === 3 && G.state.dialog === "Deine Analyse ist gesiegelt");
+  G.schliessen();
+  G.teleport(19, 21); bisWechsel("down", 2);
+  check("Salon: danach ist die Tuer offen", G.state.szene === "welt");
+  await druckereiAblauf();
+
+  // Rueckmeldungen der eingebauten Fassung
+  const p1 = G.urteilPlaton(ANALYSE);
+  check("Platon: gute Analyse ohne Formhinweise", p1.kernErfasst && p1.form.length === 0);
+  const p2 = G.urteilPlaton("Leibniz sagt, dass die Seele angeborene Ideen hat. Die Sinne geben nur Beispiele. Der Marmorblock hat Adern.");
+  check("Platon: Darstellung statt Analyse erkannt", p2.form.some(f => /eher wie eine Darstellung/.test(f)));
+  check("Platon: fehlende Zeilenangaben erkannt", p2.form.some(f => /Zeilenangaben/.test(f)));
+  check("Platon: fehlende Deutung des Gleichnisses erkannt", !p2.bereiche[3] && p2.kernFehlt.some(k => k.id === "adern"));
+  const hinweisP = G.urteilPlaton("x").kernFehlt.map(k => k.hilfe).join(" ");
+  check("Platon: Zeilenangaben aus dem Arbeitsblatt", /Z\. \d/.test(hinweisP) && !/\(\)/.test(hinweisP));
+}
+
+// ---------- Buchdruckerei: Brief im Setzkasten, Kommentar am Setzpult, Druckermeister an der Presse, Flugschrift
+const KOMMENTAR = "In der Frage, ob die Seele eine leere Tafel ist, behauptet Leibniz gegen Locke, dass empirische Wahrnehmung allein keine allgemeine Notwendigkeit begründen kann. " +
+  "Für Locke stammt dagegen alles Material des Denkens aus der Erfahrung, nämlich aus Sensation und Reflexion. " +
+  "Allgemeine Begriffe entstehen bei ihm, indem der Verstand einfache Ideen kombiniert, vergleicht und abstrahiert. " +
+  "Leibniz hält die Wahrnehmung zwar für den Anlass des Erkennens, aber er bestreitet, dass sie notwendige und allgemeine Wahrheiten wie in der Mathematik begründen kann (Z. 14–20). " +
+  "Für Leibniz spricht vor allem das Induktionsproblem: Nur weil die Sonne bisher jeden Tag aufgegangen ist, ist das kein logischer Beweis dafür, dass sie morgen aufgeht. " +
+  "Das überzeugt mich, denn Beobachtungen zeigen nur, was bisher geschah. " +
+  "Andererseits ist Lockes Modell sparsamer, weil es ohne angeborene Ideen auskommt, die man nicht nachweisen kann. " +
+  "Nach Ockhams Rasiermesser ist das ein Vorteil, und Lockes Erklärung über Lernen und Gewöhnung wirkt realistisch, da Kinder Zahlen erst durch Übung verstehen. " +
+  "Allerdings erklärt Locke nicht, warum mathematische Sätze nicht nur zufällig, sondern notwendig gelten. " +
+  "Deshalb halte ich Leibniz' Einwand für berechtigt, auch wenn seine angeborenen Ideen problematisch bleiben. " +
+  "Mein Fazit: In der Frage nach der Notwendigkeit hat Leibniz recht, in der Frage, wie wir tatsächlich lernen, überzeugt Locke mehr. " +
+  "Beide Positionen ergänzen sich, und genau diese Lücke des reinen Empirismus hat später Kant geschlossen, weil bei ihm Anschauung und Begriffe zusammenwirken.";
+async function druckereiAblauf() {
+  G.teleport(74, 43); bisWechsel("up", 2);
+  check("Druckerei: Tuer fuehrt nach dem Salon hinein", G.state.szene === "druckerei" && !G.state.dialog);
+  check("Druckerei: Eintritt auf der Eintrittsstelle", druckerei.raster[Math.floor((G.state.y - 2) / 16)][Math.floor(G.state.x / 16)] === "S");
+  G.teleport(19, 21); bisWechsel("down", 2);
+  check("Druckerei: Tuer gesperrt ohne Kommentar", G.state.szene === "druckerei");
+  G.teleport(19, 20); lauf("up", 3.5);
+  check("Druckerei: Hauptweg fuehrt gerade zur Presse", G.state.aktion === "presse");
+  G.benutzen();
+  check("Druckerei: Druckermeister begruesst Jonny", G.state.dialog === "Der Druckermeister" && !G.state.fenster);
+  G.schliessen();
+  G.teleport(30, 17); G.tick(1 / 60);
+  check("Druckerei: Infotafel am Buechertisch", G.state.aktion === "tafel");
+  G.benutzen();
+  const tafel = document.getElementById("materialInhalt").innerHTML;
+  check("Druckerei: Infotafel zeigt Titelblatt und Geschichte", G.state.material === "tafel" && /Humane Understanding/.test(tafel) && /Thomas Basset/.test(tafel) && /1765/.test(tafel));
+  check("Druckerei: Infotafel ohne Download", document.getElementById("laden").hidden === true);
+  G.materialSchliessen();
+  check("Druckerei: Infotafel gelesen, Download wieder da", G.state.tafeln.locke_druck && !G.state.material && document.getElementById("laden").hidden === false);
+  const bilder = [0, 1000, 2000, 3000, 4000].map(G.presseBild);
+  check("Druckerei: Presse laeuft durch ihre Bilder", new Set(bilder).size >= 4 && bilder.every(b => b >= 0 && b < druckerei.presse.bilder));
+
+  G.teleport(4, 13); G.tick(1 / 60);
+  check("Druckerei: Setzpult bietet Interaktion", G.state.aktion === "setzpult");
+  G.benutzen();
+  check("Druckerei: Setzpult gesperrt ohne Auftrag", G.state.dialog === "Das Setzpult" && !G.state.fenster);
+  G.schliessen();
+  G.teleport(4, 6); G.tick(1 / 60);
+  check("Druckerei: Setzkasten bietet Interaktion", G.state.aktion === "setzkasten");
+  G.benutzen();
+  const brief = document.getElementById("materialInhalt").innerHTML;
+  check("Druckerei: Setzkasten oeffnet Aufgabe 3 mit Hinweisen", G.state.material === "setzkasten" && /Nehmen Sie Stellung/.test(brief) && /Sensation und Reflexion/.test(brief));
+  check("Druckerei: Brief enthaelt Lockes Text zum Vergleich", /Der Ursprung der Ideen/.test(brief) && /SENSATION/.test(brief));
+  await G.herunterladen(); G.materialSchliessen();
+  check("Druckerei: Brief gesichert", G.state.gesehen.setzkasten && G.state.geladen.setzkasten);
+  G.teleport(4, 13); G.tick(1 / 60); G.benutzen();
+  check("Druckerei: Setzpult oeffnet die Rolle fuer den Kommentar", G.state.fenster === "rolle" && document.getElementById("rolleTitel").textContent === "Dein Kommentar");
+  check("Druckerei: Reiter mit beiden Texten", document.getElementById("tabText").textContent === "Texte");
+  G.state.druckerei.rolle = "Ich finde Leibniz gut.";
+  check("Druckerei: zu kurzer Kommentar wird nicht angenommen", (await G.abgeben()) === false && G.state.fenster === "rolle");
+  G.state.druckerei.rolle = KOMMENTAR;
+  await G.abgeben();
+  check("Druckerei: Abgabe ruft an die Presse", G.state.dialog === "Der Druckermeister ruft" && !G.state.fenster);
+  check("Druckerei: andere Rollen bleiben unberuehrt", G.state.rolle === GUT && G.state.salon.rolle === ANALYSE);
+  G.schliessen();
+  G.teleport(19, 21); bisWechsel("down", 2);
+  check("Druckerei: Tuer gesperrt, solange der Meister wartet", G.state.szene === "druckerei");
+
+  G.teleport(19, 9); G.tick(1 / 60);
+  check("Druckerei: Presse bietet Interaktion", G.state.aktion === "presse");
+  await G.meisterGespraech();
+  const v = G.state.druckerei.verlauf;
+  check("Meister: stellt sich vor und erlaubt jede Position", v[0].wer === "bib" && /Deine Meinung ist deine Sache/.test(v[0].text) && /begründet/.test(v[0].text));
+  const rm = v[v.length - 1].text;
+  check("Meister: gibt Rueckmeldung", v[v.length - 1].wer === "bib" && /Das ist schon druckreif/.test(rm));
+  check("Meister: gute Stellungnahme erfasst den Kern", /Kern der Sache erfasst/.test(rm));
+  await G.antworten("Was ist Ockhams Rasiermesser?");
+  check("Meister: erklaert Begriffe", /weniger Annahmen/.test(v[v.length - 1].text));
+  await G.antworten("Zeig mir bitte den Erwartungshorizont");
+  check("Meister: Erwartungshorizont nur nach Angebot mit Hinweis", /Wer nur liest, lernt weniger/.test(v[v.length - 1].text) && !/Ockhams Rasiermesser\)/.test(v[v.length - 1].text));
+  await G.antworten("Ja");
+  check("Meister: Erwartungshorizont nach Zustimmung", /Pro Leibniz/.test(v[v.length - 1].text) && /bleibt deine Sache/.test(v[v.length - 1].text));
+  G.gespraechBeenden();
+  check("Meister: Gespraech beenden startet den Druck", G.state.druckerei.fertig && G.state.stufe === 3 && G.state.druckerei.druckSeit != null);
+  await new Promise(r => setImmediate(r)); await new Promise(r => setImmediate(r));
+  check("Druckerei: Flugschrift liegt bereit", G.state.material === "flugschrift" && /Flugschrift herunterladen/.test(document.getElementById("laden").textContent));
+  check("Druckerei: Flugschrift traegt den Kommentar", G.flugschriftDaten().text === KOMMENTAR && /Nothwendigkeit/.test(G.flugschriftDaten().frage));
+  G.materialSchliessen();
+  check("Druckerei: ohne Download kein Glueckwunsch", !G.state.dialog && G.state.stufe === 3);
+  G.teleport(19, 21); bisWechsel("down", 2);
+  check("Druckerei: Tuer gesperrt ohne heruntergeladene Flugschrift", G.state.szene === "druckerei");
+  G.teleport(19, 9); G.tick(1 / 60);
+  check("Druckerei: Presse leuchtet fuer die Flugschrift", G.state.aktion === "presse");
+  G.benutzen();
+  check("Druckerei: Presse oeffnet die Flugschrift erneut", G.state.material === "flugschrift");
+  G.state.geladen.flugschrift = true; G.state.stufe = 4;   // wie nach dem Download (braucht einen Browser, dort geprueft)
+  G.materialSchliessen();
+  check("Druckerei: Glueckwunsch nach dem Download", G.state.dialog === "Deine Flugschrift ist gedruckt");
+  G.schliessen();
+  G.teleport(19, 21); bisWechsel("down", 2);
+  check("Druckerei: danach ist die Tuer offen", G.state.szene === "welt");
+  akademieAblauf();
+
+  // Rueckmeldungen der eingebauten Fassung
+  const d1 = G.urteilDrucker(KOMMENTAR);
+  check("Meister: gute Stellungnahme nur mit Laengenhinweis", d1.kernErfasst && d1.form.length === 1 && /noch knapp/.test(d1.form[0]));
+  const d2 = G.urteilDrucker("Leibniz meint, dass die Seele angeborene Ideen hat. Locke meint, dass alles aus der Erfahrung kommt. Leibniz vergleicht die Seele mit einem Marmorblock.");
+  check("Meister: Darstellung ohne Urteil erkannt", d2.form.some(f => /eher wie eine Darstellung/.test(f)) && d2.form.some(f => /Begründe/.test(f)));
+  check("Meister: fehlendes Fazit erkannt", !d2.bereiche[3] && d2.kernFehlt.some(k => k.id === "fazit"));
+  const d3 = G.urteilDrucker("Ich halte Locke für überzeugender, weil man angeborene Ideen nicht nachweisen kann.");
+  const d4 = G.urteilDrucker("Ich halte Leibniz für überzeugender, weil aus Beobachtungen keine Notwendigkeit folgt.");
+  check("Meister: jede Position zaehlt als Urteil", d3.bereiche[3] && d4.bereiche[3]);
+}
+
+// ---------- Akademie: Siegel, Aufnahme, Urkunde, Onkel John, Mappe, Sanduhr
+function akademieAblauf() {
+  check("Akademie: Ziel nach der Druckerei", G.state.stufe === 4);
+  G.teleport(74, 17); bisWechsel("up", 2);
+  check("Akademie: Tuer fuehrt hinein", G.state.szene === "akademie");
+  check("Akademie: Siegel leuchten beim Betreten", G.state.akademie.seit != null);
+  G.teleport(19, 21); bisWechsel("down", 2);
+  check("Akademie: Tuer gesperrt vor der Aufnahme", G.state.szene === "akademie");
+  G.teleport(29, 20); G.tick(1 / 60); G.benutzen();
+  check("Akademie: Sanduhr vor der Aufnahme gesperrt", G.state.dialog === "Die Sanduhr");
+  G.schliessen();
+  G.teleport(19, 20); lauf("up", 3.5);
+  check("Akademie: Hauptweg fuehrt gerade zum Praesidenten", G.state.aktion === "praesident");
+  G.benutzen();
+  check("Akademie: Praesident spricht", G.state.dialog === "Der Präsident der Akademie" && /Tritt näher/.test(document.getElementById("dialogText").textContent));
+  G.schliessen();
+  check("Akademie: zweite Rede folgt", G.state.dialog === "Der Präsident der Akademie" && /jüngstes Mitglied/.test(document.getElementById("dialogText").textContent));
+  G.schliessen();
+  check("Akademie: Urkunde liegt bereit", G.state.material === "urkunde" && /Urkunde herunterladen/.test(document.getElementById("laden").textContent));
+  G.materialSchliessen();
+  check("Akademie: Onkel John gratuliert", G.state.dialog === "Onkel John" && /eigenes Urteil/.test(document.getElementById("dialogText").textContent));
+  G.schliessen();
+  check("Akademie: Aufnahme bestanden", G.state.akademie.fertig && G.state.stufe === 5 && document.getElementById("ziel").textContent === "Aufnahme bestanden");
+  G.teleport(8, 6); G.tick(1 / 60); G.benutzen();
+  check("Akademie: Mappe am Pult", G.state.material === "mappe" && /Mappe herunterladen/.test(document.getElementById("laden").textContent));
+  const abschnitte = G.mappeAbschnitte();
+  check("Akademie: Mappe enthaelt alle drei Texte mit Gespraechen", abschnitte.length === 3 && abschnitte[0].text === GUT && abschnitte[1].text === ANALYSE &&
+    abschnitte[2].text === KOMMENTAR && abschnitte.every(a => a.verlauf.length > 0));
+  G.materialSchliessen();
+  G.teleport(29, 20); G.tick(1 / 60); G.benutzen();
+  check("Akademie: Sanduhr fragt vor dem Neustart", G.state.dialog === "Neues Spiel?" && document.getElementById("nein").hidden === false &&
+    document.getElementById("weiter").textContent === "Ja, neu beginnen" &&
+    /Texte .* auf diesem Gerät gelöscht/.test(document.getElementById("dialogNotiz").textContent));
+  G.frageAbbrechen();
+  check("Akademie: Abbrechen loescht nichts", !G.state.dialog && G.state.rolle === GUT);
+  G.benutzen(); G.schliessen();
+  check("Akademie: Neues Spiel leert die gespeicherten Texte", G.state.rolle === "" && G.state.salon.rolle === "" && G.state.druckerei.rolle === "");
+  G.teleport(19, 21); bisWechsel("down", 2);
+  check("Akademie: danach ist die Tuer offen", G.state.szene === "welt");
+  tafelnAblauf();
+}
+
+// ---------- Infotafeln: in jedem Raum und in der Oberwelt freiwillig lesbar
+function tafelnAblauf() {
+  const orte = { welt: [d, "london", /Glorious Revolution/], observatorium: [innen, "sterne", /Principia/], lesesaal: [saal, "notizen", /3\.600 Bücher/],
+    salon: [salon, "salon", /fünf oder sechs Freunde/], druckerei: [druckerei, "locke_druck", /Thomas Basset/], akademie: [akademie, "nullius", /Nullius in verba/] };
+  for (const [ort, [daten, id, inhalt]] of Object.entries(orte)) {
+    G.szene(ort);
+    const t = daten.interaktionen.find(i => i.id === "tafel");
+    check("Tafel " + ort + ": vorhanden", !!t);
+    G.teleport(t.flaeche.x0, t.flaeche.y0); G.tick(1 / 60);
+    check("Tafel " + ort + ": bietet Interaktion", G.state.aktion === "tafel");
+    G.benutzen();
+    check("Tafel " + ort + ": zeigt ihren Inhalt", G.state.material === "tafel" && inhalt.test(document.getElementById("materialInhalt").innerHTML) && G.state.tafeln[id]);
+    G.materialSchliessen();
+  }
+}
+
+// Akademie-Raster: alles vom Eintritt aus erreichbar
+{
+  const a = (x, y) => akademie.raster[y][x];
+  const seen = new Set([akademie.eintritt.x + "," + akademie.eintritt.y]), q = [[akademie.eintritt.x, akademie.eintritt.y]];
+  while (q.length) {
+    const [x, y] = q.shift();
+    for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+      const nx = x + dx, ny = y + dy, k = nx + "," + ny;
+      if (ny >= 0 && ny < akademie.hoehe && nx >= 0 && nx < akademie.breite && a(nx, ny) !== "X" && !seen.has(k)) { seen.add(k); q.push([nx, ny]); }
+    }
+  }
+  check("Akademie-Raster: vollstaendig", akademie.raster.length === akademie.hoehe && akademie.raster.every(r => r.length === akademie.breite));
+  for (const s of akademie.interaktionen) check("Akademie-Raster: " + s.id + " erreichbar", seen.has(s.flaeche.x0 + "," + s.flaeche.y0));
+  check("Akademie-Raster: Ausgang erreichbar", akademie.ausgang.every(o => seen.has(o.x + "," + o.y)));
+  let rest = 0; for (let y = 0; y < akademie.hoehe; y++) for (let x = 0; x < akademie.breite; x++) if (a(x, y) !== "X" && !seen.has(x + "," + y)) rest++;
+  check("Akademie-Raster: keine abgeschnittenen Bodenflaechen", rest === 0);
+  check("Akademie-Raster: Figuren stehen auf gesperrten Kacheln", a(Math.floor(akademie.praesident.x), akademie.praesident.y) === "X" && a(Math.floor(akademie.locke.x), akademie.locke.y) === "X");
+  check("Akademie: vier Siegel an der Wand", akademie.siegel.length === 4);
+}
+
+// Druckerei-Raster: alles vom Eintritt aus erreichbar
+{
+  const a = (x, y) => druckerei.raster[y][x];
+  const seen = new Set([druckerei.eintritt.x + "," + druckerei.eintritt.y]), q = [[druckerei.eintritt.x, druckerei.eintritt.y]];
+  while (q.length) {
+    const [x, y] = q.shift();
+    for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+      const nx = x + dx, ny = y + dy, k = nx + "," + ny;
+      if (ny >= 0 && ny < druckerei.hoehe && nx >= 0 && nx < druckerei.breite && a(nx, ny) !== "X" && !seen.has(k)) { seen.add(k); q.push([nx, ny]); }
+    }
+  }
+  check("Druckerei-Raster: vollstaendig", druckerei.raster.length === druckerei.hoehe && druckerei.raster.every(r => r.length === druckerei.breite));
+  for (const s of druckerei.interaktionen) {
+    check("Druckerei-Raster: " + s.id + " erreichbar", seen.has(s.flaeche.x0 + "," + s.flaeche.y0));
+    let alleI = true;
+    for (let y = s.flaeche.y0; y <= s.flaeche.y1; y++) for (let x = s.flaeche.x0; x <= s.flaeche.x1; x++) if (a(x, y) !== "I") alleI = false;
+    check("Druckerei-Raster: " + s.id + " als Interaktionsflaeche markiert", alleI);
+  }
+  check("Druckerei-Raster: Ausgang erreichbar", druckerei.ausgang.every(o => seen.has(o.x + "," + o.y)));
+  let rest = 0; for (let y = 0; y < druckerei.hoehe; y++) for (let x = 0; x < druckerei.breite; x++) if (a(x, y) !== "X" && !seen.has(x + "," + y)) rest++;
+  check("Druckerei-Raster: keine abgeschnittenen Bodenflaechen", rest === 0);
+  check("Druckerei-Raster: Meister steht auf gesperrter Kachel", a(Math.floor(druckerei.meister.x), druckerei.meister.y) === "X");
+  check("Druckerei: Sprite-Blatt der Presse vorhanden", fs.existsSync(path.join(__dirname, "innen", "druckerei_presse.png")));
+}
+
+// Salon-Raster: alles vom Eintritt aus erreichbar
+{
+  const a = (x, y) => salon.raster[y][x];
+  const seen = new Set([salon.eintritt.x + "," + salon.eintritt.y]), q = [[salon.eintritt.x, salon.eintritt.y]];
+  while (q.length) {
+    const [x, y] = q.shift();
+    for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+      const nx = x + dx, ny = y + dy, k = nx + "," + ny;
+      if (ny >= 0 && ny < salon.hoehe && nx >= 0 && nx < salon.breite && a(nx, ny) !== "X" && !seen.has(k)) { seen.add(k); q.push([nx, ny]); }
+    }
+  }
+  check("Salon-Raster: vollstaendig", salon.raster.length === salon.hoehe && salon.raster.every(r => r.length === salon.breite));
+  for (const s of salon.interaktionen) {
+    check("Salon-Raster: " + s.id + " erreichbar", seen.has(s.flaeche.x0 + "," + s.flaeche.y0));
+    let alleI = true;
+    for (let y = s.flaeche.y0; y <= s.flaeche.y1; y++) for (let x = s.flaeche.x0; x <= s.flaeche.x1; x++) if (a(x, y) !== "I") alleI = false;
+    check("Salon-Raster: " + s.id + " als Interaktionsflaeche markiert", alleI);
+  }
+  check("Salon-Raster: Ausgang erreichbar", salon.ausgang.every(o => seen.has(o.x + "," + o.y)));
+  let rest = 0; for (let y = 0; y < salon.hoehe; y++) for (let x = 0; x < salon.breite; x++) if (a(x, y) !== "X" && !seen.has(x + "," + y)) rest++;
+  check("Salon-Raster: keine abgeschnittenen Bodenflaechen", rest === 0);
+  check("Salon-Raster: Geist steht vor dem Kamin", a(Math.floor(salon.geist.x), salon.geist.y) === "X");
 }
 
 // Innenraum-Raster
@@ -268,6 +585,7 @@ for (const m of src.matchAll(/datei: "(material\/[^"]+)"/g)) {
 // ---------- Musterloesung in der eingebauten Fassung und Serverkern (Netlify Function)
 async function musterUndKern() {
   const ende = () => G.state.verlauf[G.state.verlauf.length - 1].text;
+  G.state.werk = "lesesaal";  // wie im Spiel: das Gespraech im Lesesaal gehoert zum Bibliothekar
   G.state.fenster = "gespraech";
   await G.antworten("Kann ich eine Musterlösung sehen?");
   check("Muster: erst Warnung und Rueckfrage", /lernt weniger/.test(ende()) && /Möchtest du sie trotzdem sehen/.test(ende()) && G.state.musterAngebot);
@@ -290,7 +608,25 @@ async function musterUndKern() {
   const u = kern.nachrichten(kern.pruefe({ zusammenfassung: "MEINE ROLLE", verlauf: v.slice(0, 1), art: "urteil" }));
   check("Kern: Urteil haengt die Zusammenfassung an", u.length === 1 && u[0].content.includes("<zusammenfassung>\nMEINE ROLLE"));
   const wirft = f => { try { f(); return false; } catch (e) { return e.status === 400; } };
-  check("Kern: zu lange Rolle abgewiesen", wirft(() => kern.pruefe({ zusammenfassung: "x".repeat(5000), verlauf: v })));
+  check("Kern: zu lange Rolle abgewiesen", wirft(() => kern.pruefe({ zusammenfassung: "x".repeat(kern.GRENZEN.zusammenfassung + 1), verlauf: v })));
+  // Platon im Salon
+  check("Kern: ohne Angabe antwortet der Bibliothekar", kern.pruefe({ zusammenfassung: "x", verlauf: v.slice(0, 1) }).rolle === "bibliothekar");
+  check("Kern: unbekannte Rolle faellt auf den Bibliothekar zurueck", kern.pruefe({ zusammenfassung: "x", verlauf: v.slice(0, 1), rolle: "sokrates" }).rolle === "bibliothekar");
+  const pl = kern.nachrichten(kern.pruefe({ zusammenfassung: "MEINE ANALYSE", verlauf: v.slice(0, 1), art: "urteil", rolle: "platon" }));
+  check("Kern: Platon bekommt die Analyse", pl[0].content.includes("<analyse>\nMEINE ANALYSE"));
+  check("Kern: Platon kennt Aufgabe und Erwartungshorizont", kern.ROLLEN.platon.system.includes("Analysieren Sie die Argumentationsstruktur") &&
+    kern.ROLLEN.platon.system.includes(kern.MUSTERLOESUNG_ANALYSE) && kern.MUSTERLOESUNG_ANALYSE.includes("Prämisse 1"));
+  check("Kern: Platon erklaert den Bezug zu Leibniz", /wie ich mit Platon annehme/.test(kern.SYSTEM_PLATON) && /Anamnesis/.test(kern.SYSTEM_PLATON));
+  check("Kern: Platons Musterloesung identisch mit dem Spiel", G.state.salon.verlauf.some(m => m.text.includes(kern.MUSTERLOESUNG_ANALYSE)));
+  const dm = kern.nachrichten(kern.pruefe({ zusammenfassung: "MEIN KOMMENTAR", verlauf: v.slice(0, 1), art: "urteil", rolle: "druckermeister" }));
+  check("Kern: Meister bekommt den Kommentar", dm[0].content.includes("<kommentar>\nMEIN KOMMENTAR"));
+  check("Kern: Meister kennt Aufgabe, Lockes Text und Erwartungshorizont", kern.SYSTEM_DRUCKER.includes("Nehmen Sie Stellung") &&
+    kern.SYSTEM_DRUCKER.includes("SENSATION") && kern.SYSTEM_DRUCKER.includes(kern.MUSTERLOESUNG_KOMMENTAR));
+  check("Info: KI-Hinweis nennt alle drei Figuren", /Der Bibliothekar, der Philosoph und der Druckermeister geben automatisch erzeugte Rückmeldungen/.test(html) &&
+    /für den Bibliothekar, den Philosophen und den Druckermeister/.test(html));
+  check("Kern: Meister bewertet nie die Position", /Bewerte nie, welche Position Jonny einnimmt/.test(kern.SYSTEM_DRUCKER));
+  check("Kern: Erwartungshorizont des Meisters identisch mit dem Spiel", G.state.druckerei.verlauf.some(m => m.text.includes(kern.MUSTERLOESUNG_KOMMENTAR)));
+  check("Kern: Erwartungshorizont ohne Tippfehler", !/[一-鿿]|derive|veranschaulichung, dass/.test(kern.MUSTERLOESUNG_ANALYSE));
   check("Kern: letzte Nachricht muss von Jonny sein", wirft(() => kern.pruefe({ zusammenfassung: "x", verlauf: v.slice(0, 2) })));
   check("Kern: falsche Rolle abgewiesen", wirft(() => kern.pruefe({ zusammenfassung: "x", verlauf: [{ wer: "system", text: "x" }] })));
   check("Kern: Ablehnung ergibt keinen Text", kern.antworttext({ stop_reason: "refusal", content: [] }) === null);

@@ -982,6 +982,21 @@ def bench(tx, ty):
     cv.rect(x + 1, y + 10, 2, 3, (60, 44, 34))
     cv.rect(x + 25, y + 10, 2, 3, (60, 44, 34))
 
+def notice_board(tx, ty):
+    """Anschlagtafel am Brunnen: Aushang mit Nachrichten aus London (Infotafel im Spiel)."""
+    x, b = tx * T + 8, ty * T + 14
+    cv.shade_ellipse(x + 3, b, 9, 3, 0.6)
+    for px in (x - 7, x + 6):
+        cv.rect(px, b - 26, 2, 26, (86, 54, 32))
+    cv.rect(x - 10, b - 30, 21, 3, (70, 44, 28))
+    cv.rect(x - 9, b - 27, 19, 15, (120, 80, 50))
+    cv.rect(x - 8, b - 26, 8, 11, (244, 238, 220))
+    cv.rect(x + 1, b - 25, 7, 9, (236, 226, 196))
+    for ly in range(b - 24, b - 16, 2):
+        cv.rect(x - 7, ly, 6, 1, (120, 112, 100))
+        cv.rect(x + 2, ly + 1, 5, 1, (120, 112, 100))
+    cv.set(x - 4, b - 26, (200, 60, 50)); cv.set(x + 4, b - 25, (200, 60, 50))
+
 def fountain(tx, ty):
     cx, cy = tx * T + 32, ty * T + 34
     cv.shade_ellipse(cx + 4, cy + 5, 32, 25, 0.6)
@@ -1456,6 +1471,9 @@ place(83, 36, 2, 2, mk(cart, 83, 36), name="cart")
 
 # Zentralplatz
 place(46, 30, 4, 4, mk(fountain, 46, 30), allow="Q", name="fountain")
+# Infotafel "London 1690": Objekt und Flaeche davor, dort kann Jonny sie lesen
+TAFEL = {"objekt": (44, 34, 44, 34), "flaeche": (44, 35, 44, 35)}
+place(44, 34, 1, 1, mk(notice_board, 44, 34), allow="Q", name="notice_board")
 place(39, 26, 2, 2, mk(planter_tree, 39, 26, 7), allow="Q", name="planter")
 place(55, 26, 2, 2, mk(planter_tree, 55, 26, 8), allow="Q", name="planter")
 place(39, 37, 3, 3, mk(stall, 39, 37, (200, 50, 60), "books"), allow="Q", name="stall")
@@ -1583,7 +1601,7 @@ def walk_class(x, y):
         return "~"
     return "X"
 
-COLL = {"#": (40, 200, 80), ".": (240, 220, 60), "X": (220, 40, 40), "~": (40, 110, 240), "E": (230, 40, 220)}
+COLL = {"#": (40, 200, 80), ".": (240, 220, 60), "X": (220, 40, 40), "~": (40, 110, 240), "E": (230, 40, 220), "I": (250, 150, 30)}
 
 def export():
     cv.save(os.path.join(OUT, "welt.png"))
@@ -1595,6 +1613,9 @@ def export():
         row = ""
         for tx in range(W):
             k = walk_class(tx, ty)
+            fx0, fy0, fx1, fy1 = TAFEL["flaeche"]
+            if fx0 <= tx <= fx1 and fy0 <= ty <= fy1:
+                k = "I"
             row += k
             c = COLL[k]
             for py in range(ty * T, ty * T + T):
@@ -1609,13 +1630,16 @@ def export():
         "breite": W,
         "hoehe": H,
         "legende": {"#": "Weg/Platz, begehbar", ".": "Wiese, begehbar (optional sperren)",
-                    "X": "Hindernis", "~": "Wasser", "E": "Eingang (Tuer)"},
+                    "X": "Hindernis", "~": "Wasser", "E": "Eingang (Tuer)", "I": "vor der Infotafel, begehbar"},
         "start": {"x": 47, "y": 36, "hinweis": "Zentralplatz, suedlich des Brunnens"},
         "lernorte": {
             k: {"gebaeude": {"x": v[0], "y": v[1], "w": v[2], "h": v[3]},
                 "tuer": [{"x": a, "y": b} for a, b in DOORS[k]],
                 "vorplatz": {"x0": COURTS[k][0], "y0": COURTS[k][1], "x1": COURTS[k][2], "y1": COURTS[k][3]}}
             for k, v in BUILDINGS.items()},
+        "interaktionen": [{"id": "tafel", "markiert": False,
+                           "flaeche": dict(zip(("x0", "y0", "x1", "y1"), TAFEL["flaeche"])),
+                           "objekt": dict(zip(("x0", "y0", "x1", "y1"), TAFEL["objekt"]))}],
         "raster": rows,
     }
     with open(os.path.join(OUT, "welt.json"), "w", encoding="utf-8") as f:

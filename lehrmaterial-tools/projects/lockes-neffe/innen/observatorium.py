@@ -43,6 +43,8 @@ INTERAKTIONEN = [
     {"id": "regal_links", "objekt": (2, 17, 5, 18), "flaeche": (2, 19, 5, 19), "markiert": True},
     {"id": "regal_rechts", "objekt": (8, 17, 11, 18), "flaeche": (8, 19, 11, 19), "markiert": True},
     {"id": "kartentisch", "objekt": (35, 5, 37, 7), "flaeche": (35, 8, 37, 9), "markiert": True},
+    # Infotafel (freiwillig): Messingschild am Fuss des Teleskops
+    {"id": "tafel", "objekt": (24, 8, 24, 8), "flaeche": (24, 9, 24, 9), "markiert": False},
 ]
 fill(18, 20, 21, 20, "S")           # Eintrittsstelle hinter der Tuer
 
@@ -598,6 +600,19 @@ def plant(tx, ty):
     cv.rect(cx - 6, b - 10, 13, 2, (196, 110, 76))
     G.canopy(cx, b - 17, 9, G.PAL_LIME, 21)
 
+def sign_stand(tx, ty, plate=(214, 170, 72)):
+    """Infotafel: kleines Schild auf einem Staender, schraeg zum Betrachter."""
+    cx, b = tx * T + 8, ty * T + 14
+    cv.shade_ellipse(cx + 3, b, 6, 2, 0.6)
+    cv.rect(cx - 4, b - 3, 9, 3, (70, 44, 28))
+    cv.rect(cx - 1, b - 16, 3, 14, (86, 54, 32))
+    cv.rect(cx - 8, b - 28, 17, 13, (40, 30, 22))
+    cv.rect(cx - 7, b - 27, 15, 11, plate)
+    cv.rect(cx - 7, b - 27, 15, 1, mul(plate, 1.2))
+    for ly in range(b - 24, b - 18, 2):
+        cv.rect(cx - 5, ly, 11, 1, mul(plate, 0.6))
+    cv.set(cx - 6, b - 26, (250, 240, 200)); cv.set(cx + 6, b - 26, (250, 240, 200))
+
 def rug(x, y, w, h, col):
     cv.rect(x, y, w, h, mul(col, 0.6))
     cv.rect(x + 2, y + 2, w - 4, h - 4, col)
@@ -629,6 +644,7 @@ block(34, 17, 2, 2, mk(quadrant, 34, 17))
 block(38, 16, 1, 4, mk(map_chest, 38, 16, 4))
 block(35, 20, 2, 2, mk(small_telescope, 35, 20))
 block(27, 20, 1, 1, mk(plant, 27, 20))
+block(24, 8, 1, 1, mk(sign_stand, 24, 8))
 
 for ia in INTERAKTIONEN:
     x0, y0, x1, y1 = ia["flaeche"]

@@ -3,7 +3,7 @@
 Topdown-Lernspiel zur Philosophie der fruehen Aufklaerung. Jonny will in die Akademie der Wissenschaften aufgenommen werden.
 
 ## Status
-Startbildschirm, spielbare Oberwelt mit begehbarem Observatorium und Lesesaal. Salon, Druckerei und Akademie folgen.
+Startbildschirm, spielbare Oberwelt mit begehbarem Observatorium, Lesesaal und Historischem Salon. Buchdruckerei mit Aufgabe 3, Druckermeister und Flugschrift, Akademie der Wissenschaften als Abschluss. Das Spiel ist vollstaendig spielbar.
 Titel auf dem Startbildschirm: „Lockes Welt“.
 
 ## Startbildschirm (`start/`)
@@ -42,10 +42,46 @@ Lesesaal: 40 x 24 Kacheln, erzeugt mit `python3 innen/lesesaal.py` (nutzt die Ba
 - Ablauf: Am Lesepult (`lesepult`) das Arbeitsblatt ansehen und herunterladen. Dann leuchtet das Schreibpult (`schreibpult`): Papierrolle mit Auftrag, Hinweisen zur Zusammenfassung, Reiter mit Lockes Text und Wortzaehler (mindestens 60 Woerter). Nach der Abgabe erscheint der Bibliothekar neben dem Pult und gibt Rueckmeldung. Jonny kann antworten, nachfragen oder ueberarbeiten. "Gespraech beenden" siegelt die Rolle = Etappe 2. Vorher bleibt die Tuer zu.
 - Der Entwurf wird im Browser gemerkt (`localStorage`, Schluessel `lockes-neffe_v1`). "Rolle als Datei sichern" speichert Zusammenfassung und Gespraech als Textdatei.
 
-### Bibliothekar (Rueckmeldung)
+Historischer Salon: 40 x 24 Kacheln, erzeugt mit `python3 innen/salon.py` (Bausteine aus `observatorium.py`).
+- Aufbau: Fischgraetparkett, rote Seidentapete, Fenster mit roten Vorhaengen wie an der Fassade. Gegenueber der Tuer der Kamin mit Platons Portraet und zwei Ohrensesseln, links oben der Sekretaer mit Kerze, dazu Cembalo, Standuhr, Schachtisch, Kanapee mit Teeservice, Vitrine mit Kuriositaeten, Globus und Buesten am Eingang.
+- Material: Brief der Akademie am Sekretaer (`sekretaer`) mit Aufgabe 2 (AFB II, Analyse) und den Hinweisen der Lehrkraft, dazu derselbe Leibniz-Text. PDF `material/arbeitsblatt_leibniz_analyse.pdf`, erzeugt aus `material/arbeitsblatt_leibniz.py` (Feld `analyse` in `leibniz.json`, dort auch der Erwartungshorizont).
+- Ablauf: Brief ansehen und herunterladen, dann am Sekretaer die Analyse schreiben (mindestens 120, empfohlen 250 bis 450 Woerter). Bei der Abgabe lodert das Feuer auf und Platon tritt aus seinem Portraet, das Bild bleibt leer. Am Kamin stellt er sich vor und erklaert den Bezug zu Leibniz (Z. 5 „wie ich mit Platon annehme“, Anamnesis, Menon, Aristoteles und Locke in Z. 3), dann gibt er Rueckmeldung. "Gespraech beenden" siegelt die Analyse = Etappe 3, Platon kehrt ins Bild zurueck. Vorher bleibt die Tuer zu.
+- Platons Kriterien nach dem Erwartungshorizont: drei Kernbereiche (Entweder-oder-Gegenueberstellung und These, Argumentationskette mit Praemissen, Zwischenschluss und Mathematik als Beleg, Funktion des Marmorblock-Gleichnisses mit gedanklichem Ziel). Deutungen zaehlen nur, wenn Bild und Bedeutung im selben Satz stehen. Zur Form prueft er Fachbegriffe der Analyse (sonst: "eher eine Darstellung"), Zeilenangaben, Wertung, Zitate ohne Anfuehrungszeichen, Praeteritum und Laenge.
+- Figur: `figuren/platon.py` zeichnet den Geist (Stirnband, weisser Bart, Schriftrolle, Schweif statt Fuessen, kuehle Geisterfarben).
+- Entwurf der Analyse wird wie die Rolle im Browser gemerkt, "Rolle als Datei sichern" speichert `Analyse_Leibniz.txt`.
+
+Buchdruckerei: 40 x 24 Kacheln, erzeugt mit `python3 innen/druckerei.py`.
+- Aufbau: Fachwerk wie an der Fassade, grobe Dielen mit Druckerschwaerze, Steinplatten am Ofen. Links Setzregal (`setzkasten`, Kerze, hier kommt Aufgabe 3) und Setzpult (`setzpult`, schreiben), in der Mitte die Presse (`presse`, Druckermeister), rechts Ofen zum Letterngiessen, Trockengestell und der Buechertisch mit Lockes Essay und Schautafel (`tafel`). Durchs Fenster links sieht man das Muehlrad.
+- Presse: `innen/druckerei_presse.png` ist ein Sprite-Blatt mit 16 Bildern (128 x 128). Das Spiel spielt es ab: Deckel zu, Karren faehrt ein, der Meister zieht den Bengel, der Tiegel senkt sich, Karren faehrt aus, Deckel auf mit bedrucktem Bogen. Takt in `presseBild` (index.html). Bei reduzierter Bewegung steht die Presse still.
+- Ablauf: Brief der Akademie im Setzkasten (Aufgabe 3, AFB III, Stellungnahme; PDF `material/arbeitsblatt_leibniz_kommentar.pdf`, Feld `kommentar` in `leibniz.json` mit Erwartungshorizont, dazu Lockes Text im Feld `locke`) ansehen und herunterladen. Am Setzpult den Kommentar schreiben (mindestens 150, empfohlen 300 bis 550 Woerter), der Reiter "Texte" zeigt Leibniz und Locke. Nach der Abgabe ruft der Meister an die Presse, stellt sich vor (jede Position ist erlaubt, sie muss begruendet sein) und gibt Rueckmeldung. "Gespraech beenden" startet den Druck: die Presse laeuft einmal schnell durch, dann liegt die Flugschrift mit Vorschau und PDF-Download bereit. Der Download ist Pflicht: Erst danach ist Etappe 4 erreicht und die Tuer offen, das Ziel zeigt auf die Akademie.
+- Kriterien des Meisters nach dem Erwartungshorizont: Vergleich (Lockes Sensation und Reflexion, komplexe Ideen, Leibniz' Anlass statt Begruendung), Abwaegung (Induktionsproblem fuer Leibniz, Metaphysik und Sparsamkeit fuer Locke, sichtbares Gegenargument), eigenes Urteil (Fazit, Synthese etwa mit Kant). Zur Form: Urteilssprache statt blosser Darstellung, Begruendungen, Zitate nur in Anfuehrungszeichen, Laenge. Die Position selbst wertet er nie.
+- Druckermeister: `figuren/druckermeister.py` (gefaltete Papiermuetze, Lederschuerze, schwarze Haende), zwei Posen: stehen und ziehen.
+- Infotafel (freiwillig, leuchtet bis sie gelesen ist): Nachbildung des Titelblatts von 1690 und kurze Texte zu Druck und Verlag (Elizabeth Holt, Thomas Basset), Lockes Namen auf dem Titel, Leibniz' liegengebliebenem Manuskript (gedruckt 1765) und dem Ende der Vorzensur 1695. Inhalte im Objekt `TAFELN` in `index.html`, dasselbe Muster laesst sich in anderen Raeumen nutzen.
+
+## Infotafeln in allen Raeumen
+
+Jeder Ort hat eine freiwillige Infotafel (Interaktion `tafel`, leuchtet bis sie gelesen ist). Zuordnung in `TAFEL_JE_RAUM` in `index.html`:
+
+- Oberwelt: Anschlagbrett am Brunnen (Kachel 44,34), Tafel `london` (Glorious Revolution 1688, Lockes Rueckkehr 1689, drei Werke 1689/90).
+- Observatorium: Messingschild, Tafel `sterne` (Greenwich 1675, Newtons Principia 1687, Boyle, Locke als Handlanger).
+- Lesesaal: Karteikarte am Katalogschrank, Tafel `notizen` (Lockes Bibliothek, Christ Church, Methode der Commonplace Books 1686).
+- Salon: London Gazette auf dem Sofa, Tafel `salon` (Freundesrunde 1671, Kaffeehaeuser, Platons Dialoge).
+- Akademie: Messingplakette am Podium, Tafel `nullius` (Royal Society 1660, Nullius in verba, Locke FRS 1668, Leibniz FRS 1673).
+- Flugschrift: `FLUGSCHRIFT` in `index.html` setzt einen Text auf A4-Seiten im Stil von 1690 (Titelei, Zierleiste, Initiale, Blocksatz, Kustoden, FINIS, Druckerzeichen, Druckvermerk MDCXC) und speichert sie als PDF (je Seite ein Bild, ohne fremde Bibliothek). Kurze Texte werden bei Bedarf etwas kleiner gesetzt, damit sie auf eine Seite passen.
+
+Akademie der Wissenschaften (Abschluss): 40 x 24 Kacheln, erzeugt mit `python3 innen/akademie.py`.
+- Aufbau: Festsaal mit Marmorboden, Baenke mit Gelehrten, Podium mit gruenem Tisch und Zeremonienzepter, Wappen und vier Siegelplaetze an der Wand, Mitgliederbuch am Pult links (`archiv`), Tisch mit Sanduhr unten rechts (`sanduhr`).
+- Figuren: `figuren/akademie_figuren.py` zeichnet den Praesidenten (Allongeperuecke, roter Rock, Urkunde) und Onkel John (eigenes langes Haar, schlichter dunkler Rock). Der Praesident nimmt Jonny auf, Locke ist als Mitglied der Akademie dabei (historisch seit 1668 Mitglied der Royal Society) und gratuliert.
+- Ablauf: Beim Betreten leuchten die vier Siegel nacheinander auf. Am Podium (`praesident`) zwei kurze Reden, dann die Aufnahmeurkunde (PDF, A4 quer, mit Siegeln der Stationen und Lockes Unterschrift). Nach dem Schliessen gratuliert Onkel John (mit einem Satz aus seinem Essay, II.1.19). Danach: Aufnahme bestanden, Etappe 5, die Tuer ist offen.
+- Mappe am Pult: alle drei Texte mit Aufgaben und den Gespraechen mit Bibliothekar, Platon und Druckermeister als mehrseitige PDF.
+- Neues Spiel: erst nach der Aufnahme. Die Sanduhr fragt nach, dann werden die gespeicherten Texte auf dem Geraet geloescht und das Spiel beginnt von vorn.
+
+### Bibliothekar und Platon (Rueckmeldung)
 Zwei Quellen, das Spiel waehlt automatisch:
 1. **Auf Netlify:** `netlify/functions/bibliothekar.mjs` fragt die Claude API (Standardmodell `claude-opus-5-5`). Der API-Schluessel bleibt auf dem Server.
 2. **Sonst** (lokal, Vorschau auf claude.ai, Server nicht erreichbar): die eingebaute regelbasierte Fassung. Sie prueft sieben Kernpunkte und die Form (Wertung, woertliche Uebernahmen, Praeteritum, Redewiedergabe, Laenge) und fuehrt mit Rueckfragen und gestuften Hilfen.
+
+Die Function kennt zwei Rollen: `rolle: "bibliothekar"` (Standard) und `rolle: "platon"` mit eigenem Systemtext (`SYSTEM_PLATON`), Aufgabe, Hinweisen und Erwartungshorizont der Analyse.
 
 Beide folgen denselben Regeln: sokratisch fragen statt Loesungen liefern. Die Musterloesung gibt es erst nach einem ausdruecklichen Angebot mit dem Hinweis, dass fertige Loesungen dem Lernen weniger nuetzen, und nur, wenn Jonny zustimmt. Rollenbeschreibung, Locke-Text und Musterloesung stehen in `netlify/lib/bibliothekar-kern.mjs`.
 
@@ -59,7 +95,7 @@ Beide folgen denselben Regeln: sokratisch fragen statt Loesungen liefern. Die Mu
 
 Achtung Gemini: Die Gemini API Additional Terms verlangen, dass Nutzer 18 oder aelter sind, und untersagen den Einsatz in Diensten, die sich an Minderjaehrige richten oder von ihnen wahrscheinlich genutzt werden. Vor dem Einsatz mit Schuelerinnen und Schuelern unter 18 klaeren. In der kostenlosen Stufe darf Google Eingaben zur Produktverbesserung nutzen, auch mit menschlicher Pruefung.
 
-Eigene Anbindung ohne Netlify: `window.LESESAAL_BIBLIOTHEKAR = function ({ zusammenfassung, verlauf, quelle, art }) { return Promise<string> }`.
+Eigene Anbindung ohne Netlify: `window.LESESAAL_BIBLIOTHEKAR = function ({ zusammenfassung, verlauf, quelle, art, rolle }) { return Promise<string> }`.
 
 ## Oberwelt (`welt/`)
 - `welt.png`: 1536 x 864 px, 96 x 54 Kacheln a 16 px

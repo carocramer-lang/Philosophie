@@ -40,6 +40,8 @@ fill(16, 3, 23, 5, "X")            # Podest mit Schreibpult
 INTERAKTIONEN = [
     {"id": "lesepult", "objekt": (28, 17, 30, 18), "flaeche": (28, 19, 30, 19), "markiert": True},
     {"id": "schreibpult", "objekt": (17, 3, 22, 5), "flaeche": (17, 6, 22, 7), "markiert": False},
+    # Infotafel (freiwillig): Karteikarte am Katalogschrank
+    {"id": "tafel", "objekt": (38, 13, 38, 17), "flaeche": (37, 14, 37, 15), "markiert": False},
 ]
 # Hier erscheint der Bibliothekar, sobald Jonny seine Zusammenfassung abgibt
 BIBLIOTHEKAR = {"x": 23, "y": 5}
@@ -293,6 +295,17 @@ def render():
         if ia["markiert"]:
             x0, y0, x1, y1 = ia["objekt"]
             O.marker_candle((x1 + 1) * T - 6, y0 * T - 2)
+    index_card(38, 14)
+
+
+def index_card(tx, ty):
+    """Karteikarte mit rotem Reiter am Katalogschrank: Lockes Methode zu notieren."""
+    x, y = tx * T + 1, ty * T + 4
+    cv.rect(x - 1, y - 1, 14, 12, (60, 40, 26))
+    cv.rect(x, y, 12, 10, (246, 240, 222))
+    cv.rect(x, y, 12, 2, (200, 60, 50))
+    for ly in range(y + 4, y + 9, 2):
+        cv.rect(x + 2, ly, 8, 1, (140, 130, 116))
 
 
 COLL = {"#": (40, 200, 80), "X": (220, 40, 40), "A": (230, 40, 220), "S": (40, 210, 230), "I": (250, 150, 30)}
