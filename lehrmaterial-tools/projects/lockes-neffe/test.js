@@ -467,6 +467,22 @@ function tafelnAblauf() {
   }
 }
 
+// Musik: je Ort ein Stueck, alle Stimmen gleich lang; ohne Web Audio laeuft das Spiel stumm weiter
+{
+  const w = {}; vm.runInNewContext(fs.readFileSync(path.join(__dirname, "musik", "stuecke.js"), "utf8"), { window: w });
+  const M = w.MUSIK;
+  for (const ort of ["welt", "observatorium", "lesesaal", "salon", "druckerei", "akademie"]) {
+    const s = M && M.stuecke[ort];
+    check("Musik " + ort + ": Stueck vorhanden", !!s && s.stimmen.length >= 2 && s.tempo > 0);
+    if (!s) continue;
+    const enden = s.stimmen.map(v => { let e = 0; for (let i = 0; i < v.noten.length; i += 3) e = Math.max(e, v.noten[i + 1] + v.noten[i + 2]); return e; });
+    check("Musik " + ort + ": Stimmen passen in die Schleife", enden.every(e => e <= s.laenge) && Math.max(...enden) > s.laenge - M.ticks * 3);
+  }
+  check("Musik: Daten werden geladen", /<script src="musik\/stuecke\.js"><\/script>/.test(html));
+  check("Musik: Knopf zum Ausschalten", /id="musikBtn"/.test(html) && /Lautsprecher-Knopf/.test(html));
+  check("Musik: ohne Web Audio kein Absturz, standardmaessig an", G.musik.zustand().an === true && G.musik.zustand().laeuft === false);
+}
+
 // Akademie-Raster: alles vom Eintritt aus erreichbar
 {
   const a = (x, y) => akademie.raster[y][x];
