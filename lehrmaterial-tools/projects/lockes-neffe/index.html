@@ -63,6 +63,16 @@ body { margin: 0; background: var(--night); color: var(--ink); font-family: var(
   padding: 6px 12px; min-height: 44px; cursor: pointer;
 }
 #kartenBtn[aria-pressed="true"] { background: var(--parchment-deep); }
+#musikBtn {
+  position: fixed;
+  top: calc(env(safe-area-inset-top, 0px) + 72px);
+  right: calc(env(safe-area-inset-right, 0px) + 14px);
+  width: 44px; height: 44px; padding: 0; cursor: pointer; color: var(--ink);
+  display: grid; place-items: center;
+}
+#musikBtn svg { width: 26px; height: 26px; }
+#musikBtn .aus, #musikBtn[aria-pressed="false"] .an { display: none; }
+#musikBtn[aria-pressed="false"] .aus { display: inline; }
 
 #hinweis {
   position: fixed; left: 50%; transform: translateX(-50%);
@@ -339,6 +349,13 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
 </div>
 
 <button id="kartenBtn" class="karte" type="button" aria-pressed="false">Karte</button>
+<button id="musikBtn" class="karte" type="button" aria-pressed="true" aria-label="Musik" title="Musik an oder aus">
+  <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/>
+    <path class="an" d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/>
+    <path class="aus" d="M16.5 9.5l5 5M21.5 9.5l-5 5"/>
+  </svg>
+</button>
 
 <div id="hinweis" class="karte">Pfeiltasten oder WASD zum Gehen, E zum Benutzen</div>
 
@@ -426,6 +443,8 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
     <h3>KI-Hinweis</h3>
     <p>Der Bibliothekar, der Philosoph und der Druckermeister geben automatisch erzeugte Rückmeldungen. Sie können Fehler enthalten und ersetzen keine Bewertung durch Ihre Lehrkraft.</p>
     <p>Teile der Grafiken und des Programmcodes wurden mit Unterstützung von KI erstellt.</p>
+    <h3>Musik</h3>
+    <p>Die Musik entsteht im Browser, es werden keine Tondateien geladen. Zu hören sind gemeinfreie Stücke: Lilliburlero (1688), Greensleeves, A Health to Betty und The Drummer aus Playfords English Dancing Master, A Trumpet Air sowie Arcangelo Corellis Sonata da chiesa op. 3 Nr. 1 (1689). Notenvorlagen: James Aird, Selection of Airs (1782 ff.), in der Fassung von Jack Campin, und das music21-Korpus. Mit dem Lautsprecher-Knopf rechts oben schalten Sie die Musik aus und wieder an.</p>
   </div>
   <div class="fuss"><span></span><div class="knoepfe"><button id="infoZu" class="haupt" type="button">Schließen</button></div></div>
 </div>
@@ -441,6 +460,7 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
 <script src="innen/druckerei_daten.js"></script>
 <script src="innen/akademie_daten.js"></script>
 <script src="material/leibniz_daten.js"></script>
+<script src="musik/stuecke.js"></script>
 <script>
 (function () {
   "use strict";
@@ -3065,9 +3085,213 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
     letzte = t;
     if (hochMq.matches) tastenLos();
     else if (!st.uebersicht && !st.start) tick(dt);
+    musik.lage(st.start ? null : st.szene, !!st.fenster);
     zeichnen(t);
     window.requestAnimationFrame(schleife);
   }
+
+  // ---------- Musik: Stuecke aus der Zeit um 1690, im Browser erzeugt (Noten in musik/stuecke.js)
+  // Je Ort ein Stueck in Schleife; bei Schreibrolle und Gespraech leiser. An/Aus merkt sich das Geraet.
+  var musik = (function () {
+    var DATEN = window.MUSIK, AC = window.AudioContext || window.webkitAudioContext;
+    var MERKER = "lockes-neffe_musik", LAUT = 0.2, LEISE = 0.05, VORLAUF = 0.6;
+    var an = true, ctx = null, summe = null, hallweg = null, rauschen = null;
+    var aktiv = null, ort = null, leise = false, uhr = null;
+    try { an = window.localStorage.getItem(MERKER) !== "aus"; } catch (e) { /* ohne Speicher: an */ }
+
+    function hz(m) { return 440 * Math.pow(2, (m - 69) / 12); }
+    function knopf() {
+      var b = $("musikBtn");
+      b.setAttribute("aria-pressed", an ? "true" : "false");
+      b.setAttribute("aria-label", an ? "Musik ausschalten" : "Musik einschalten");
+    }
+    function aufbauen() {
+      if (ctx) return true;
+      if (!AC || !DATEN) return false;
+      try { ctx = new AC(); } catch (e) { return false; }
+      summe = ctx.createGain(); summe.gain.value = 0;
+      var komp = ctx.createDynamicsCompressor();
+      summe.connect(komp); komp.connect(ctx.destination);
+      // Nachhall eines holzgetaefelten Raums: abklingendes Rauschen als Impulsantwort
+      var n = Math.floor(ctx.sampleRate * 1.4), imp = ctx.createBuffer(2, n, ctx.sampleRate);
+      for (var k = 0; k < 2; k++) {
+        var d = imp.getChannelData(k);
+        for (var i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / n, 3.2);
+      }
+      var hall = ctx.createConvolver(); hall.buffer = imp;
+      hallweg = ctx.createGain(); hallweg.gain.value = 0.28;
+      hallweg.connect(hall); hall.connect(summe);
+      var r = Math.floor(ctx.sampleRate * 0.3);
+      rauschen = ctx.createBuffer(1, r, ctx.sampleRate);
+      var rd = rauschen.getChannelData(0);
+      for (var j = 0; j < r; j++) rd[j] = Math.random() * 2 - 1;
+      return true;
+    }
+
+    // ---------- Klaenge
+    function osz(typ, f, t0, t1, ziel, verstimmt) {
+      var o = ctx.createOscillator(); o.type = typ; o.frequency.value = f;
+      if (verstimmt) o.detune.value = verstimmt;
+      o.connect(ziel); o.start(t0); o.stop(t1);
+      return o;
+    }
+    function huelle(t0, angriff, pegel, ende, ausklang) {
+      var g = ctx.createGain();
+      g.gain.setValueAtTime(0, t0);
+      g.gain.linearRampToValueAtTime(pegel, t0 + angriff);
+      g.gain.setValueAtTime(pegel, Math.max(t0 + angriff, ende));
+      g.gain.setTargetAtTime(0, Math.max(t0 + angriff, ende), ausklang);
+      return g;
+    }
+    function vibrato(o, f, t0, t1, tiefe, rate) {
+      var l = ctx.createOscillator(), lg = ctx.createGain();
+      l.frequency.value = rate; lg.gain.setValueAtTime(0, t0); lg.gain.linearRampToValueAtTime(f * tiefe, t0 + 0.35);
+      l.connect(lg); lg.connect(o.frequency); l.start(t0); l.stop(t1);
+    }
+    function spiele(klang, m, t0, dauer, laut, bus) {
+      var f = hz(m), ende = t0 + dauer, g, o, fl;
+      if (klang === "cembalo") {
+        // gezupfte Saite: hell im Anschlag, klingt von selbst ab
+        var abkl = 0.25 + Math.max(0, (72 - m)) * 0.02;
+        g = ctx.createGain();
+        g.gain.setValueAtTime(0, t0); g.gain.linearRampToValueAtTime(laut * 0.5, t0 + 0.004);
+        g.gain.setTargetAtTime(0, t0 + 0.004, abkl);
+        g.gain.setTargetAtTime(0, ende, 0.06);
+        fl = ctx.createBiquadFilter(); fl.type = "lowpass"; fl.Q.value = 2;
+        fl.frequency.setValueAtTime(Math.min(12000, f * 9), t0); fl.frequency.setTargetAtTime(f * 2.5, t0, 0.18);
+        fl.connect(g);
+        osz("sawtooth", f, t0, ende + 0.5, fl);
+        var o2g = ctx.createGain(); o2g.gain.value = 0.35; o2g.connect(fl);
+        osz("square", f * 2, t0, ende + 0.5, o2g, 4);
+      } else if (klang === "floete") {
+        // Blockfloete: weicher Ton mit spaetem Vibrato
+        g = huelle(t0, 0.03, laut * 0.32, ende - 0.03, 0.03);
+        o = osz("triangle", f, t0, ende + 0.3, g);
+        var ob = ctx.createGain(); ob.gain.value = 0.12; ob.connect(g);
+        osz("sine", f * 2, t0, ende + 0.3, ob);
+        if (dauer > 0.3) vibrato(o, f, t0 + 0.15, ende + 0.3, 0.006, 5.2);
+      } else if (klang === "streicher") {
+        // Violinen: zwei leicht verstimmte Saegezaehne, gedaempft, mit Bogenanstrich
+        g = huelle(t0, 0.09, laut * 0.16, ende - 0.05, 0.08);
+        fl = ctx.createBiquadFilter(); fl.type = "lowpass"; fl.frequency.value = Math.min(3200, f * 3.2); fl.Q.value = 0.7;
+        fl.connect(g);
+        o = osz("sawtooth", f, t0, ende + 0.5, fl, -5);
+        osz("sawtooth", f, t0, ende + 0.5, fl, 5);
+        if (dauer > 0.4) vibrato(o, f, t0 + 0.2, ende + 0.5, 0.005, 5.6);
+      } else if (klang === "trompete") {
+        // Naturtrompete: Blechklang, der sich beim Anblasen oeffnet
+        g = huelle(t0, 0.025, laut * 0.2, ende - 0.04, 0.04);
+        fl = ctx.createBiquadFilter(); fl.type = "lowpass"; fl.Q.value = 1.2;
+        fl.frequency.setValueAtTime(f * 1.2, t0); fl.frequency.linearRampToValueAtTime(Math.min(6000, f * 6), t0 + 0.06);
+        fl.frequency.setTargetAtTime(f * 4, t0 + 0.06, 0.2);
+        fl.connect(g);
+        osz("sawtooth", f, t0, ende + 0.3, fl);
+      } else if (klang === "pauke") {
+        g = ctx.createGain();
+        g.gain.setValueAtTime(laut * 0.6, t0); g.gain.setTargetAtTime(0, t0, 0.22);
+        o = osz("sine", f * 1.02, t0, t0 + 1.2, g);
+        o.frequency.setTargetAtTime(f, t0, 0.05);
+      } else if (klang === "trommel") {
+        // Landsknechtstrommel: Fellschlag plus Schnarrsaiten, auf der Eins betont
+        var stark = m === 1 ? 1 : 0.55;
+        g = ctx.createGain();
+        g.gain.setValueAtTime(laut * 0.35 * stark, t0); g.gain.setTargetAtTime(0, t0, 0.045);
+        var q = ctx.createBufferSource(); q.buffer = rauschen;
+        fl = ctx.createBiquadFilter(); fl.type = "bandpass"; fl.frequency.value = 1800; fl.Q.value = 0.8;
+        q.connect(fl); fl.connect(g); q.start(t0); q.stop(t0 + 0.25);
+        var fg = ctx.createGain();
+        fg.gain.setValueAtTime(laut * 0.5 * stark, t0); fg.gain.setTargetAtTime(0, t0, 0.06);
+        fg.connect(bus);
+        var fo = osz("sine", 190, t0, t0 + 0.3, fg); fo.frequency.setTargetAtTime(120, t0, 0.05);
+      }
+      g.connect(bus);
+    }
+
+    // ---------- Ablauf: Noten kurz vor ihrer Zeit einplanen, Stueck in Schleife
+    function starte(id) {
+      var s = DATEN.stuecke[id];
+      if (!s) return null;
+      var bus = ctx.createGain(); bus.gain.value = 0;
+      bus.connect(summe); bus.connect(hallweg);
+      var jetzt = ctx.currentTime;
+      bus.gain.setTargetAtTime(1, jetzt + 0.1, 0.25);
+      return { s: s, bus: bus, t0: jetzt + 0.35, tick: 60 / s.tempo / DATEN.ticks,
+        pos: s.stimmen.map(function () { return { i: 0, runde: 0 }; }) };
+    }
+    function beenden(a) {
+      if (!a) return;
+      var jetzt = ctx.currentTime;
+      a.bus.gain.cancelScheduledValues(jetzt);
+      a.bus.gain.setTargetAtTime(0, jetzt, 0.3);
+      window.setTimeout(function () { try { a.bus.disconnect(); } catch (e) { /* schon getrennt */ } }, 2500);
+    }
+    function planen() {
+      if (!aktiv || !ctx) return;
+      var bis = ctx.currentTime + VORLAUF, a = aktiv, runde = a.s.laenge * a.tick;
+      a.s.stimmen.forEach(function (v, k) {
+        var p = a.pos[k], n = v.noten;
+        for (var sicher = 0; sicher < 400; sicher++) {
+          if (p.i >= n.length) { p.i = 0; p.runde++; }
+          var t = a.t0 + p.runde * runde + n[p.i + 1] * a.tick;
+          if (t > bis) break;
+          if (t >= ctx.currentTime - 0.02) spiele(v.klang, n[p.i], t, n[p.i + 2] * a.tick * 0.97, v.laut, a.bus);
+          p.i += 3;
+        }
+      });
+    }
+    function pegel() {
+      if (!ctx) return;
+      var ziel = an ? (leise ? LEISE : LAUT) : 0;
+      summe.gain.cancelScheduledValues(ctx.currentTime);
+      summe.gain.setTargetAtTime(ziel, ctx.currentTime, 0.35);
+    }
+    function laufen() {
+      if (!an || !ctx) return;
+      if (ctx.state === "suspended" && ctx.resume) ctx.resume();
+      if (!uhr) uhr = window.setInterval(planen, 120);
+      pegel();
+    }
+    function wecken() {
+      if (!an || !aufbauen()) return;
+      laufen();
+    }
+    function schalten() {
+      an = !an;
+      try { window.localStorage.setItem(MERKER, an ? "an" : "aus"); } catch (e) { /* ohne Speicher */ }
+      knopf();
+      if (an) {
+        if (!aufbauen()) return;
+        beenden(aktiv); aktiv = null; ort = null;   // beim Einschalten von vorn
+        laufen();
+      } else if (ctx) {
+        pegel();
+        window.clearInterval(uhr); uhr = null;
+        beenden(aktiv); aktiv = null; ort = null;
+      }
+    }
+    // jedes Bild: welcher Ort, Fenster offen?
+    function lage(id, fenster) {
+      if (!ctx || !an) return;
+      if (fenster !== leise) { leise = fenster; pegel(); }
+      if (id === ort) return;
+      ort = id;
+      beenden(aktiv);
+      aktiv = id ? starte(id) : null;
+    }
+    knopf();
+    $("musikBtn").addEventListener("click", function (e) { schalten(); if (e.currentTarget.blur) e.currentTarget.blur(); });
+    // Browser erlauben Ton erst nach einer Beruehrung oder Taste
+    function geste() { if (!st.start) wecken(); }
+    window.addEventListener("pointerdown", geste);
+    window.addEventListener("keydown", geste);
+    window.addEventListener("visibilitychange", function () {
+      if (!ctx) return;
+      if (document.hidden) { if (ctx.suspend) ctx.suspend(); }
+      else if (an && ctx.resume) ctx.resume();
+    });
+    return { wecken: wecken, schalten: schalten, lage: lage,
+      zustand: function () { return { an: an, ort: ort, leise: leise, laeuft: !!aktiv }; } };
+  })();
 
   // ---------- Eingabe: Tastatur
   var TASTEN = {
@@ -3169,6 +3393,7 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
   function spielStarten() {
     if (!st.start || st.info) return;
     st.start = false; tastenLos();
+    musik.wecken();
     var el = $("start");
     el.classList.add("weg");
     window.setTimeout(function () { el.hidden = true; }, 380);
@@ -3218,7 +3443,7 @@ body.touch #material { width: min(760px, calc(100vw - 2 * (var(--steuer) + var(-
       if (st.szene !== "welt") { st.rueck = st.rueck || { x: st.x, y: st.y }; hinausgehen(); }
     }, platonGespraech: platonGespraech, vorstellung: PLATON_VORSTELLUNG,
     teleport: function (tx, ty) { st.x = tx * T + 8; st.y = ty * T + 12; },
-    starten: spielStarten, infoAuf: infoAuf, infoZu: infoZu, startLage: startLage, START: START
+    musik: musik, starten: spielStarten, infoAuf: infoAuf, infoZu: infoZu, startLage: startLage, START: START
   };
 })();
 </script>

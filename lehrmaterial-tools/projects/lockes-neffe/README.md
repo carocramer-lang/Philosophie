@@ -119,3 +119,16 @@ Start ist der Zentralplatz suedlich des Brunnens. Alle Tueren liegen an der Unte
 
 ## Test
 `npm test` prueft, ob jede Tuer vom Start aus ueber Wege erreichbar ist, und testet die Spiellogik (Kollision, Tueren, Reihenfolge) ohne Browser.
+
+## Musik
+
+Jeder Ort hat ein eigenes Stueck in Schleife, erzeugt im Browser mit Web Audio (keine Tondateien). Standardmaessig an; der Lautsprecher-Knopf unter "Karte" schaltet aus und wieder an, das Geraet merkt sich die Wahl (`localStorage` "lockes-neffe_musik", bleibt bei "Neues Spiel" erhalten). Bei Schreibrolle und Gespraech wird die Musik leiser, im Hintergrund-Tab pausiert sie.
+
+- Oberwelt: Lilliburlero (1688), Blockfloete und Cembalo
+- Observatorium: Greensleeves (Playford), Blockfloete und Cembalo
+- Lesesaal: Corelli, Sonata da chiesa op. 3 Nr. 1, Grave (1689), zwei Violinen und Generalbass
+- Salon: A Health to Betty (Playford 1651), Cembalo
+- Buchdruckerei: The Drummer (Playford), Floete, Cembalo und Trommel
+- Akademie: A Trumpet Air (bei Aird), Trompete, Cembalo und Pauke
+
+Noten und Bass erzeugt `musik/generator.py` (ABC-Texte aus Airds Sammlung in der Fassung von Jack Campin und Corelli aus dem music21-Korpus, beide im Skript enthalten) nach `musik/stuecke.js`. Die Klaenge stehen im Abschnitt "Musik" in `index.html`.
