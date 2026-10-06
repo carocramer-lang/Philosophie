@@ -6,6 +6,7 @@ Jedes Tool ist eine eigenstaendige `index.html` und wird einzeln bei AWS Amplify
 ## Projekte
 - `projects/hoehle-gezogen/` Hoehlengleichnis nach Platon, Graphic-Novel, Zwang-Mechanik. Vollstaendig, getestet.
 - `projects/ki-workshop-sammler/` Sammel-Tool fuer SuS. Platzhalter, bestehende Datei einsetzen.
+- `projects/seven-periods/` Englisch Kl. 8, Unit 1: Lernspiel Gerund/Infinitiv, Hörverstehen, Writing. Getestet.
 - `projects/escape-state-of-nature/` Escape-Room politische Philosophie. Platzhalter, bestehende Datei einsetzen.
 
 ## Einrichten

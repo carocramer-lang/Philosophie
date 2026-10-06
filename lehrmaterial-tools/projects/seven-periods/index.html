@@ -1,0 +1,960 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Seven Periods – Save the Birchview Yearbook</title>
+
+<!-- Google Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Permanent+Marker&display=swap" rel="stylesheet">
+
+<style>
+/* ===== 1. DESIGN TOKENS (Classic American High School Theme) ===== */
+:root {
+  --c-burgundy: #800020;
+  --c-navy: #1E2D4A;
+  --c-cream: #F5E6C4;
+  --c-cream-light: #FAF3E0;
+  --c-yellow: #EAA816;
+  --c-green: #2E6F40;
+  --c-green-bg: #E3F2E8;
+  --c-red: #B22222;
+  --c-red-bg: #F8E3E3;
+  --c-wood: #8B4513;
+  --c-wood-dark: #5C2E0B;
+
+  --c-bg: var(--c-navy);
+  --c-surface: var(--c-cream-light);
+  --c-ink: #1F1F1F;
+  --c-muted: #555555;
+  --c-line: #D1C2A5;
+  --c-accent: var(--c-burgundy);
+
+  --font-display: 'Bricolage Grotesque', system-ui, sans-serif;
+  --font-body: 'Atkinson Hyperlegible', system-ui, sans-serif;
+  --font-hand: 'Permanent Marker', cursive;
+
+  --fs-body: 18px;
+  --fs-h1: 38px;
+  --fs-h2: 26px;
+  --fs-h3: 20px;
+
+  --r-s: 8px;
+  --r-m: 14px;
+  --r-l: 24px;
+  --gap: 16px;
+  --tap: 48px;
+}
+
+/* ===== 2. BASE & LAYOUT ===== */
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; background: var(--c-bg); color: var(--c-ink); font: var(--fs-body)/1.5 var(--font-body); }
+
+body {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: env(safe-area-inset-top, 0) env(safe-area-inset-right, 0) env(safe-area-inset-bottom, 0) env(safe-area-inset-left, 0);
+}
+
+#app {
+  width: 100%;
+  max-width: 1150px;
+  height: 100vh;
+  height: 100dvh;
+  max-height: 720px;
+  background: var(--c-cream);
+  border: 6px solid var(--c-burgundy);
+  border-radius: var(--r-l);
+  box-shadow: 0 12px 32px rgba(0,0,0,0.5);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+}
+
+h1, h2, h3 { font-family: var(--font-display); line-height: 1.15; margin: 0 0 .4em; color: var(--c-navy); text-transform: uppercase; letter-spacing: 0.5px; }
+h1 { font-size: var(--fs-h1); }
+h2 { font-size: var(--fs-h2); }
+h3 { font-size: var(--fs-h3); }
+p { margin: 0 0 .8em; }
+
+button {
+  font-family: var(--font-display);
+  font-size: 16px;
+  min-height: var(--tap);
+  padding: .5em 1.2em;
+  border-radius: var(--r-m);
+  border: 2px solid var(--c-navy);
+  background: var(--c-surface);
+  color: var(--c-navy);
+  cursor: pointer;
+  box-shadow: 0 3px 0 var(--c-navy);
+  transition: all 0.1s ease;
+}
+button:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--c-navy); }
+button.primary { background: var(--c-burgundy); color: #FFF; border-color: #4A0013; box-shadow: 0 3px 0 #4A0013; }
+button.primary:active { box-shadow: 0 1px 0 #4A0013; }
+button:disabled { opacity: .45; cursor: default; transform: none; box-shadow: none; }
+:focus-visible { outline: 3px solid var(--c-yellow); outline-offset: 2px; }
+
+input[type=text], textarea {
+  font-family: var(--font-body);
+  font-size: 17px;
+  padding: .5em .7em;
+  border: 2px solid var(--c-navy);
+  border-radius: var(--r-s);
+  background: #FFF;
+  color: var(--c-ink);
+}
+
+.wrap { padding: var(--gap); overflow-y: auto; flex: 1; display: flex; flex-direction: column; }
+.muted { color: var(--c-muted); }
+.row { display: flex; gap: var(--gap); align-items: center; flex-wrap: wrap; }
+
+/* Avatars */
+.asset { border-radius: 50%; flex-shrink: 0; }
+.avatar-badge {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  background: var(--c-navy);
+  color: var(--c-yellow);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-size: 32px;
+  border: 4px solid var(--c-yellow);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+  flex-shrink: 0;
+}
+
+/* ===== TOPBAR (HALL PASS & TARDY SLIP) ===== */
+.topbar {
+  background: var(--c-navy);
+  border-bottom: 4px solid var(--c-burgundy);
+  color: #FFF;
+  padding: 8px 16px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px var(--gap);
+  align-items: center;
+  z-index: 5;
+}
+
+.hallpass {
+  background: #FFF8DC;
+  color: #333;
+  border: 2px dashed var(--c-burgundy);
+  border-radius: var(--r-s);
+  padding: 4px 12px;
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  font-family: var(--font-display);
+  box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+}
+
+.stamp {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2px dashed #AAA;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: bold;
+}
+.stamp.on { background: var(--c-burgundy); color: #FFF; border: 2px solid var(--c-burgundy); }
+.stamp.gold.on { background: var(--c-yellow); color: var(--c-navy); border-color: var(--c-navy); }
+
+.tardy-badge {
+  background: var(--c-red-bg);
+  color: var(--c-red);
+  border: 2px solid var(--c-red);
+  padding: 2px 8px;
+  border-radius: var(--r-s);
+  font-family: var(--font-display);
+  font-size: 14px;
+}
+
+/* ===== SCENE & DIALOGUES ===== */
+.scene { display: flex; gap: 20px; align-items: flex-end; margin: 16px 0; }
+.bubble {
+  background: #FFF;
+  border: 3px solid var(--c-navy);
+  border-radius: var(--r-m);
+  padding: 16px 20px;
+  position: relative;
+  box-shadow: 4px 4px 0 rgba(0,0,0,0.15);
+  flex: 1;
+}
+.bubble::before {
+  content: '';
+  position: absolute;
+  bottom: 15px;
+  left: -14px;
+  border-width: 8px 14px 8px 0;
+  border-style: solid;
+  border-color: transparent var(--c-navy) transparent transparent;
+}
+.bubble .who { font-family: var(--font-display); color: var(--c-burgundy); font-size: 18px; display: block; }
+
+/* ===== GLOSSARY (MATT'S SURVIVAL GUIDE) ===== */
+.gloss { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; margin-top: 10px; }
+.gcard {
+  background: #FFF;
+  border: 2px solid var(--c-navy);
+  border-radius: var(--r-m);
+  padding: 10px 12px;
+  text-align: left;
+  cursor: pointer;
+  box-shadow: 0 3px 0 var(--c-line);
+}
+.gcard .term { font-family: var(--font-display); font-size: 18px; color: var(--c-burgundy); }
+.gcard .de { display: none; margin-top: 6px; color: var(--c-green); font-weight: bold; font-size: 15px; }
+.gcard.open .de { display: block; }
+
+/* ===== HALLWAY & DOORS ===== */
+.hallway-container {
+  background: linear-gradient(to bottom, #2C3E50 0%, #1A252F 60%, var(--c-wood-dark) 60%, var(--c-wood) 100%);
+  border-radius: var(--r-m);
+  padding: 24px 16px;
+  border: 3px solid var(--c-navy);
+  margin-top: 10px;
+}
+.hallway { display: flex; gap: 16px; overflow-x: auto; padding-bottom: 12px; }
+.door {
+  flex: 0 0 150px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--c-wood);
+  border: 4px solid var(--c-wood-dark);
+  border-radius: var(--r-m) var(--r-m) 0 0;
+  padding: 12px 8px;
+  min-height: 280px;
+  box-shadow: inset 0 0 10px rgba(0,0,0,0.5), 0 4px 8px rgba(0,0,0,0.3);
+}
+.door .sign { background: var(--c-yellow); color: var(--c-navy); font-family: var(--font-display); padding: 4px 8px; border-radius: 4px; font-size: 14px; width: 100%; }
+.door .period { font-size: 13px; color: #FFF; font-weight: bold; }
+.door.locked { background: #555; border-color: #333; opacity: 0.7; }
+.door.done { border-color: var(--c-green); background: #3B5E43; }
+.door.bonus { border-color: var(--c-yellow); background: #8B7500; }
+
+/* ===== TASK CARDS ===== */
+.task {
+  background: #FFF;
+  border: 3px solid var(--c-navy);
+  border-radius: var(--r-m);
+  padding: 18px 20px;
+  margin: 14px 0;
+  box-shadow: 0 4px 0 rgba(0,0,0,0.08);
+}
+.item { padding: 12px 0; border-top: 2px dashed var(--c-line); }
+.item:first-of-type { border-top: 0; }
+.item.ok { background: var(--c-green-bg); padding: 10px; border-radius: var(--r-s); border-top: 0; }
+.item.bad { background: var(--c-red-bg); padding: 10px; border-radius: var(--r-s); border-top: 0; }
+.fb { font-weight: bold; margin-top: 6px; }
+.fb.ok { color: var(--c-green); }
+.fb.bad { color: var(--c-red); }
+
+.choices { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+
+/* Chunk selector */
+.chunk { display: inline-block; padding: 2px 6px; margin: 2px; border: 2px solid transparent; border-radius: var(--r-s); cursor: pointer; }
+.chunk:hover { border-color: var(--c-navy); }
+.chunk.sel { border-color: var(--c-red); background: var(--c-red-bg); font-weight: bold; }
+
+/* Rule Card Overlay */
+.rule { border: 3px solid var(--c-burgundy); border-radius: var(--r-m); padding: 16px; background: #FFF8DC; margin-bottom: 12px; }
+.rule ul { margin: .4em 0 0; padding-left: 1.2em; }
+
+/* Writing Hub */
+.write-grid { display: grid; grid-template-columns: 1.3fr 1fr; gap: var(--gap); }
+.write-grid textarea { width: 100%; min-height: 260px; line-height: 1.5; font-size: 16px; }
+.check li { list-style: none; margin: 4px 0; }
+.check li::before { content: "☐ "; color: var(--c-muted); font-size: 18px; }
+.check li.hit::before { content: "☑ "; color: var(--c-green); font-size: 18px; }
+
+/* Notebook & Modals */
+.overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; z-index: 20; padding: 20px; }
+.panel { background: var(--c-cream-light); border: 4px solid var(--c-navy); border-radius: var(--r-l); max-width: 850px; width: 100%; max-height: 85vh; overflow: auto; padding: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+
+/* Small screens */
+@media (max-width: 640px) {
+  :root { --fs-body: 16px; --fs-h2: 21px; --gap: 12px; }
+  #app { border-width: 3px; border-radius: 0; max-height: none; }
+  .write-grid { grid-template-columns: 1fr; }
+  .scene { gap: 12px; }
+  .scene .asset, .scene .avatar-badge { width: 56px !important; height: 56px !important; }
+  .start-title { font-size: 38px !important; }
+  .door { flex-basis: 128px; min-height: 230px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; }
+}
+
+/* Print Mode */
+#printpage { display: none; }
+@media print {
+  body > *:not(#printpage) { display: none !important; }
+  #printpage { display: block; padding: 20mm; font-family: 'Times New Roman', serif; background: #fff; }
+  #printpage h1 { font-size: 28pt; color: #000; }
+}
+</style>
+</head>
+<body>
+
+<div id="app"></div>
+<div id="printpage"></div>
+
+<script>
+/* ===== 3. ASSETS (DYNAMIC SVG GENERATOR) ===== */
+function createAvatar(text, bg) {
+  const esc = s => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;");
+  const size = text.length > 2 ? 24 : 32;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><circle cx="50" cy="50" r="46" fill="${bg||'#1E2D4A'}" stroke="#EAA816" stroke-width="4"/><text x="50%" y="55%" dominant-baseline="middle" text-anchor="middle" fill="#FFFFFF" font-family="sans-serif" font-weight="bold" font-size="${size}">${esc(text)}</text></svg>`;
+  return "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
+}
+
+const ASSETS = {
+  matt: createAvatar("M", "#800020"),
+  zach: createAvatar("Z", "#1E2D4A"),
+  scott_eva: createAvatar("S&E", "#2E6F40"),
+  henry_tyler: createAvatar("H&T", "#8B4513"),
+  ruby: createAvatar("R", "#B22222"),
+  samantha: createAvatar("S", "#EAA816"),
+  madison_jacob: createAvatar("M&J", "#4A0013"),
+  aj: createAvatar("AJ", "#D35400"),
+  janitor: createAvatar("J", "#34495E"),
+  podcast_audio: null
+};
+
+/* ===== 4. CONTENT ===== */
+const ING=/^(not )?(?![a-z]*thing\b)[a-z]+ing\b/;
+const ING_WRONG=/^(?!(bring|sing|swing|ring|sting|fling)\b)[a-z]+ing\b/;
+
+const CONTENT = {
+title: "Seven Periods",
+subtitle: "Save the Birchview yearbook before 3:15 p.m.",
+
+intro: [
+ {who:"Matt", asset:"matt", text:"Hi, I'm Matt. A few months ago I lived in England. Now I'm an 8th grader at Birchview Middle School in Pennsylvania. Everything is new here: the words, the rules, even lunch at 10:45 a.m."},
+ {who:"Matt", asset:"matt", text:"On my first day I asked for the 'corridor'. Nobody understood me. Here it's the hallway. And a lesson is a period. I made a survival guide. Tap the words to see what they mean."},
+ {glossary:true},
+ {who:"Matt", asset:"matt", text:"Now the bad news. Today at 3:15 p.m. the yearbook goes to the printer. But this morning our yearbook laptop crashed, and the pages are all over the school!"},
+ {who:"Matt", asset:"matt", text:"Can you help me? Here's your hall pass. Every room you finish gives you a stamp. Wrong answers give you tardy slips. Three tardy slips? Don't panic, Zach will help you."},
+ {who:"Matt", asset:"matt", text:"All the school words are in my notebook. Tap it any time. Let's go!"}
+],
+
+glossary: [
+ {term:"period", en:"one lesson at school (1st period, 2nd period …)", de:"Unterrichtsstunde", uk:"UK: lesson"},
+ {term:"hallway", en:"the long room with doors to the classrooms", de:"Flur", uk:"UK: corridor"},
+ {term:"locker", en:"a small cupboard for your bag and books", de:"Schließfach, Spind"},
+ {term:"homeroom", en:"the first meeting with your class teacher in the morning", de:"Klassenleitungszeit am Morgen", uk:"UK: form time"},
+ {term:"hall pass", en:"a card you need when you are in the hallway during class", de:"Flurpass, Erlaubnisschein"},
+ {term:"tardy slip", en:"a note you get when you are late (tardy = late)", de:"Verspätungszettel"},
+ {term:"detention", en:"you must stay at school after class as a punishment", de:"Nachsitzen"},
+ {term:"principal", en:"the head of the school", de:"Schulleiter/in", uk:"UK: head teacher"},
+ {term:"pep rally", en:"a big meeting in the gym before an important game, with music and cheerleaders", de:"Schulversammlung zum Anfeuern vor einem großen Spiel"},
+ {term:"cafeteria", en:"the room where students eat lunch", de:"Mensa", uk:"UK: canteen"},
+ {term:"homecoming", en:"a school event in fall with a football game and a dance", de:"Schulfest im Herbst mit Footballspiel und Tanz"},
+ {term:"yearbook committee", en:"the group of students that makes the yearbook", de:"Jahrbuch-AG"},
+ {term:"8th grader", en:"a student in 8th grade", de:"Achtklässler/in", uk:"UK: Year 9 student"}
+],
+
+rooms: [
+{id:"r1", period:"1st period", name:"Locker Hallway", asset:"zach",
+ intro:[{who:"Zach", text:"Hey! I'm Zach from the Film Club. Page 1 of the yearbook is in locker 114. Help me sort my notes for my school film, and I'll open the locker for you."}],
+ task:"Part 1: Choose the right form. Part 2: Answer Zach's interview questions. Your ideas, the right grammar.",
+ rule:{title:"Gerund or to-infinitive?", points:[
+  "-ing after: enjoy, miss, imagine, be good at, be tired of, look forward to",
+  "-ing as subject: Wearing a hat is against the rules.",
+  "to + verb after: want, would like, try",
+  "question word + to: where to find, what to say",
+  "superlative + to: the best thing to do",
+  "ask / tell / want + person + to: Ask your teacher to sign it."]},
+ items:[
+  {kind:"sort", text:"I enjoy ___ (film) at school.", a:"g", sol:"I enjoy filming at school."},
+  {kind:"sort", text:"That's the best thing ___ (do) on your first day.", a:"i", sol:"That's the best thing to do on your first day."},
+  {kind:"sort", text:"___ (wear) a hat in class is against the rules.", a:"g", sol:"Wearing a hat in class is against the rules."},
+  {kind:"sort", text:"Ask your teacher ___ (sign) your hall pass.", a:"i", sol:"Ask your teacher to sign your hall pass."},
+  {kind:"open", free:true, q:"Zach: What are you good at?", start:"I'm good at", must:[ING], sol:"Zach's answer: I'm good at filming people who don't want to be filmed.", tip:"After 'good at' you need an -ing form."},
+  {kind:"open", free:true, q:"Zach: What are you looking forward to this year?", start:"I'm looking forward to", must:[ING], sol:"Zach's answer: I'm looking forward to winning the school film award.", tip:"Careful: 'to' is a preposition here. So: -ing!"},
+  {kind:"open", free:true, q:"Zach: What would you like to change at your school?", start:"I'd like to", must:[/^[a-z]+/], forbid:[ING_WRONG], sol:"Zach's answer: I'd like to change the dress code. Hats for everyone!", tip:"After 'would like to' you need the base form of the verb."},
+  {kind:"open", free:true, q:"Zach: What don't you understand about American schools?", start:"I don't know", must:[/^(how|what|where|when|who|whether|which) to [a-z]+/], sol:"Zach's answer: I don't know how to explain homecoming to my German friends.", tip:"Use a question word + to: what to …, how to …, where to …"},
+  {kind:"open", free:true, q:"Zach: What do your parents always want you to do?", start:"My parents want me", must:[/^to [a-z]+/], sol:"Zach's answer: My parents want me to clean my room. Every. Single. Day.", tip:"want + person + to + verb"},
+  {kind:"open", free:true, q:"Zach: What is really boring for you?", start:"", end:"is really boring.", must:[ING], sol:"Zach's answer: Waiting for the school bus is really boring.", tip:"Start with an -ing form. It is the subject of the sentence."}
+ ],
+ outro:[{who:"Zach", text:"Locker 114 is open. Page 1, the cover! Great job."},
+        {who:"AJ", asset:"aj", text:"Did you see any photos of me in there? No? Good. Keep it that way."}]},
+
+{id:"r2", period:"2nd period", name:"Yearbook Office", asset:"scott_eva",
+ intro:[{who:"Eva", text:"Oh, it's Matt's new helper. We have page 2, the class photos. You get it back if you fix our sentences. Scott cut them into pieces. Again."},
+        {who:"Scott", text:"It was art."}],
+ task:"Report what they say. Complete each sentence with an infinitive construction.",
+ rule:{title:"Infinitive constructions", points:[
+  "want / ask / tell / expect + person + to: Eva wants Matt to sit with them.",
+  "tell + person + not to: Scott tells Matt not to talk to them.",
+  "superlative + to: the worst thing to do",
+  "question word or whether + to: what to say, whether to go",
+  "no to after modal verbs and after let / make + person: They won't let us use it."]},
+ items:[
+  {kind:"open", q:'Eva: "Matt, sit with us at lunch!"', start:"Eva wants Matt", end:"at lunch.", must:[/^to sit with (us|them|her|her and scott|scott and her|eva and scott|scott and eva)\b/], sol:"Eva wants Matt to sit with them at lunch.", tip:"want + person + to + verb"},
+  {kind:"open", q:'Scott: "Don\'t talk to the geeks, Matt!"', start:"Scott tells Matt", must:[/^not to talk to (the geeks|them|henry and tyler|tyler and henry)\b/], sol:"Scott tells Matt not to talk to the geeks.", tip:"tell + person + not to + verb"},
+  {kind:"open", q:'Matt thinks: "What should I say?"', start:"Matt doesn't know", must:[/^what to say\b/], sol:"Matt doesn't know what to say.", tip:"question word + to + verb"},
+  {kind:"open", q:'Henry: "Changing your friends to be popular? Nothing is worse!"', start:"Changing your friends to be popular is the worst thing", must:[/^to do\b/], sol:"Changing your friends to be popular is the worst thing to do.", tip:"superlative + to + verb"},
+  {kind:"open", q:'Matt: "Should I go to lunch with them or not?"', start:"Matt is wondering", must:[/^whether to go to lunch with (them|scott and eva|eva and scott)\b/], sol:"Matt is wondering whether to go to lunch with them.", tip:"whether + to + verb"},
+  {kind:"open", q:'The teacher: "You can\'t use that photo in the yearbook."', start:"The teacher won't let them", end:"in the yearbook.", must:[/^use (that|the|this) photo\b/], sol:"The teacher won't let them use that photo in the yearbook.", tip:"let + person + verb. No to!"},
+  {kind:"open", q:'Eva: "Please help us with the layout, Matt."', start:"Eva asks Matt", must:[/^to help (them|her|us|her and scott|eva and scott|scott and eva) with the layout\b/], sol:"Eva asks Matt to help them with the layout.", tip:"ask + person + to + verb"}
+ ],
+ outro:[{who:"Eva", text:"Fine. Take your page. And tell Matt he can sit with us at lunch. If he wants to be popular."},
+        {who:"AJ", asset:"aj", text:"Eva! If you have the photo of me at the lake, I'll pay you five dollars."}]},
+
+{id:"r3", period:"3rd period", name:"Cafeteria", asset:"henry_tyler",
+ intro:[{who:"Henry", text:"Matt sent you? Cool. We found page 3 under a tray of mac and cheese. It's a bit orange now."},
+        {who:"Tyler", text:"Help us finish our chat with Matt, and it's yours."}],
+ task:"Complete the chat. Use the -ing form of the verbs in brackets.",
+ rule:{title:"Gerunds after prepositions", points:[
+  "verb + preposition + -ing: thanks for sitting, think about making",
+  "adjective + preposition + -ing: interested in joining, good at shouting, afraid of finding",
+  "look forward to + -ing, get used to + -ing (to is a preposition here!)",
+  "-ing as subject: Changing the world isn't easy."]},
+ items:[
+  {kind:"gap", who:"Henry", before:"Hey Matt! Thanks for", verb:"sit", after:"with us again.", a:["sitting"]},
+  {kind:"gap", who:"Tyler", before:"Are you interested in", verb:"join", after:"our protest group?", a:["joining"]},
+  {kind:"gap", who:"Matt", before:"Maybe. I'm not very good at", verb:"shout", after:"at people, though.", a:["shouting"]},
+  {kind:"gap", who:"Henry", before:"Don't worry. We're thinking about", verb:"make", after:"posters this time.", a:["making"]},
+  {kind:"gap", who:"Tyler", before:"", verb:"change", after:"the world isn't easy, but it's fun.", a:["changing"]},
+  {kind:"gap", who:"Matt", before:"Honestly, I'm still getting used to", verb:"eat", after:"lunch at 10:45.", a:["eating"]},
+  {kind:"gap", who:"Henry", before:"Are you looking forward to", verb:"see", after:"the yearbook?", a:["seeing"]},
+  {kind:"gap", who:"Matt", before:"Yes! But I'm afraid of", verb:"find", after:"an embarrassing photo of me in it.", a:["finding"]},
+  {kind:"gap", who:"AJ", before:"Afraid? I'm terrified of", verb:"be", after:"in it!", a:["being"]}
+ ],
+ outro:[{who:"Tyler", text:"Here you go. Sorry about the cheese."},
+        {who:"AJ", asset:"aj", text:"Is that cheese on my face in the photo? Please say it's cheese."}]},
+
+{id:"r4", period:"4th period", name:"Principal's Office", asset:"ruby",
+ intro:[{who:"Ruby", text:"Detention again. Hat, ripped jeans, the usual. Principal Harris wants an apology letter, and he wants it perfect. Page 4 is on his desk. Help me fix my letter, and I'll 'borrow' the page for you."}],
+ task:"There is one mistake in every sentence. Tap the mistake, then write the correct form.",
+ rule:{title:"Check the form", points:[
+  "after a preposition: -ing (sorry for wearing, looking forward to meeting)",
+  "enjoy + -ing (enjoy choosing)",
+  "make / let + person + verb without to (make me change, let me go)",
+  "question word + to (what to wear), superlative + to (the worst thing to happen)",
+  "promise + to (promise to wear)"]},
+ items:[
+  {kind:"fix", chunks:["Dear Principal Harris, I'm sorry for","wear","a hat in class."], err:1, a:["wearing"]},
+  {kind:"fix", chunks:["But you can't make me","to change","my style."], err:1, a:["change"]},
+  {kind:"fix", chunks:["I really enjoy","to choose","my own clothes."], err:1, a:["choosing"]},
+  {kind:"fix", chunks:["This morning I didn't know","what wearing","for picture day."], err:1, a:["what to wear"]},
+  {kind:"fix", chunks:["Detention is the worst thing","happening","to me this year."], err:1, a:["to happen"]},
+  {kind:"fix", chunks:["Please let me","to go","to the pep rally on Friday."], err:1, a:["go"]},
+  {kind:"fix", chunks:["I promise","wearing","the right clothes next time."], err:1, a:["to wear"]},
+  {kind:"fix", chunks:["I'm looking forward to","meet","you in a better mood. Ruby"], err:1, a:["meeting"]}
+ ],
+ outro:[{who:"Ruby", text:"Perfect letter. Harris is going to cry. Here's page 4."},
+        {who:"AJ", asset:"aj", text:"Ruby, is the lake photo on page 4? Ruby? RUBY?"}]},
+
+{id:"r5", period:"5th period", name:"Radio Room", asset:"samantha",
+ intro:[{who:"Samantha", text:"Welcome to Birchview Buzz, our school podcast! We recorded today's show this morning. Page 5 is the school calendar, and it needs all the facts from the show. Listen carefully."}],
+ task:"Listen to the podcast. Read the questions first. Then answer them.",
+ listen:true,
+ rule:{title:"Listening tips", points:[
+  "Read all questions before you listen.",
+  "Listen for numbers, days and times.",
+  "In the first round, answer what you can. Check the rest in the second round."]},
+ items:[
+  {kind:"mc", q:"When is Homecoming?", opts:["Friday, October 23","Saturday, October 24","Friday, October 30"], a:0},
+  {kind:"mc", q:"How much is a ticket for the dance?", opts:["$5","$8","$18"], a:1},
+  {kind:"mc", q:"Where can you buy tickets?", opts:["in the gym","in the cafeteria at lunch","in the principal's office"], a:1},
+  {kind:"mc", q:"What is the Hallway Fit Check?", opts:["Students show their outfits in the hallway.","Teachers check the lockers.","Students run through the hallway."], a:0},
+  {kind:"mc", q:"What does Principal Harris say about phones?", opts:["Students can use them at lunch.","They must stay in the lockers during class.","They are not allowed at Homecoming."], a:1},
+  {kind:"gap", who:"", before:"The Homecoming game starts at", verb:"time", after:"p.m.", a:["7","seven","7:00"]},
+  {kind:"gap", who:"", before:"The yearbook deadline is today at", verb:"time", after:"p.m.", a:["3:15","3.15","315","three fifteen"]},
+  {kind:"gap", who:"", before:"The library is closed on", verb:"day", after:"afternoon.", a:["wednesday"]},
+  {kind:"gap", who:"", before:"Basketball: Birchview 54, Westfield", verb:"number", after:".", a:["49","forty-nine","forty nine"]}
+ ],
+ outro:[{who:"Samantha", text:"You'd be a great reporter. Here's page 5."},
+        {who:"AJ", asset:"aj", text:"I said NOT the lake photo. On the radio. Now everybody knows."}]},
+
+{id:"r6", period:"6th period", name:"Gym", asset:"madison_jacob",
+ intro:[{who:"Madison", text:"Pep rally in ten minutes, and our cheer cards are a mess! Page 6, the sports page, is somewhere under these pom-poms."},
+        {who:"Jacob", text:"Choose the right words for our cheers. There's a stopwatch, if you like a challenge. Or ignore it. We'll wait."}],
+ task:"Translate the cheer cards into English. The words in brackets help you. Only the grammar is checked, so compare your sentence with the model answer.",
+ stopwatch:true,
+ rule:{title:"Everything together", points:[
+  "-ing after prepositions: forward to playing, tired of losing, thanks for supporting",
+  "-ing as subject: Cheering is fun.",
+  "superlative / first + to: the first player to score",
+  "person + to after tell, want, ask: The coach told us to be on time.",
+  "question word + to: where to sit",
+  "no to after let / make + person: let her brother paint"]},
+ items:[
+  {kind:"open", q:"Wir freuen uns darauf, gegen Westfield zu spielen!", must:[/forward to playing against westfield/], sol:"We're looking forward to playing against Westfield!", tip:"look forward to + -ing"},
+  {kind:"open", q:"Anfeuern macht Spaß! (to cheer, fun)", must:[/^cheering is (a lot of |so much |really |great )?fun/], sol:"Cheering is fun!", tip:"Start with an -ing form as subject."},
+  {kind:"open", q:"Der Trainer hat uns gesagt, dass wir pünktlich sein sollen. (coach, on time)", must:[/coach told us to be on time/], sol:"The coach told us to be on time.", tip:"tell + person + to + verb"},
+  {kind:"open", q:"Madison hat ihren Bruder das Poster malen lassen.", must:[/let (her |his )?(little |younger |big |older )?brother paint the poster/], sol:"Madison let her brother paint the poster.", tip:"let + person + verb. No to!"},
+  {kind:"open", q:"Wir wissen nicht, wo wir sitzen sollen.", must:[/(don't|do not|dont) know where to sit/], sol:"We don't know where to sit.", tip:"question word + to + verb"},
+  {kind:"open", q:"Danke, dass ihr unser Team unterstützt! (to support)", must:[/thank(s| you)( all| so much)? for supporting our team/], sol:"Thanks for supporting our team!", tip:"thanks for + -ing"},
+  {kind:"open", q:"Sie war die erste Spielerin, die einen Dreier geworfen hat. (player, to score, three-pointer)", must:[/first player to score a three[- ]?pointer/], sol:"She was the first player to score a three-pointer.", tip:"the first + noun + to + verb"},
+  {kind:"open", q:"Wir haben es satt zu verlieren! (to be tired of)", must:[/tired of losing/], sol:"We're tired of losing!", tip:"be tired of + -ing"}
+ ],
+ outro:[{who:"Jacob", text:"Go Birchview! Here's page 6."},
+        {who:"AJ", asset:"aj", text:"Six pages. No lake photo so far. I can breathe again."}]},
+
+{id:"r7", period:"7th period", name:"Yearbook Office", asset:"matt", writing:true,
+ intro:[{who:"Matt", text:"We have six pages. One is still missing: the student page. Nobody wrote it. That's where you come in. Write your own yearbook page, and it goes straight to the printer."}],
+ task:"Write your yearbook page (120 to 150 words).",
+ rule:{title:"Writing tips", points:[
+  "Plan first: three paragraphs, one idea in each.",
+  "Give your page a title.",
+  "Use the grammar from Unit 1: -ing forms and to + verb.",
+  "Read your text again at the end and check every verb."]},
+ items:[],
+ outro:[{who:"Matt", text:"3:14 p.m. Sent to the printer! You saved the yearbook."},
+        {who:"AJ", asset:"aj", text:"And? Is the lake photo in it?"},
+        {who:"Matt", text:"You'll see in June, AJ."}]}
+],
+
+writing: {
+ prompts:[
+  {id:"A", title:"My year so far", text:"Write a yearbook page about your school year so far. Write about a highlight, a funny or embarrassing moment and something you're looking forward to."},
+  {id:"B", title:"Two schools", text:"Matt compares school in England and the USA. Compare Birchview Middle School with your school in Germany. Write about the school day and lunch, the rules (dress code, phones) and what you would like to change."}
+ ],
+ minWords:120, maxWords:150,
+ wordbank:["highlight","embarrassing","to look forward to","to get used to","hallway","period","dress code","detention","cafeteria","pep rally","compared to","while","in contrast to"],
+ starters:["The best thing about this year was …","I'll never forget …","I'm really looking forward to …","The hardest thing to get used to was …","At my school we aren't allowed to …","In contrast to Birchview, …","I'd like my teachers to …"],
+ detect:[
+  {label:"-ing after a preposition", re:/\b(forward to|used to|about|of|at|in|for|without|before|after|by)\s+[a-z]{2,}ing\b/i},
+  {label:"-ing as subject", re:/(^|[.!?]\s+)[A-Z][a-z]+ing\b(?!\s+(is|was)\s+(a|an|the)\b)/},
+  {label:"question word + to", re:/\b(what|where|when|how|who|whether|which)\s+to\s+[a-z]+/i},
+  {label:"superlative + to", re:/\b(best|worst|first|last|only|easiest|hardest|funniest|nicest)\b[^.!?]{0,30}?\bto\s+[a-z]+/i},
+  {label:"person + to (want / ask / tell / expect …)", re:/\b(want|wants|wanted|ask|asks|asked|tell|tells|told|expect|expects|expected|would like|'d like)\s+(me|you|him|her|us|them|everyone|people|my\s+\w+|our\s+\w+|the\s+\w+)\s+to\s+[a-z]+/i}
+ ],
+ selfcheck:["My page has a title.","Every paragraph has one main idea.","I checked my spelling and every verb."]
+},
+
+podcast: {
+ title:"Birchview Buzz, Friday edition",
+ lines:[
+  {who:"Samantha", v:0, t:"Good morning, Birchview! This is Birchview Buzz, your school podcast. I'm Samantha."},
+  {who:"AJ", v:1, t:"And I'm AJ. Before we start: if anyone has a photo of me at the lake on orientation weekend, please delete it. Thank you."},
+  {who:"Samantha", v:0, t:"Nice try, AJ. Okay, our first story. Homecoming is on Friday, October twenty-third. The game starts at seven p.m., and the dance in the gym starts after the game."},
+  {who:"AJ", v:1, t:"Tickets for the dance are eight dollars. You can buy them in the cafeteria at lunch. Not in the gym, the gym is for basketball."},
+  {who:"Samantha", v:0, t:"Story number two. The yearbook committee needs your photos of this year's best moments. The deadline is today at three fifteen p.m."},
+  {who:"AJ", v:1, t:"But not the lake photo."},
+  {who:"Samantha", v:0, t:"Story number three, and this one is big. There's a new trend at Birchview: the Hallway Fit Check. Every Friday, students show their outfits in the hallway, and the Film Club posts the best one on the school account."},
+  {who:"AJ", v:1, t:"Ruby wins every week. Even when she gets detention."},
+  {who:"Principal Harris", v:2, t:"This is Principal Harris with two short announcements. The library is closed on Wednesday afternoon. And please remember: phones must stay in your lockers during class."},
+  {who:"Samantha", v:0, t:"Thank you, Principal Harris. And finally, sports. Our girls' basketball team won fifty-four to forty-nine against Westfield!"},
+  {who:"AJ", v:1, t:"That's it for today. Stay awesome, Birchview!"}
+ ]
+},
+
+bonus: {
+ id:"bonus", name:"Janitor's Closet", asset:"janitor",
+ intro:[{who:"Mr. Okafor", text:"You found my closet. Nobody finds my closet. I lock it with a code, and the code is in my notes. Understand my notes, and you'll understand the code."}],
+ task:"Read each note. What does it really mean? Every answer gives you one number. Then try the lock.",
+ code:"3714",
+ puzzles:[
+  {note:"I stopped to talk to AJ.", q:"What happened?", opts:[{t:"He stopped working, and then he talked to AJ.",d:"3"},{t:"He doesn't talk to AJ anymore.",d:"8"}]},
+  {note:"I remember locking the gym.", q:"What does he mean?", opts:[{t:"He still has to lock the gym.",d:"2"},{t:"He locked the gym, and he can remember it.",d:"7"}]},
+  {note:"Don't forget to turn off the lights in the yearbook office!", q:"What's true?", opts:[{t:"The lights are still on.",d:"1"},{t:"He turned them off yesterday.",d:"5"}]},
+  {note:"I tried opening the window, but the room was still too hot.", q:"What happened?", opts:[{t:"He couldn't open the window.",d:"9"},{t:"He opened it, but it didn't help.",d:"4"}]}
+ ],
+ rule:{title:"Same verb, different meaning", points:[
+  "stop + -ing: you don't do it anymore. stop + to: you stop doing something else in order to do it.",
+  "remember / forget + -ing: about the past (it happened). remember / forget + to: about a task (it still has to happen).",
+  "try + -ing: you test something to see if it helps. try + to: you make an effort, maybe without success."]},
+ outro:[{who:"Mr. Okafor", text:"Click. You got it. Here's the golden stamp. And here's something I found under the bleachers: AJ's lake photo. I'm the janitor. I see everything."},
+        {who:"AJ", asset:"aj", text:"Nooooo."}]
+}
+};
+
+/* ===== 5. ENGINE ===== */
+const KEY="sevenperiods_v1";
+const params=new URLSearchParams(location.search);
+const hasTTS=()=>"speechSynthesis" in window;
+let S=load();
+function fresh(){return {mode:null,introDone:false,stamps:{},scores:{},best:{},writing:{prompt:null,text:"",title:"",name:""},gold:false};}
+function load(){try{const d=JSON.parse(localStorage.getItem(KEY)||"{}");const f=fresh();return Object.assign(f,d,{writing:Object.assign(f.writing,d.writing||{})});}catch(e){return fresh();}}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
+const $app=document.getElementById("app");
+
+function h(tag,props,...kids){const e=document.createElement(tag);
+  for(const[k,v] of Object.entries(props||{})){
+    if(k==="class")e.className=v; else if(k.startsWith("on"))e.addEventListener(k.slice(2),v);
+    else if(v!==false&&v!=null)e.setAttribute(k,v===true?"":v);}
+  kids.flat().forEach(c=>{if(c==null||c===false)return;e.append(c instanceof Node?c:document.createTextNode(String(c)));});
+  return e;}
+
+function asset(key,w,hgt,label){
+  const src = ASSETS[key];
+  if(src) return h("img",{class:"asset",src:src,alt:label||key,style:`width:${w||80}px;height:${hgt||80}px`});
+  return h("div",{class:"avatar-badge"},key.charAt(0).toUpperCase());
+}
+
+function norm(s){return String(s).toLowerCase().replace(/[’‘`´]/g,"'").replace(/[.!?,;:"]/g,"").replace(/\s+/g," ").trim();}
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+const R=CONTENT.rooms;
+const isTest=()=>S.mode==="test";
+const unlocked=i=>params.get("all")==="1"||i===0||!!S.stamps[R[i-1].id];
+const allDone=()=>R.every(r=>S.stamps[r.id]);
+const maxPoints=()=>R.reduce((n,r)=>n+r.items.length,0);
+const total=()=>R.reduce((n,r)=>n+(S.scores[r.id]||0),0);
+
+/* Open answers: students often retype the given sentence start or end. Strip it before checking. */
+function checkOpen(it,raw){
+  let v=norm(raw);
+  const ns=norm(it.start||""),ne=norm(it.end||"");
+  if(ns&&v.startsWith(ns+" "))v=v.slice(ns.length+1);
+  if(ne&&v.endsWith(" "+ne))v=v.slice(0,-(ne.length+1));
+  if(!v)return false;
+  return it.must.every(re=>re.test(v))&&!(it.forbid||[]).some(re=>re.test(v));
+}
+
+function topbar(roomCtx){
+  const pass=h("div",{class:"hallpass","aria-label":"Hall pass"},h("b",{},"HALL PASS"),
+    R.map((r,idx)=>h("div",{class:"stamp"+(S.stamps[r.id]?" on":""),title:r.period},S.stamps[r.id]?(idx+1):"")),
+    allDone()?h("div",{class:"stamp gold"+(S.gold?" on":""),title:"Bonus"},"★"):null);
+  return h("div",{class:"topbar"},
+    h("button",{onclick:showHallway},"🏫 Hallway"),pass,
+    roomCtx&&!isTest()?h("span",{class:"tardy-badge",id:"tardy"},tardyText(roomCtx)):null,
+    h("div",{style:"flex:1"}),
+    h("span",{style:"color:#FFF;font-size:14px;margin-right:8px"},isTest()?"Test Run":"Practice Mode"),
+    h("button",{onclick:openNotebook},"📓 Notebook"));
+}
+function tardyText(ctx){return `Tardy Slips: ${ctx.tardy}`;}
+function screen(...kids){if(hasTTS())speechSynthesis.cancel();$app.replaceChildren(...kids);window.scrollTo(0,0);}
+function bubble(line,defAsset){return h("div",{class:"scene"},asset(line.asset||defAsset||"matt",90,90,line.who),
+  h("div",{class:"bubble"},h("span",{class:"who"},line.who),line.text));}
+function bubbles(lines,defAsset){return lines.map(l=>bubble(l,defAsset));}
+
+/* ---- Start Screen ---- */
+function showStart(){
+  const hasSave=S.mode&&S.introDone;
+  screen(h("div",{class:"wrap",style:"align-items:center;justify-content:center;text-align:center"},
+    h("h1",{class:"start-title",style:"font-size:52px;color:var(--c-burgundy);margin-bottom:0"},CONTENT.title),
+    h("p",{style:"font-size:20px;font-family:var(--font-display);color:var(--c-navy)"},CONTENT.subtitle),
+    hasSave?h("div",{style:"margin:15px"},h("button",{id:"continueBtn",class:"primary",style:"font-size:20px",onclick:showHallway},"▶ Continue Game")):null,
+    h("div",{class:"row",style:"justify-content:center;margin-top:20px"},
+      h("button",{id:"practiceBtn",style:"width:240px;padding:16px",onclick:()=>startMode("practice")},h("h3",{},"Practice Mode"),h("div",{class:"muted"},"Hilfen & Regelkarten")),
+      h("button",{id:"testBtn",style:"width:240px;padding:16px",onclick:()=>startMode("test")},h("h3",{},"Test Run"),h("div",{class:"muted"},"Klassenarbeits-Modus"))),
+    h("div",{style:"margin-top:40px"},
+      h("button",{style:"font-size:12px",onclick:()=>{if(confirm("Delete all progress?")){try{localStorage.removeItem(KEY);}catch(e){}S=fresh();showStart();}}},"Reset Progress"))));
+}
+function startMode(m){
+  if(S.mode&&S.mode!==m&&Object.keys(S.stamps).length&&!confirm("Switching mode resets progress. Continue?"))return;
+  if(S.mode!==m){const keepIntro=S.introDone;S=fresh();S.introDone=keepIntro;}
+  S.mode=m;save();S.introDone?showHallway():showIntro(0);
+}
+
+/* ---- Intro ---- */
+function showIntro(i){
+  const step=CONTENT.intro[i];const last=i===CONTENT.intro.length-1;
+  const next=h("button",{id:"nextBtn",class:"primary",onclick:()=>{if(last){S.introDone=true;save();showHallway();}else showIntro(i+1);}},last?"Let's go!":"Next →");
+  const back=i>0?h("button",{onclick:()=>showIntro(i-1)},"← Back"):null;
+  const body=step.glossary?h("div",{},h("h2",{},"Matt's Survival Guide"),h("p",{class:"muted"},"Tap a card to reveal the translation."),glossaryCards())
+                          :bubble(step,"matt");
+  screen(h("div",{class:"wrap"},body,h("div",{class:"row",style:"justify-content:flex-end;margin-top:auto"},back,next)));
+}
+function glossaryCards(){return h("div",{class:"gloss"},CONTENT.glossary.map(g=>{
+  const c=h("div",{class:"gcard",tabindex:"0",role:"button",onclick:()=>c.classList.toggle("open"),
+    onkeydown:e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();c.classList.toggle("open");}}},
+    h("span",{class:"term"},g.term),h("div",{style:"font-size:14px"},g.en),g.uk?h("div",{class:"muted",style:"font-size:12px"},g.uk):null,h("div",{class:"de"},"🇩🇪 "+g.de));return c;}));}
+function openNotebook(){
+  const ov=h("div",{class:"overlay",onclick:e=>{if(e.target===ov)ov.remove();}},
+    h("div",{class:"panel"},h("div",{class:"row"},h("h2",{},"📓 Matt's Notebook"),h("div",{style:"flex:1"}),h("button",{onclick:()=>ov.remove()},"✖ Close")),glossaryCards()));
+  document.body.append(ov);
+}
+
+/* ---- Hallway ---- */
+function showHallway(){
+  if(!S.mode)return showStart();
+  const doors=R.map((r,i)=>{
+    const open=unlocked(i),done=!!S.stamps[r.id];
+    return h("button",{class:"door"+(open?"":" locked")+(done?" done":""),disabled:!open,"data-room":r.id,onclick:()=>openRoom(i)},
+      h("div",{class:"period"},r.period),
+      h("div",{class:"sign"},r.name),
+      h("div",{style:"font-size:28px;margin:12px 0"},done?"✓":open?"🚪":"🔒"),
+      h("div",{style:"font-size:12px;color:#FFF"},done?"Page saved":open?"Open":"Locked"));
+  });
+  if(allDone())doors.push(h("button",{class:"door bonus","data-room":"bonus",onclick:openBonus},h("div",{class:"period"},"Bonus"),
+    h("div",{class:"sign"},"Janitor's Closet"),h("div",{style:"font-size:28px;margin:12px 0"},"🧹"),
+    h("div",{style:"font-size:12px;color:#FFF"},S.gold?"Golden Stamp":"Secret Door")));
+  screen(topbar(),h("div",{class:"wrap"},
+    h("h2",{},"Birchview Middle School: Hallway"),
+    h("p",{class:"muted"},allDone()?"The yearbook is saved! But wait, what is that mysterious door at the end of the hall?":"Find the missing yearbook pages. Every period opens a new door."),
+    h("div",{class:"hallway-container"},h("div",{class:"hallway"},doors)),
+    allDone()?finalBox():null));
+}
+function completionCode(){
+  const t=total(),m=maxPoints();
+  const chk=String.fromCharCode(65+(t*7+m*3+(isTest()?5:2))%26)+String.fromCharCode(65+(t*11+m)%26);
+  return `BV${isTest()?"T":"P"}-${String(t).padStart(2,"0")}${String(m).padStart(2,"0")}-${chk}`;
+}
+function finalBox(){
+  return h("div",{class:"task",style:"background:#FFF8DC;border-color:var(--c-yellow)"},h("h2",{},"🏆 Yearbook Saved!"),
+    h("p",{},`Your score: ${total()} of ${maxPoints()} points.`),
+    h("p",{},"Completion Code for your teacher: ",h("b",{id:"completionCode",style:"font-size:24px;letter-spacing:2px;color:var(--c-burgundy)"},completionCode())));
+}
+
+/* ---- Room Engine ---- */
+function openRoom(i){
+  const r=R[i];
+  screen(topbar(),h("div",{class:"wrap"},h("h2",{},`${r.period}: ${r.name}`),bubbles(r.intro,r.asset),
+    h("div",{class:"row",style:"justify-content:flex-end;margin-top:auto"},h("button",{id:"enterBtn",class:"primary",onclick:()=>r.writing?runWriting(r):runRoom(r)},"Enter Room →"))));
+}
+function runRoom(r){
+  const ctx={tardy:0,res:r.items.map(()=>({tries:0,done:false,pts:0})),helpShown:false,start:Date.now()};
+  const help=h("div",{id:"help"});
+  const finishBtn=h("button",{id:"finishBtn",class:"primary",disabled:true,onclick:()=>finishRoom(r,ctx)},"Claim Page →");
+  const list=h("div",{});
+  const task=h("div",{class:"task"},h("h3",{},r.task),list);
+  let sw=null;
+  if(r.stopwatch){sw=h("span",{class:"muted"},"0 s");ctx.timer=setInterval(()=>{if(!sw.isConnected){clearInterval(ctx.timer);return;}sw.textContent=Math.round((Date.now()-ctx.start)/1000)+" s";},500);}
+  const tools=h("div",{class:"row"},
+    !isTest()?h("button",{onclick:()=>showRule(r,help)},"💡 Rule Card"):null,
+    sw?h("span",{},"⏱️ Time: ",sw,S.best[r.id]?` (best: ${S.best[r.id]} s)`:""):null);
+  screen(topbar(ctx),h("div",{class:"wrap"},h("h2",{},`${r.period}: ${r.name}`),tools,help,
+    r.listen?listenPlayer():null,task,h("div",{class:"row",style:"justify-content:flex-end"},finishBtn)));
+  const api={
+    wrong(idx,el,fb,msg){const st=ctx.res[idx];if(st.done)return;st.tries++;
+      if(isTest()){lockItem(idx,el,fb,false,msg);return;}
+      ctx.tardy++;const td=document.getElementById("tardy");if(td)td.textContent=tardyText(ctx);
+      el.className="item bad";
+      if(st.tries===1)fb.textContent="Not quite! Check the form and try again.";
+      else if(st.tries===2)fb.textContent="Hint: "+(r.items[idx].tip||"Look closely at the verb.");
+      else lockItem(idx,el,fb,false,msg);
+      fb.className="fb bad";
+      if(ctx.tardy>=3&&!ctx.helpShown){ctx.helpShown=true;showRule(r,help,true);}
+    },
+    right(idx,el,fb){const st=ctx.res[idx];if(st.done)return;st.tries++;st.pts=st.tries===1?1:0;lockItem(idx,el,fb,true);},
+  };
+  function lockItem(idx,el,fb,ok,msg){const st=ctx.res[idx];st.done=true;
+    el.className="item "+(ok?"ok":"bad");
+    el.querySelectorAll("button,input").forEach(b=>b.disabled=true);
+    fb.className="fb "+(ok?"ok":"bad");
+    const it=r.items[idx];
+    fb.textContent=ok?"Correct!":"Solution: "+msg;
+    if(ok&&it.sol)fb.textContent+=it.free?" Example: "+it.sol:(it.kind==="open"?" Model: "+it.sol:"");
+    if(ctx.res.every(x=>x.done))finishBtn.disabled=false;}
+  r.items.forEach((it,idx)=>list.append(RENDER[it.kind](it,idx,api)));
+}
+
+function showRule(r,slot,fromZach){
+  slot.replaceChildren(h("div",{class:"scene"},asset("zach",70,70,"Zach"),
+    h("div",{class:"rule"},fromZach?h("p",{},h("b",{},"Zach: "),"Three tardy slips? Here is my rule card to help you out!"):null,
+      h("b",{},r.rule.title),h("ul",{},r.rule.points.map(p=>h("li",{},p))),
+      h("button",{style:"margin-top:8px",onclick:()=>slot.replaceChildren()},"Close"))));
+}
+
+function finishRoom(r,ctx){
+  if(ctx.timer){clearInterval(ctx.timer);
+    const sec=Math.round((Date.now()-ctx.start)/1000);
+    if(!S.best[r.id]||sec<S.best[r.id])S.best[r.id]=sec;}
+  S.scores[r.id]=ctx.res.reduce((n,x)=>n+x.pts,0);S.stamps[r.id]=true;save();
+  screen(topbar(),h("div",{class:"wrap"},h("h2",{},`Page Secured! (${S.scores[r.id]} / ${r.items.length} pts)`),
+    bubbles(r.outro,r.asset),h("div",{class:"row",style:"justify-content:flex-end;margin-top:auto"},h("button",{id:"backBtn",class:"primary",onclick:showHallway},"Back to Hallway"))));
+}
+
+/* ---- Item Renderers ---- */
+const RENDER={
+ sort(it,idx,api){
+  const fb=h("div",{class:"fb"});const el=h("div",{class:"item"});
+  const b=(lab,key)=>h("button",{"data-key":key,onclick:()=>key===it.a?api.right(idx,el,fb):api.wrong(idx,el,fb,it.sol)},lab);
+  el.append(h("div",{},`${idx+1}. ${it.text}`),h("div",{class:"choices"},b("-ing form","g"),b("to + verb","i")),fb);return el;},
+ gap(it,idx,api){
+  const fb=h("div",{class:"fb"});const el=h("div",{class:"item"});
+  const inp=h("input",{type:"text",style:"width:140px",autocapitalize:"off",autocomplete:"off","aria-label":it.verb});
+  const solFull=`${it.before} ${it.a[0]} ${it.after}`.trim();
+  const go=()=>{if(!inp.value.trim())return;it.a.some(a=>norm(a)===norm(inp.value))?api.right(idx,el,fb):api.wrong(idx,el,fb,solFull);};
+  inp.addEventListener("keydown",e=>{if(e.key==="Enter")go();});
+  el.append(h("div",{},it.who?h("b",{},it.who+": "):null,it.before+" ",inp," ",it.after),
+    h("button",{style:"margin-top:6px",onclick:go},"Check"),fb);return el;},
+ fix(it,idx,api){
+  const fb=h("div",{class:"fb"});const el=h("div",{class:"item"});let sel=null;
+  const inp=h("input",{type:"text",style:"width:200px",placeholder:"Correction",autocapitalize:"off",autocomplete:"off"});
+  const sol=it.chunks.map((c,i)=>i===it.err?it.a[0]:c).join(" ");
+  const sent=h("div",{},it.chunks.map((c,i)=>{const b=h("span",{class:"chunk",tabindex:"0",role:"button"},c);
+    const pick=()=>{sent.querySelectorAll(".chunk").forEach(x=>x.classList.remove("sel"));b.classList.add("sel");sel=i;inp.focus();};
+    b.onclick=pick;b.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();pick();}};return b;}));
+  const go=()=>{
+    if(sel===null){fb.className="fb bad";fb.textContent="First tap the mistake.";return;}
+    if(sel!==it.err){api.wrong(idx,el,fb,sol);return;}
+    if(!inp.value.trim())return;
+    it.a.some(a=>norm(a)===norm(inp.value))?api.right(idx,el,fb):api.wrong(idx,el,fb,sol);};
+  inp.addEventListener("keydown",e=>{if(e.key==="Enter")go();});
+  el.append(h("div",{},`${idx+1}. `,sent),h("div",{class:"row",style:"margin-top:6px"},inp,h("button",{onclick:go},"Check")),fb);return el;},
+ open(it,idx,api){
+  const fb=h("div",{class:"fb"});const el=h("div",{class:"item"});
+  const inp=h("input",{type:"text",style:"flex:1;min-width:200px",placeholder:it.start||it.end?"":"Your sentence",autocomplete:"off"});
+  const go=()=>{if(!norm(inp.value))return;
+    checkOpen(it,inp.value)?api.right(idx,el,fb):api.wrong(idx,el,fb,it.sol);};
+  inp.addEventListener("keydown",e=>{if(e.key==="Enter")go();});
+  el.append(h("div",{},`${idx+1}. `,h("b",{},it.q)),
+    h("div",{class:"row",style:"margin-top:6px"},it.start?h("span",{},it.start):null,inp,it.end?h("span",{},it.end):null,h("button",{onclick:go},"Check")),fb);return el;},
+ mc(it,idx,api){
+  const fb=h("div",{class:"fb"});const el=h("div",{class:"item"});
+  const order=shuffle(it.opts.map((o,i)=>i));
+  el.append(h("div",{},`${idx+1}. ${it.q}`),
+    h("div",{class:"choices"},order.map(i=>h("button",{"data-opt":i,onclick:()=>i===it.a?api.right(idx,el,fb):api.wrong(idx,el,fb,it.opts[it.a])},it.opts[i]))),fb);return el;}
+};
+
+/* ---- Podcast Player ---- */
+function listenPlayer(){
+  const P=CONTENT.podcast;let plays=0;const maxPlays=isTest()?2:99;
+  const box=h("div",{class:"task"},h("h3",{},"🎧 Podcast: "+P.title));
+  if(ASSETS.podcast_audio){
+    const au=h("audio",{src:ASSETS.podcast_audio,preload:"auto"});
+    const status=h("span",{class:"muted"},isTest()?"You can listen twice.":"");
+    const playBtn=h("button",{class:"primary"},"▶ Play Podcast");
+    const pauseBtn=h("button",{onclick:()=>au.pause()},"❚❚ Pause");
+    playBtn.onclick=()=>{
+      if(!au.paused||au.currentTime>0&&!au.ended){au.play();return;}
+      if(plays>=maxPlays)return;
+      plays++;au.currentTime=0;au.play();
+      status.textContent=`Plays: ${plays}`+(isTest()?` / ${maxPlays}`:"");
+      if(plays>=maxPlays)au.addEventListener("ended",()=>playBtn.disabled=true,{once:true});};
+    box.append(au,h("div",{class:"row"},playBtn,pauseBtn,status));
+    return box;
+  }
+  if(!hasTTS()){box.append(h("p",{class:"fb bad"},"This browser can't play the podcast. Please ask your teacher to read it out."));return box;}
+  const status=h("span",{class:"muted"},isTest()?"You can listen twice.":"");
+  const playBtn=h("button",{class:"primary"},"▶ Play Podcast");
+  const stopBtn=h("button",{onclick:()=>speechSynthesis.cancel()},"■ Stop");
+  playBtn.onclick=()=>{
+    if(plays>=maxPlays)return;
+    plays++;speechSynthesis.cancel();
+    const voices=speechSynthesis.getVoices().filter(x=>/^en[-_]US/i.test(x.lang));
+    P.lines.forEach(l=>{const u=new SpeechSynthesisUtterance(l.t);u.lang="en-US";u.rate=.9;
+      if(voices.length)u.voice=voices[l.v%voices.length];
+      u.pitch=[1.1,1.0,.8][l.v]||1;speechSynthesis.speak(u);});
+    status.textContent=`Plays: ${plays}`+(isTest()?` / ${maxPlays}`:"");
+    if(plays>=maxPlays)playBtn.disabled=true;};
+  box.append(h("div",{class:"row"},playBtn,stopBtn,status));
+  return box;
+}
+
+/* ---- Writing Room ---- */
+function runWriting(r){
+  const W=CONTENT.writing;
+  if(!S.writing.prompt){
+    return screen(topbar(),h("div",{class:"wrap"},h("h2",{},"Choose Writing Topic"),
+      h("div",{class:"row"},W.prompts.map(p=>h("button",{"data-prompt":p.id,style:"flex:1;min-width:240px;padding:20px;text-align:left",onclick:()=>{S.writing.prompt=p.id;save();runWriting(r);}},h("h3",{},p.title),p.text)))));}
+  const P=W.prompts.find(p=>p.id===S.writing.prompt);
+  const title=h("input",{type:"text",placeholder:"Yearbook Entry Title",value:S.writing.title||"",style:"width:100%;margin-bottom:8px"});
+  const ta=h("textarea",{id:"writeText",placeholder:"Write your entry here..."});ta.value=S.writing.text||"";
+  const wc=h("b",{});const checks=h("ul",{class:"check",style:"padding:0"});
+  const done=h("button",{id:"submitWriting",class:"primary"},"Submit Yearbook Page");
+  const helpers=isTest()?null:h("details",{style:"margin-top:10px"},h("summary",{},"Word bank & sentence starters"),
+    h("p",{class:"muted",style:"font-size:15px"},W.wordbank.join(" · ")),
+    h("ul",{style:"font-size:15px;padding-left:1.2em"},W.starters.map(s=>h("li",{},s))));
+
+  const update=()=>{
+    S.writing.text=ta.value;S.writing.title=title.value;save();
+    const n=(ta.value.match(/\b[\w'’-]+\b/g)||[]).length;
+    wc.textContent=`Word Count: ${n} (${W.minWords} to ${W.maxWords})`;
+    checks.replaceChildren(
+      h("li",{class:n>=W.minWords?"hit":""},`${W.minWords}+ words`),
+      ...(isTest()?[]:W.detect.map(d=>h("li",{class:d.re.test(ta.value)?"hit":""},d.label))),
+      ...W.selfcheck.map(s=>h("li",{class:"muted"},s)));
+    done.disabled=n<Math.round(W.minWords*.6);};
+
+  ta.addEventListener("input",update);title.addEventListener("input",update);
+  done.onclick=()=>{S.stamps[r.id]=true;S.scores[r.id]=0;save();
+    screen(topbar(),h("div",{class:"wrap"},h("h2",{},"Yearbook Entry Complete!"),bubbles(r.outro,r.asset),
+      h("div",{class:"row",style:"justify-content:flex-end;margin-top:auto"},
+        h("button",{onclick:printPage},"🖨️ Print Page"),
+        h("button",{id:"backBtn",class:"primary",onclick:showHallway},"Back to Hallway"))));};
+
+  screen(topbar(),h("div",{class:"wrap"},h("h2",{},`${r.period}: ${r.name}`),
+    h("div",{class:"task"},h("h3",{},P.title),h("p",{},P.text),helpers),
+    h("div",{class:"write-grid"},
+      h("div",{},title,ta,h("p",{},wc)),
+      h("div",{class:"task"},h("h3",{},"Checklist"),checks,done))));
+  update();
+}
+
+function printPage(){
+  const name=prompt("Your name for the yearbook:",S.writing.name||"")||"";
+  S.writing.name=name;save();
+  const pp=document.getElementById("printpage");
+  pp.replaceChildren(h("div",{class:"muted"},"Birchview Middle School Yearbook"),
+    h("h1",{},S.writing.title||"My Yearbook Page"),name?h("p",{},h("i",{},"By "+name)):null,
+    ...S.writing.text.split(/\n+/).map(p=>h("p",{},p)));
+  window.print();
+}
+
+/* ---- Bonus Room ---- */
+function openBonus(){
+  const B=CONTENT.bonus;
+  screen(topbar(),h("div",{class:"wrap"},h("h2",{},B.name),bubbles(B.intro,B.asset),
+    h("div",{class:"row",style:"justify-content:flex-end;margin-top:auto"},h("button",{id:"enterBtn",class:"primary",onclick:runBonus},"Inspect Notes"))));
+}
+function runBonus(){
+  const B=CONTENT.bonus;const pick=B.puzzles.map(()=>null);
+  const help=h("div",{});
+  const digits=h("div",{class:"row",style:"justify-content:center"},B.puzzles.map(()=>h("b",{style:"font-size:32px;padding:8px 16px;background:#FFF;border:2px solid var(--c-navy);border-radius:6px"},"?")));
+  const fb=h("div",{class:"fb"});
+  const refresh=()=>[...digits.children].forEach((s,i)=>s.textContent=pick[i]===null?"?":B.puzzles[i].opts[pick[i]].d);
+  const cards=B.puzzles.map((p,i)=>h("div",{class:"item"},
+    h("div",{},h("b",{},`Note ${i+1}: `),h("i",{},`“${p.note}”`)),
+    h("div",{class:"muted",style:"font-size:15px"},p.q),
+    h("div",{class:"choices"},p.opts.map((o,j)=>{const b=h("button",{"data-puzzle":i,"data-opt":j},o.t);
+      b.onclick=()=>{pick[i]=j;b.parentNode.querySelectorAll("button").forEach(x=>x.classList.remove("primary"));b.classList.add("primary");refresh();};return b;}))));
+  const tryLock=h("button",{id:"unlockBtn",class:"primary",onclick:()=>{
+    if(pick.includes(null)){fb.className="fb bad";fb.textContent="Answer all notes first.";return;}
+    const code=pick.map((j,i)=>B.puzzles[i].opts[j].d).join("");
+    if(code===B.code){S.gold=true;save();
+      screen(topbar(),h("div",{class:"wrap"},h("h2",{},"The Lock Opens!"),bubbles(B.outro,B.asset),
+        h("div",{class:"row",style:"justify-content:flex-end;margin-top:auto"},h("button",{id:"backBtn",class:"primary",onclick:showHallway},"Back to Hallway"))));}
+    else{fb.className="fb bad";fb.textContent="Click... Nothing happens. Check the meanings again.";}}},"Unlock Door");
+  screen(topbar(),h("div",{class:"wrap"},h("h2",{},B.name),
+    !isTest()?h("div",{class:"row"},h("button",{onclick:()=>showRule(B,help)},"💡 Rule Card")):null,help,
+    h("p",{},B.task),h("div",{class:"task"},cards),
+    h("div",{class:"task",style:"text-align:center"},digits,h("div",{style:"margin-top:12px"},tryLock),fb)));
+}
+
+/* ---- Teacher View (?teacher=1): all tasks with solutions, podcast script, glossary ---- */
+function showTeacher(){
+  const sol=it=>{
+    if(it.kind==="sort")return it.sol;
+    if(it.kind==="gap")return `${it.before} ${it.a.join(" / ")} ${it.after}`.trim();
+    if(it.kind==="fix")return it.chunks.map((c,i)=>i===it.err?`[${c} → ${it.a[0]}]`:c).join(" ");
+    if(it.kind==="mc")return `${it.q} → ${it.opts[it.a]}`;
+    return it.sol;};
+  const q=it=>it.kind==="sort"?it.text:it.kind==="open"?it.q:it.kind==="mc"?null:it.kind==="gap"?`(${it.verb})`:null;
+  const B=CONTENT.bonus;
+  $app.style.cssText="max-height:none;height:auto;overflow:visible";
+  document.body.style.cssText="display:block;height:auto";
+  screen(h("div",{class:"wrap"},
+    h("div",{class:"row"},h("h1",{},"Seven Periods: Lehrkraftansicht"),h("div",{style:"flex:1"}),h("button",{onclick:()=>window.print()},"🖨️ Drucken")),
+    h("p",{class:"muted"},`${maxPoints()} Punkte in ${R.filter(r=>r.items.length).length} Räumen. Punkte nur für richtige Antworten im ersten Versuch.`),
+    R.map(r=>h("div",{class:"task"},h("h2",{},`${r.period}: ${r.name}`),h("p",{},h("b",{},r.task)),
+      r.items.length?h("ol",{},r.items.map(it=>h("li",{},q(it)?h("div",{class:"muted"},q(it)):null,sol(it),it.tip?h("div",{class:"muted",style:"font-size:14px"},"Tipp: "+it.tip):null)))
+        :h("div",{},CONTENT.writing.prompts.map(p=>h("p",{},h("b",{},p.title+": "),p.text))))),
+    h("div",{class:"task"},h("h2",{},"Podcast-Skript: "+CONTENT.podcast.title),
+      CONTENT.podcast.lines.map(l=>h("p",{},h("b",{},l.who+": "),l.t))),
+    h("div",{class:"task"},h("h2",{},"Bonus: "+B.name+` (Code ${B.code})`),
+      h("ol",{},B.puzzles.map(p=>h("li",{},`„${p.note}“ → `,p.opts.find(o=>B.code.includes(o.d)).t)))),
+    h("div",{class:"task"},h("h2",{},"Glossar"),
+      h("ul",{},CONTENT.glossary.map(g=>h("li",{},h("b",{},g.term),`: ${g.de}`,g.uk?` (${g.uk})`:""))))));
+}
+
+/* ---- Test hook ---- */
+window.__game={get state(){return S;},CONTENT,checkOpen,total,maxPoints,completionCode,KEY};
+
+/* ---- Boot ---- */
+if(hasTTS())speechSynthesis.getVoices();
+params.get("teacher")==="1"?showTeacher():showStart();
+</script>
+</body>
+</html>
