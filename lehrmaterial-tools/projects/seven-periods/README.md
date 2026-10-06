@@ -10,6 +10,12 @@ Rahmen: Matt rettet bis 3:15 p.m. das Birchview Yearbook. Sieben Räume, ein Bon
 - Janitor's Closet (Bonus): remember/forget/try/stop + Gerund oder Infinitiv, Code 3714.
 - 51 Punkte, nur erster Versuch zählt. Abschlusscode `BV<P|T>-<Punkte><Max>-<Prüfzeichen>`.
 
+## Study Hall (ohne Wertung)
+Freiwillige Zusatzübungen von LearningApps oder LearningSnacks, erreichbar über den Button oben und unter dem Gang.
+Eintragen in `CONTENT.studyhall.items`, Feld `url`: Link oder kompletter Einbettungscode (`<iframe …>`).
+Nur learningapps.org und learningsnacks.de werden angenommen. Karten ohne Link bleiben unsichtbar.
+Die Übungen zählen nicht für Punkte und Hall Pass. In der Claude-Vorschau werden sie blockiert, nur auf Netlify sichtbar.
+
 ## URL-Parameter
 - `?teacher=1` Lehrkraftansicht: alle Aufgaben mit Lösungen, Podcast-Skript, Glossar, druckbar.
 - `?all=1` alle Räume offen, zum Testen.

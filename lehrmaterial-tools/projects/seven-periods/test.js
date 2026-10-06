@@ -116,5 +116,27 @@ function playRooms(t, correct) {
   check("keine JS-Fehler (Lehrkraft)", !t.errors.length);
 }
 
+// 5. Study Hall: Linkerkennung, leerer Zustand, Karte mit eingebetteter Uebung
+{
+  const t = boot(); const { q, qa, click, G } = t;
+  check("Link LearningApps", G.embedSrc("https://learningapps.org/watch?v=p1abc") === "https://learningapps.org/watch?v=p1abc");
+  check("Einbettungscode", G.embedSrc('<iframe src="https://learningapps.org/watch?app=123&amp;x=1" style="border:0"></iframe>') === "https://learningapps.org/watch?app=123&x=1");
+  check("LearningSnacks", !!G.embedSrc("https://www.learningsnacks.de/share/12345/"));
+  check("fremde Seite abgelehnt", G.embedSrc("https://evil.example/learningapps.org/") === null && G.embedSrc("") === null);
+  click(q("#practiceBtn")); while (q("#nextBtn")) click(q("#nextBtn"));
+  const sh = () => Array.from(t.doc.querySelectorAll("button")).find(b => /Study Hall/.test(b.textContent));
+  click(sh());
+  check("Study Hall leer ohne Links", !!q(".sh-empty") && !q(".sh-card"));
+  G.CONTENT.studyhall.items[0].url = "https://learningapps.org/watch?v=p1abc";
+  click(sh());
+  check("eine Karte mit Link", qa(".sh-card").length === 1);
+  click(q(".sh-card"));
+  check("Uebung im iframe", q(".sh-view iframe") && q(".sh-view iframe").getAttribute("src") === "https://learningapps.org/watch?v=p1abc");
+  click(q(".sh-bar button"));
+  check("Uebung geschlossen", !q(".sh-view"));
+  check("keine Punkte durch Study Hall", G.total() === 0 && !Object.keys(G.state.stamps).length);
+  check("keine JS-Fehler (Study Hall)", !t.errors.length);
+}
+
 console.log("  " + ok.length + "/" + (ok.length + fail.length) + " Checks bestanden");
 if (fail.length) { fail.forEach(n => console.log("  XX " + n)); process.exit(1); }
