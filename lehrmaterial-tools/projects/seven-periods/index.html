@@ -357,6 +357,69 @@ input[type=text], textarea {
 .rule::before { content: ''; position: absolute; top: -14px; left: 50%; transform: translateX(-50%); width: 64px; height: 12px; background: #9AA3AE; border-radius: 3px; }
 .rule > b { font-family: var(--font-hand); font-weight: 400; font-size: 20px; color: var(--c-burgundy); }
 
+/* ===== PHOTO HALLWAY: painted canvas wall + realistic doors ===== */
+.hallway-container { padding: 0; background: #2B2620; overflow: hidden; border-width: 4px; }
+.hallway {
+  align-items: flex-end; gap: 84px; padding: 46px 48px 38px; min-height: 380px;
+  background: none; background-repeat: no-repeat; background-attachment: local;
+}
+.door {
+  flex: 0 0 136px; height: 272px; min-height: 0; padding: 10px 10px 34px;
+  border: 7px solid #8E949B; border-bottom: 0; border-radius: 3px 3px 0 0;
+  background:
+    linear-gradient(to top, #C3C8CE 0 24px, #8E949B 24px 26px, transparent 26px),
+    repeating-linear-gradient(90deg, rgba(60,30,10,.10) 0 1px, transparent 1px 5px, rgba(255,220,180,.05) 5px 6px, transparent 6px 11px),
+    linear-gradient(90deg, #7A4A22, #A36C38 35%, #94602F 65%, #6E421E);
+  box-shadow: inset 0 0 0 2px rgba(0,0,0,.28), 0 0 0 2px #5E646B, 8px 0 18px rgba(0,0,0,.45);
+  justify-content: flex-start; gap: 8px;
+}
+.door::after { right: 9px; top: 58%; width: 22px; height: 7px; border-radius: 4px; background: linear-gradient(#EEF0F2, #9097A0); box-shadow: 0 2px 3px rgba(0,0,0,.5); }
+.door .period { text-shadow: 0 1px 2px rgba(0,0,0,.6); }
+.door .sign { background: linear-gradient(#F1BC3A, #D99A12); box-shadow: 0 2px 3px rgba(0,0,0,.35); border-radius: 2px; }
+.door .ico {
+  width: 58px; height: 92px; margin: 4px 0 0; display: flex; align-items: center; justify-content: center;
+  font-size: 26px; border: 4px solid #6E747B; border-radius: 2px;
+  background: linear-gradient(135deg, rgba(255,255,255,.55) 0 18%, transparent 18% 40%, rgba(255,255,255,.25) 40% 46%, transparent 46%), linear-gradient(#CFE3EE, #8FB3C7);
+  box-shadow: inset 0 0 8px rgba(0,0,0,.35);
+}
+.door .state { margin-top: auto; font-size: 11px; letter-spacing: .5px; text-transform: uppercase; color: #FFF; text-shadow: 0 1px 2px rgba(0,0,0,.7); }
+.door.locked { filter: grayscale(.85) brightness(.7); opacity: 1; background:
+    linear-gradient(to top, #C3C8CE 0 24px, #8E949B 24px 26px, transparent 26px),
+    repeating-linear-gradient(90deg, rgba(60,30,10,.10) 0 1px, transparent 1px 5px),
+    linear-gradient(90deg, #7A4A22, #A36C38 35%, #6E421E); }
+.door.done { background:
+    linear-gradient(to top, #C3C8CE 0 24px, #8E949B 24px 26px, transparent 26px),
+    repeating-linear-gradient(90deg, rgba(60,30,10,.10) 0 1px, transparent 1px 5px),
+    linear-gradient(90deg, #7A4A22, #A36C38 35%, #6E421E); border-color: #8E949B; }
+.door.done .ico { background: linear-gradient(135deg, rgba(255,255,255,.45) 0 18%, transparent 18%), linear-gradient(#CDEBD5, #7FB58E); color: var(--c-green); font-weight: bold; }
+.door.done .state { background: var(--c-green); padding: 1px 6px; border-radius: 2px; }
+.door.bonus { border-color: #6E747B; background:
+    linear-gradient(to top, #A9AEB4 0 24px, transparent 24px),
+    linear-gradient(90deg, #B98F12, #E2B523 40%, #A57E0C); }
+.door:not(:disabled):hover { filter: brightness(1.08); }
+@media (max-width: 640px) {
+  .hallway { gap: 56px; padding: 36px 28px 30px; min-height: 330px; }
+  .door { flex-basis: 118px; height: 236px; }
+  .door .ico { height: 70px; }
+}
+
+/* ===== HALLWAY LIFE: posters, notes and stickers between the doors ===== */
+.hallway { gap: 6px; }
+.deco { flex: 0 0 78px; align-self: stretch; position: relative; pointer-events: none; }
+.poster, .note, .sticker { position: absolute; box-shadow: 0 3px 6px rgba(0,0,0,.45); text-align: center; line-height: 1.1; }
+.poster { left: 4px; right: 4px; padding: 8px 4px; font-family: var(--font-display); font-size: 10px; text-transform: uppercase; }
+.poster b { display: block; font-size: 13px; margin: 2px 0; }
+.poster::before, .note::before { content: ''; position: absolute; top: -6px; left: 50%; width: 30px; height: 11px; transform: translateX(-50%) rotate(-3deg); background: rgba(255,250,230,.55); box-shadow: 0 1px 1px rgba(0,0,0,.1); }
+.note { left: 8px; right: 6px; padding: 10px 4px 8px; font-family: var(--font-hand); font-size: 11px; color: #2A2A2A; background: #FFE873; }
+.sticker { width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: var(--font-display); font-size: 11px; }
+.p-home { background: var(--c-burgundy); color: var(--c-yellow); transform: rotate(-3deg); }
+.p-fit { background: #FF6FA8; color: #fff; transform: rotate(2deg); }
+.p-film { background: #111; color: #fff; transform: rotate(-1.5deg); border: 3px solid #fff; }
+.p-buzz { background: var(--c-yellow); color: var(--c-navy); transform: rotate(3deg); }
+.p-beat { background: var(--c-navy); color: #fff; transform: rotate(-2deg); border-bottom: 5px solid var(--c-yellow); }
+.p-rule { background: #fff; color: var(--c-red); border: 3px solid var(--c-red); transform: rotate(1deg); font-size: 9px; }
+@media (max-width: 640px) { .deco { flex-basis: 64px; } .poster { font-size: 9px; } .poster b { font-size: 11px; } }
+
 /* Small screens */
 @media (max-width: 640px) {
   :root { --fs-body: 16px; --fs-h2: 21px; --gap: 12px; }
@@ -404,7 +467,8 @@ const ASSETS = {
   madison_jacob: createAvatar("M&J", "#4A0013"),
   aj: createAvatar("AJ", "#D35400"),
   janitor: createAvatar("J", "#34495E"),
-  podcast_audio: null
+  podcast_audio: null,
+  hallway_bg: null   // optional photo of the hallway wall (no doors), replaces the painted wall
 };
 
 /* ===== 4. CONTENT ===== */
@@ -762,17 +826,90 @@ function showHallway(){
     return h("button",{class:"door"+(open?"":" locked")+(done?" done":""),disabled:!open,"data-room":r.id,onclick:()=>openRoom(i)},
       h("div",{class:"period"},r.period),
       h("div",{class:"sign"},r.name),
-      h("div",{style:"font-size:28px;margin:12px 0"},done?"✓":open?"🚪":"🔒"),
-      h("div",{style:"font-size:12px;color:#FFF"},done?"Page saved":open?"Open":"Locked"));
+      h("div",{class:"ico"},done?"✓":open?"":"🔒"),
+      h("div",{class:"state"},done?"Page saved":open?"Open":"Locked"));
   });
   if(allDone())doors.push(h("button",{class:"door bonus","data-room":"bonus",onclick:openBonus},h("div",{class:"period"},"Bonus"),
-    h("div",{class:"sign"},"Janitor's Closet"),h("div",{style:"font-size:28px;margin:12px 0"},"🧹"),
-    h("div",{style:"font-size:12px;color:#FFF"},S.gold?"Golden Stamp":"Secret Door")));
+    h("div",{class:"sign"},"Janitor's Closet"),h("div",{class:"ico"},"🧹"),
+    h("div",{class:"state"},S.gold?"Golden Stamp":"Secret Door")));
   screen(topbar(),h("div",{class:"wrap"},
     h("h2",{},"Birchview Middle School: Hallway"),
     h("p",{class:"muted"},allDone()?"The yearbook is saved! But wait, what is that mysterious door at the end of the hall?":"Find the missing yearbook pages. Every period opens a new door."),
-    h("div",{class:"hallway-container"},h("div",{class:"hallway"},doors)),
+    h("div",{class:"hallway-container"},h("div",{class:"hallway"},deco(DECOR.length-1),doors.flatMap((d,i)=>[d,deco(i)]))),
     allDone()?finalBox():null));
+  requestAnimationFrame(paintHallway);
+}
+
+/* ---- Hallway life: decor between doors, cycles through this list ---- */
+const DECOR=[
+  ()=>[h("div",{class:"poster p-home",style:"top:30px"},"Homecoming",h("b",{},"Fri Oct 23"),"Dance $8"),
+       h("div",{class:"note",style:"top:150px;transform:rotate(4deg)"},"yearbook pics by 3:15!!")],
+  ()=>[h("div",{class:"poster p-fit",style:"top:60px"},"Hallway",h("b",{},"Fit Check"),"every Friday ★"),
+       h("div",{class:"sticker",style:"top:185px;left:22px;background:#fff;color:var(--c-burgundy)"},"BV")],
+  ()=>[h("div",{class:"poster p-film",style:"top:40px"},"🎬",h("b",{},"Film Club"),"now casting · Rm 114")],
+  ()=>[h("div",{class:"poster p-buzz",style:"top:26px"},"🎙",h("b",{},"Birchview Buzz"),"Fridays 8:05"),
+       h("div",{class:"note",style:"top:160px;transform:rotate(-5deg)"},"LOST: lake photo?? do NOT look at it. AJ")],
+  ()=>[h("div",{class:"poster p-beat",style:"top:50px"},"Go Birchview!",h("b",{},"Beat Westfield")),
+       h("div",{class:"sticker",style:"top:170px;left:20px;background:var(--c-yellow);color:var(--c-navy)"},"#1")],
+  ()=>[h("div",{class:"poster p-rule",style:"top:44px"},"Dress code",h("b",{},"No hats"),"in class"),
+       h("div",{class:"note",style:"top:150px;transform:rotate(6deg)"},"says who? R.")]
+];
+const deco=i=>h("div",{class:"deco","aria-hidden":"true"},DECOR[i%DECOR.length]());
+
+/* ---- Painted hallway wall (canvas): cinder blocks, lockers, vinyl floor with reflection ---- */
+const hallCache={};
+function paintHallway(){
+  const el=document.querySelector(".hallway");if(!el)return;
+  if(ASSETS.hallway_bg){el.style.backgroundImage=`url(${ASSETS.hallway_bg})`;el.style.backgroundSize="cover";return;}
+  const W=Math.max(el.scrollWidth,el.clientWidth),H=el.clientHeight;if(!W||!H)return;
+  const k=W+"x"+H;if(!(k in hallCache))hallCache[k]=drawHall(W,H);
+  if(hallCache[k]){el.style.backgroundImage=`url(${hallCache[k]})`;el.style.backgroundSize=`${W}px ${H}px`;}
+}
+window.addEventListener("resize",()=>requestAnimationFrame(paintHallway));
+function drawHall(W,H){
+  const dpr=Math.min(window.devicePixelRatio||1,2);
+  const cv=document.createElement("canvas");cv.width=W*dpr;cv.height=H*dpr;
+  const c=cv.getContext&&cv.getContext("2d");if(!c)return null;
+  c.scale(dpr,dpr);
+  let seed=7;const rnd=()=>(seed=(seed*16807)%2147483647)/2147483647;
+  const floorY=H-30, lockTop=62, lockBot=floorY-8;
+  // wall: painted cinder blocks
+  c.fillStyle="#D9CFBA";c.fillRect(0,0,W,floorY);
+  for(let y=0,row=0;y<lockTop;y+=20,row++)for(let x=(row%2)*-24;x<W;x+=48){
+    c.fillStyle=`rgba(${120+rnd()*30|0},${105+rnd()*25|0},80,${.04+rnd()*.05})`;c.fillRect(x+1,y+1,46,18);
+    c.fillStyle="rgba(90,75,55,.18)";c.fillRect(x,y,48,1);c.fillRect(x,y,1,20);}
+  // school stripe
+  c.fillStyle="#7A0F24";c.fillRect(0,30,W,9);c.fillStyle="rgba(255,255,255,.18)";c.fillRect(0,30,W,1);c.fillStyle="#1E2D4A";c.fillRect(0,41,W,3);
+  // pennant string
+  c.strokeStyle="rgba(60,50,40,.6)";c.lineWidth=1;c.beginPath();c.moveTo(0,5);
+  for(let x=0;x<W;x+=60)c.quadraticCurveTo(x+30,13,x+60,5);c.stroke();
+  const pc=["#800020","#EAA816","#1E2D4A","#F5E6C4"];
+  for(let x=4,i=0;x<W;x+=15,i++){const yy=5+Math.sin(((x%60)/60)*Math.PI)*6.5;c.fillStyle=pc[i%4];c.beginPath();c.moveTo(x,yy);c.lineTo(x+12,yy);c.lineTo(x+6,yy+16);c.closePath();c.fill();}
+  // lockers
+  const lw=40;
+  for(let x=0,i=0;x<W;x+=lw+2,i++){
+    const g=c.createLinearGradient(x,0,x+lw,0);
+    g.addColorStop(0,"#3E5A88");g.addColorStop(.25,"#2F4670");g.addColorStop(.8,"#273B60");g.addColorStop(1,"#1B2944");
+    c.fillStyle=g;c.fillRect(x,lockTop,lw,lockBot-lockTop);
+    c.fillStyle="#141E33";c.fillRect(x+lw,lockTop,2,lockBot-lockTop);
+    const half=lockTop+(lockBot-lockTop)*.46;
+    c.fillStyle="rgba(0,0,0,.35)";c.fillRect(x,half,lw,2);c.fillStyle="rgba(255,255,255,.10)";c.fillRect(x,half+2,lw,1);
+    [lockTop+10,half+10].forEach(vy=>{for(let v=0;v<4;v++){c.fillStyle="#101828";c.fillRect(x+9,vy+v*6,lw-18,3);c.fillStyle="rgba(255,255,255,.14)";c.fillRect(x+9,vy+v*6+3,lw-18,1);}});
+    c.fillStyle="#C9CED6";c.fillRect(x+12,lockTop+38,16,8);c.fillStyle="#3A3F47";c.font="bold 6px sans-serif";c.textAlign="center";c.fillText(String(101+i),x+20,lockTop+44.5);
+    [lockTop+(half-lockTop)*.62,half+(lockBot-half)*.45].forEach(hy=>{const hg=c.createLinearGradient(x+lw-11,0,x+lw-5,0);hg.addColorStop(0,"#F2F4F7");hg.addColorStop(1,"#868D97");c.fillStyle=hg;c.fillRect(x+lw-11,hy,6,18);c.fillStyle="rgba(0,0,0,.35)";c.fillRect(x+lw-5,hy+1,1,18);});
+    c.fillStyle=`rgba(0,0,0,${rnd()*.06})`;c.fillRect(x,lockTop,lw,lockBot-lockTop);}
+  // locker top trim and base
+  c.fillStyle="#1A2640";c.fillRect(0,lockTop-4,W,4);c.fillStyle="#2A2A2A";c.fillRect(0,lockBot,W,floorY-lockBot);
+  // ceiling light falloff
+  for(let x=W*.12;x<W;x+=W>900?420:300){const rg=c.createRadialGradient(x,-40,10,x,-40,300);rg.addColorStop(0,"rgba(255,248,225,.55)");rg.addColorStop(1,"rgba(255,248,225,0)");c.fillStyle=rg;c.fillRect(0,0,W,floorY);}
+  const shade=c.createLinearGradient(0,0,0,floorY);shade.addColorStop(0,"rgba(0,0,0,.18)");shade.addColorStop(.3,"rgba(0,0,0,0)");shade.addColorStop(1,"rgba(0,0,0,.25)");c.fillStyle=shade;c.fillRect(0,0,W,floorY);
+  // floor: reflection of the wall, then speckled vinyl
+  c.save();c.translate(0,floorY*2);c.scale(1,-1);c.globalAlpha=.22;c.drawImage(cv,0,0,W*dpr,floorY*dpr,0,0,W,floorY);c.restore();
+  const fg=c.createLinearGradient(0,floorY,0,H);fg.addColorStop(0,"rgba(196,186,166,.72)");fg.addColorStop(1,"rgba(160,148,126,.9)");c.fillStyle=fg;c.fillRect(0,floorY,W,H-floorY);
+  for(let n=0;n<W*(H-floorY)/14;n++){const sx=rnd()*W,sy=floorY+rnd()*(H-floorY);c.fillStyle=["rgba(80,70,60,.35)","rgba(255,255,255,.35)","rgba(122,15,36,.25)","rgba(30,45,74,.25)"][n%4];c.fillRect(sx,sy,1.4,1.1);}
+  for(let x=0;x<W;x+=96){c.fillStyle="rgba(70,60,45,.18)";c.fillRect(x,floorY,1,H-floorY);}
+  c.fillStyle="#1F1F1F";c.fillRect(0,floorY-3,W,4);
+  return cv.toDataURL("image/jpeg",.85);
 }
 function completionCode(){
   const t=total(),m=maxPoints();
