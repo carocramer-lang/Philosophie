@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Seven Periods – Save the Birchview Yearbook</title>
+<title>Seven Periods</title>
 
 <!-- Google Fonts -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -648,10 +648,18 @@ function showStart(){
       h("button",{id:"practiceBtn",style:"width:240px;padding:16px",onclick:()=>startMode("practice")},h("h3",{},"Practice Mode"),h("div",{class:"muted"},"Hilfen & Regelkarten")),
       h("button",{id:"testBtn",style:"width:240px;padding:16px",onclick:()=>startMode("test")},h("h3",{},"Test Run"),h("div",{class:"muted"},"Klassenarbeits-Modus"))),
     h("div",{style:"margin-top:40px"},
-      h("button",{style:"font-size:12px",onclick:()=>{if(confirm("Delete all progress?")){try{localStorage.removeItem(KEY);}catch(e){}S=fresh();showStart();}}},"Reset Progress"))));
+      h("button",{style:"font-size:12px",onclick:()=>ask("Delete all progress?",()=>{try{localStorage.removeItem(KEY);}catch(e){}S=fresh();showStart();})},"Reset Progress"))));
 }
-function startMode(m){
-  if(S.mode&&S.mode!==m&&Object.keys(S.stamps).length&&!confirm("Switching mode resets progress. Continue?"))return;
+function ask(msg,onYes){
+  const ov=h("div",{class:"overlay"},h("div",{class:"panel",style:"max-width:420px;text-align:center"},
+    h("p",{style:"font-size:20px"},msg),
+    h("div",{class:"row",style:"justify-content:center"},
+      h("button",{onclick:()=>ov.remove()},"Cancel"),
+      h("button",{id:"askYes",class:"primary",onclick:()=>{ov.remove();onYes();}},"Yes"))));
+  document.body.append(ov);
+}
+function startMode(m,sure){
+  if(!sure&&S.mode&&S.mode!==m&&Object.keys(S.stamps).length)return ask("Switching mode resets progress. Continue?",()=>startMode(m,true));
   if(S.mode!==m){const keepIntro=S.introDone;S=fresh();S.introDone=keepIntro;}
   S.mode=m;save();S.introDone?showHallway():showIntro(0);
 }
