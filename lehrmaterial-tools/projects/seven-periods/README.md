@@ -11,7 +11,7 @@ Rahmen: Matt rettet bis 3:15 p.m. das Birchview Yearbook. Sieben Räume, ein Bon
 - 51 Punkte, nur erster Versuch zählt. Abschlusscode `BV<P|T>-<Punkte><Max>-<Prüfzeichen>`.
 
 ## Study Hall (ohne Wertung)
-Freiwillige Zusatzübungen von LearningApps oder LearningSnacks, erreichbar über den Button oben und unter dem Gang.
+Freiwillige Zusatzübungen von LearningApps oder LearningSnacks, erreichbar über den Button „Study Hall“ oben in der Leiste.
 Eintragen in `CONTENT.studyhall.items`, Feld `url`: Link oder kompletter Einbettungscode (`<iframe …>`).
 Nur learningapps.org und learningsnacks.de werden angenommen. Karten ohne Link bleiben unsichtbar.
 Die Übungen zählen nicht für Punkte und Hall Pass. In der Claude-Vorschau werden sie blockiert, nur auf Netlify sichtbar.
