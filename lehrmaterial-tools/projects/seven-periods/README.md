@@ -44,7 +44,7 @@ Nach sieben Stempeln steht links der Janitor's Closet.
 
 ## Assets
 - `ASSETS` im Skript: Figuren als SVG-Platzhalter. Eigene Bilder als Pfad oder data-URI eintragen.
-- `ASSETS.podcast_audio`: MP3 aus ElevenLabs. Solange leer, liest die Sprachausgabe des Browsers vor.
+- `ASSETS.podcast_audio`: Podcast-MP3 (ElevenLabs, 3 Stimmen, `podcast/birchview-buzz.mp3`, 2:01). Leer = Sprachausgabe des Browsers.
 
 ## Offen
 - Design-Skin nach Moodboard.
