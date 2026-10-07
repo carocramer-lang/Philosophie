@@ -9,7 +9,7 @@ const check = (n, c) => (c ? ok : fail).push(n);
 function boot(query) {
   const errors = [];
   const dom = new JSDOM(html, { runScripts: "dangerously", pretendToBeVisual: true, url: "https://localhost/" + (query || ""),
-    beforeParse(w) { w.addEventListener("error", e => errors.push(e.message)); w.confirm = () => true; w.prompt = () => ""; w.print = () => {}; w.scrollTo = () => {}; } });
+    beforeParse(w) { w.addEventListener("error", e => errors.push(e.message)); w.confirm = () => true; w.prompt = () => ""; w.print = () => {}; w.scrollTo = () => {}; w.HTMLMediaElement.prototype.play = () => Promise.resolve(); } });
   const win = dom.window, doc = win.document;
   const q = s => doc.querySelector(s), qa = s => Array.from(doc.querySelectorAll(s));
   const click = e => e.dispatchEvent(new win.MouseEvent("click", { bubbles: true }));

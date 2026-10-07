@@ -20,6 +20,13 @@ Die Übungen zählen nicht für Punkte und Hall Pass. In der Claude-Vorschau wer
 - `?teacher=1` Lehrkraftansicht: alle Aufgaben mit Lösungen, Podcast-Skript, Glossar, druckbar.
 - `?all=1` alle Räume offen, zum Testen.
 
+## Szenen und Videos
+- Gespräche laufen als Szene: Hintergrundbild, Figur im Polaroid-Rahmen, Sprechblase, Satz für Satz per Tippen.
+- Hintergrund: `ASSETS.bg_lockers` (Spindgang). `THEMES` im Skript legt pro Raum Einfärbung und Bildausschnitt fest; eigene Raumbilder dort als `bg` eintragen.
+- `VIDEOS`: stumme Loops für Matt, AJ, Zach und Mr. Okafor (`janitor`). Leer = Standbild. Bei „Bewegung reduzieren“ immer Standbild.
+- Gemini-Videos: Zuschnitt 4:3, vorwärts und rückwärts für einen nahtlosen Loop, ohne Ton, ca. 150 KB.
+  `ffmpeg -i in.mp4 -an -filter_complex "[0:v]trim=1:8.5,setpts=PTS-STARTPTS,crop=960:720:160:0,scale=400:300,fps=20,split[a][b];[b]reverse[r];[a][r]concat=n=2:v=1[v]" -map "[v]" -c:v libx264 -pix_fmt yuv420p -crf 30 -movflags +faststart out.mp4`
+
 ## Assets
 - `ASSETS` im Skript: Figuren als SVG-Platzhalter. Eigene Bilder als Pfad oder data-URI eintragen.
 - `ASSETS.podcast_audio`: MP3 aus ElevenLabs. Solange leer, liest die Sprachausgabe des Browsers vor.
