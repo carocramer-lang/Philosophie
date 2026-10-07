@@ -9,7 +9,7 @@ const check = (n, c) => (c ? ok : fail).push(n);
 function boot(query) {
   const errors = [];
   const dom = new JSDOM(html, { runScripts: "dangerously", pretendToBeVisual: true, url: "https://localhost/" + (query || ""),
-    beforeParse(w) { w.addEventListener("error", e => errors.push(e.message)); w.confirm = () => true; w.prompt = () => ""; w.print = () => {}; w.scrollTo = () => {}; w.HTMLMediaElement.prototype.play = () => Promise.resolve(); } });
+    beforeParse(w) { w.addEventListener("error", e => errors.push(e.message)); w.confirm = () => true; w.prompt = () => ""; w.print = () => {}; w.scrollTo = () => {}; w.HTMLMediaElement.prototype.play = () => Promise.resolve(); w.HTMLMediaElement.prototype.pause = () => {}; } });
   const win = dom.window, doc = win.document;
   const q = s => doc.querySelector(s), qa = s => Array.from(doc.querySelectorAll(s));
   const click = e => e.dispatchEvent(new win.MouseEvent("click", { bubbles: true }));
@@ -55,6 +55,17 @@ function playRooms(t, correct) {
     check(`${r.id}: alle Items erledigt`, !q("#finishBtn").disabled);
     click(q("#finishBtn")); click(q("#backBtn"));
   }
+}
+
+// 0. Lueckentext zeigt das Verb in Klammern (3rd period), Hoerverstehen als Platzhalter
+{
+  const t = boot("?all=1"); const { q, qa, click } = t;
+  click(q("#practiceBtn")); while (q("#nextBtn")) click(q("#nextBtn"));
+  click(q('[data-room="r3"]')); click(q("#enterBtn"));
+  const cues = qa(".task .item .cue").map(c => c.textContent);
+  check("3rd period: 9 Verben in Klammern", cues.length === 9 && cues[0] === "(sit)" && cues.includes("(be)"));
+  click(q(".topbar button")); click(q('[data-room="r5"]')); click(q("#enterBtn"));
+  check("Radio Room: Hinweis im Feld statt Klammer", !q(".task .cue") && qa(".task input[placeholder]").some(i => i.getAttribute("placeholder") === "time"));
 }
 
 // 1. Pruefung der offenen Formate

@@ -236,6 +236,7 @@ input[type=text], textarea {
 .fb.ok { color: var(--c-green); }
 .fb.bad { color: var(--c-red); }
 
+.cue { font-weight: 700; color: var(--c-burgundy); white-space: nowrap; }
 .choices { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
 
 /* Chunk selector */
@@ -671,10 +672,10 @@ rooms: [
   {kind:"mc", q:"Where can you buy tickets?", opts:["in the gym","in the cafeteria at lunch","in the principal's office"], a:1},
   {kind:"mc", q:"What is the Hallway Fit Check?", opts:["Students show their outfits in the hallway.","Teachers check the lockers.","Students run through the hallway."], a:0},
   {kind:"mc", q:"What does Principal Harris say about phones?", opts:["Students can use them at lunch.","They must stay in the lockers during class.","They are not allowed at Homecoming."], a:1},
-  {kind:"gap", who:"", before:"The Homecoming game starts at", verb:"time", after:"p.m.", a:["7","seven","7:00"]},
-  {kind:"gap", who:"", before:"The yearbook deadline is today at", verb:"time", after:"p.m.", a:["3:15","3.15","315","three fifteen"]},
-  {kind:"gap", who:"", before:"The library is closed on", verb:"day", after:"afternoon.", a:["wednesday"]},
-  {kind:"gap", who:"", before:"Basketball: Birchview 54, Westfield", verb:"number", after:".", a:["49","forty-nine","forty nine"]}
+  {kind:"gap", who:"", before:"The Homecoming game starts at", verb:"time", ph:true, after:"p.m.", a:["7","seven","7:00"]},
+  {kind:"gap", who:"", before:"The yearbook deadline is today at", verb:"time", ph:true, after:"p.m.", a:["3:15","3.15","315","three fifteen"]},
+  {kind:"gap", who:"", before:"The library is closed on", verb:"day", ph:true, after:"afternoon.", a:["wednesday"]},
+  {kind:"gap", who:"", before:"Basketball: Birchview 54, Westfield", verb:"number", ph:true, after:".", a:["49","forty-nine","forty nine"]}
  ],
  outro:[{who:"Samantha", text:"You'd be a great reporter. Here's page 5."},
         {who:"AJ", asset:"aj", text:"I said NOT the lake photo. On the radio. Now everybody knows."}]},
@@ -1095,11 +1096,12 @@ const RENDER={
   el.append(h("div",{},`${idx+1}. ${it.text}`),h("div",{class:"choices"},b("-ing form","g"),b("to + verb","i")),fb);return el;},
  gap(it,idx,api){
   const fb=h("div",{class:"fb"});const el=h("div",{class:"item"});
-  const inp=h("input",{type:"text",style:"width:140px",autocapitalize:"off",autocomplete:"off","aria-label":it.verb});
+  const inp=h("input",{type:"text",style:"width:140px",autocapitalize:"off",autocomplete:"off","aria-label":it.verb,placeholder:it.ph?it.verb:null});
+  const cue=!it.ph&&it.verb?h("span",{class:"cue"},`(${it.verb})`):null;
   const solFull=`${it.before} ${it.a[0]} ${it.after}`.trim();
   const go=()=>{if(!inp.value.trim())return;it.a.some(a=>norm(a)===norm(inp.value))?api.right(idx,el,fb):api.wrong(idx,el,fb,solFull);};
   inp.addEventListener("keydown",e=>{if(e.key==="Enter")go();});
-  el.append(h("div",{},it.who?h("b",{},it.who+": "):null,it.before+" ",inp," ",it.after),
+  el.append(h("div",{},it.who?h("b",{},it.who+": "):null,it.before+" ",inp,cue?[" ",cue]:null," ",it.after),
     h("button",{style:"margin-top:6px",onclick:go},"Check"),fb);return el;},
  fix(it,idx,api){
   const fb=h("div",{class:"fb"});const el=h("div",{class:"item"});let sel=null;
