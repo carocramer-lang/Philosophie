@@ -142,5 +142,28 @@ function playRooms(t, correct) {
   check("keine JS-Fehler (Study Hall)", !t.errors.length);
 }
 
+// 6. AI Feedback: Sperre, Haken, persoenliche Daten, Prompt ohne Text
+{
+  const t = boot("?all=1"); const { q, qa, click, G } = t;
+  click(q("#practiceBtn")); while (q("#nextBtn")) click(q("#nextBtn"));
+  click(q('[data-room="r7"]')); click(q("#enterBtn"));
+  if (q("[data-prompt]")) click(q('[data-prompt="A"]'));
+  t.type(q("#writeText"), "The best thing about this year was the pep rally. " + "word ".repeat(115));
+  click(q("#submitWriting")); click(q("#aiBtn"));
+  check("AI: Kopieren gesperrt ohne Haken", q("#aiCopy").disabled && q("#aiOut").value === "");
+  const boxes = qa(".ai-safe input");
+  check("AI: vier Haken", boxes.length === 4);
+  boxes.forEach(b => { b.checked = true; b.dispatchEvent(new t.win.Event("change")); });
+  check("AI: frei mit Haken", !q("#aiCopy").disabled);
+  check("AI: Prompt und Text kombiniert", /schreibe meinen Text NICHT neu/.test(q("#aiOut").value) && /pep rally/.test(q("#aiOut").value));
+  check("AI: Telefonnummer erkannt", G.personalDataHit("call me 0171 2345678") === "eine Telefonnummer");
+  check("AI: E-Mail erkannt", G.personalDataHit("mail: ben@example.de") === "eine E-Mail-Adresse");
+  check("AI: Schuljahr ist keine Nummer", G.personalDataHit("school year 2025/2026") === null);
+  check("AI: normaler Text frei", G.personalDataHit("I'm looking forward to 7th period at 3:15.") === null);
+  click(q('[data-prompt="check"]'));
+  check("AI: Pruef-Prompt ohne eigenen Text", !q("#aiCopy").disabled && !/pep rally/.test(q("#aiOut").value));
+  check("keine JS-Fehler (AI Feedback)", !t.errors.length);
+}
+
 console.log("  " + ok.length + "/" + (ok.length + fail.length) + " Checks bestanden");
 if (fail.length) { fail.forEach(n => console.log("  XX " + n)); process.exit(1); }

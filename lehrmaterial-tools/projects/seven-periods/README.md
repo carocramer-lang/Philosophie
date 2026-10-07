@@ -10,6 +10,14 @@ Rahmen: Matt rettet bis 3:15 p.m. das Birchview Yearbook. Sieben Räume, ein Bon
 - Janitor's Closet (Bonus): remember/forget/try/stop + Gerund oder Infinitiv, Code 3714.
 - 51 Punkte, nur erster Versuch zählt. Abschlusscode `BV<P|T>-<Punkte><Max>-<Prüfzeichen>`.
 
+## AI Feedback (nach dem Writing)
+Nach dem Abgeben im 7th period: Button „AI Feedback“ (auch beim erneuten Öffnen des Raums).
+Die SuS kopieren Prompt und eigenen Text selbst in ein KI-Tool. Das Spiel sendet nichts.
+Kopieren erst nach vier Haken (keine Namen, keine Kontaktdaten, nichts Privates, Eltern einverstanden).
+E-Mail-Adressen und Telefonnummern im Text sperren das Kopieren.
+Drei Prompts in `CONTENT.aifeedback.prompts`: Feedback ohne Neuschreiben, Tutor mit Tipp zuerst, Fehlersuche ohne eigenen Text.
+Bewusst keine Anbieter genannt: viele KI-Dienste haben Altersgrenzen (Claude z. B. ab 18).
+
 ## Study Hall (ohne Wertung)
 Freiwillige Zusatzübungen von LearningApps oder LearningSnacks, erreichbar über den Button „Study Hall“ oben in der Leiste.
 Eintragen in `CONTENT.studyhall.items`, Feld `url`: Link oder kompletter Einbettungscode (`<iframe …>`).
