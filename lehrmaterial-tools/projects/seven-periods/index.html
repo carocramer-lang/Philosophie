@@ -774,7 +774,7 @@ aifeedback: {
   "Mein Text enthält keine echten Namen: nicht meinen, nicht von Freunden, Lehrkräften oder meiner Schule.",
   "Kein Wohnort, keine Adresse, keine Telefonnummer, keine E-Mail.",
   "Nichts Privates, das ich nicht auch an die Pinnwand im Klassenraum hängen würde.",
-  "Meine Eltern sind einverstanden, dass ich ein KI-Tool benutze."
+  "Ich habe meinen Eltern Bescheid gesagt, dass ich ein KI-Tool benutze."
  ],
  prompts:[
   {id:"feedback", title:"Erst selbst, dann Feedback", tag:"mit deinem Text",
@@ -1287,7 +1287,7 @@ function showAIFeedback(){
     h("p",{style:"margin-top:12px"},"Du hast deinen Text selbst geschrieben. Jetzt kannst du dir Feedback von einer KI holen. Die KI soll dir helfen, besser zu werden, nicht für dich schreiben."),
     h("div",{class:"ai-safe"},h("h3",{},"Bevor du etwas kopierst"),
       A.checks.map((c,i)=>h("label",{},boxes[i],h("span",{},c))),
-      h("p",{class:"ai-note"},"Benutze nur ein KI-Tool, das deine Schule oder deine Eltern erlaubt haben. Viele KI-Dienste haben ein Mindestalter. Frag im Zweifel deine Lehrkraft. Gib nie etwas Persönliches ein.")),
+      h("p",{class:"ai-note"},"Benutze nur ein KI-Tool, das deine Eltern erlaubt haben. Viele KI-Dienste haben ein Mindestalter. Gib nie etwas Persönliches ein. Ohne KI geht es auch: Gib deinen Text deiner Lehrkraft.")),
     h("h3",{style:"margin-top:16px"},"1. Wähle einen Prompt"),
     h("div",{class:"ai-grid"},cards),
     h("h3",{style:"margin-top:16px"},"2. Kopieren und in die KI einfügen"),

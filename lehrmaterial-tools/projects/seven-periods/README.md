@@ -13,7 +13,7 @@ Rahmen: Matt rettet bis 3:15 p.m. das Birchview Yearbook. Sieben Räume, ein Bon
 ## AI Feedback (nach dem Writing)
 Nach dem Abgeben im 7th period: Button „AI Feedback“ (auch beim erneuten Öffnen des Raums).
 Die SuS kopieren Prompt und eigenen Text selbst in ein KI-Tool. Das Spiel sendet nichts.
-Kopieren erst nach vier Haken (keine Namen, keine Kontaktdaten, nichts Privates, Eltern einverstanden).
+Kopieren erst nach vier Haken (keine Namen, keine Kontaktdaten, nichts Privates, Eltern Bescheid gesagt).
 E-Mail-Adressen und Telefonnummern im Text sperren das Kopieren.
 Drei Prompts in `CONTENT.aifeedback.prompts`: Feedback ohne Neuschreiben, Tutor mit Tipp zuerst, Fehlersuche ohne eigenen Text.
 Bewusst keine Anbieter genannt: viele KI-Dienste haben Altersgrenzen (Claude z. B. ab 18).
