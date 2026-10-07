@@ -131,7 +131,7 @@ function playRooms(t, correct) {
   const sh = () => Array.from(t.doc.querySelectorAll("button")).find(b => /Study Hall/.test(b.textContent));
   click(sh());
   check("6 Karten in der Study Hall", qa(".sh-card").length === 6);
-  click(qa(".sh-card")[1]);
+  click(qa(".sh-card")[0]);
   check("Uebung im iframe", q(".sh-view iframe") && q(".sh-view iframe").getAttribute("src") === "https://learningapps.org/watch?app=15857883");
   click(q(".sh-bar button"));
   check("Uebung geschlossen", !q(".sh-view"));
