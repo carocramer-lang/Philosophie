@@ -783,10 +783,12 @@ studyhall: {
  host:"Zach", asset:"zach",
  intro:"Welcome to Study Hall. No tardy slips, no points, just practice. Pick a card and go.",
  items:[
-  {title:"Unit 1 Vocabulary", info:"School words from Matt's notebook", tag:"Vocabulary", url:""},
-  {title:"-ing or to?", info:"Quick warm-up: gerund or to-infinitive", tag:"Grammar", url:""},
-  {title:"Infinitive constructions", info:"want sb to, the best … to, what to …", tag:"Grammar", url:""},
-  {title:"High School Life", info:"Quiz about American schools", tag:"Culture", url:""}
+  {title:"Learning Snack", info:"Chat-style quiz, tap your answers", tag:"Snack", url:"https://www.learningsnacks.de/share/130823/"},
+  {title:"Extra Practice 1", info:"LearningApps exercise", tag:"Practice", url:"https://learningapps.org/15857883"},
+  {title:"Extra Practice 2", info:"LearningApps exercise", tag:"Practice", url:"https://learningapps.org/display?v=p3kfx9wvk21"},
+  {title:"Extra Practice 3", info:"LearningApps exercise", tag:"Practice", url:"https://learningapps.org/view17210151"},
+  {title:"Extra Practice 4", info:"LearningApps exercise", tag:"Practice", url:"https://learningapps.org/view17212337"},
+  {title:"Extra Practice 5", info:"LearningApps exercise", tag:"Practice", url:"https://learningapps.org/view21219684"}
  ]
 },
 
@@ -1282,6 +1284,12 @@ function embedSrc(u){
   const m=u.match(/<iframe[^>]*\ssrc=["']([^"']+)["']/i);if(m)u=m[1];
   u=u.replace(/&amp;/g,"&");
   if(!/^https:\/\/([a-z0-9-]+\.)*(learningapps\.org|learningsnacks\.de|learningsnacks\.com)\//i.test(u))return null;
+  if(/learningapps\.org/i.test(u)){
+    // every LearningApps link form (share, view, display, watch) becomes the embeddable player
+    const v=u.match(/[?&]v=([a-z0-9]+)/i);if(v)return "https://learningapps.org/watch?v="+v[1];
+    const id=u.match(/learningapps\.org\/(?:view|watch\?app=|display\?app=|index\.php\?app=)?(\d{4,})/i);
+    if(id)return "https://learningapps.org/watch?app="+id[1];
+  }
   return u;
 }
 function showStudyHall(){

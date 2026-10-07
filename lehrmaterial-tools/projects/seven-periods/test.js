@@ -120,20 +120,24 @@ function playRooms(t, correct) {
 {
   const t = boot(); const { q, qa, click, G } = t;
   check("Link LearningApps", G.embedSrc("https://learningapps.org/watch?v=p1abc") === "https://learningapps.org/watch?v=p1abc");
-  check("Einbettungscode", G.embedSrc('<iframe src="https://learningapps.org/watch?app=123&amp;x=1" style="border:0"></iframe>') === "https://learningapps.org/watch?app=123&x=1");
+  check("Einbettungscode", G.embedSrc('<iframe src="https://learningapps.org/watch?app=123456&amp;x=1" style="border:0"></iframe>') === "https://learningapps.org/watch?app=123456");
+  check("LearningApps view-Link", G.embedSrc("https://learningapps.org/view17210151") === "https://learningapps.org/watch?app=17210151");
+  check("LearningApps Kurzlink", G.embedSrc("https://learningapps.org/15857883") === "https://learningapps.org/watch?app=15857883");
+  check("LearningApps display?v=", G.embedSrc("https://learningapps.org/display?v=p3kfx9wvk21") === "https://learningapps.org/watch?v=p3kfx9wvk21");
+  check("alle 6 eingetragenen Links gueltig", G.CONTENT.studyhall.items.every(it => G.embedSrc(it.url)));
   check("LearningSnacks", !!G.embedSrc("https://www.learningsnacks.de/share/12345/"));
   check("fremde Seite abgelehnt", G.embedSrc("https://evil.example/learningapps.org/") === null && G.embedSrc("") === null);
   click(q("#practiceBtn")); while (q("#nextBtn")) click(q("#nextBtn"));
   const sh = () => Array.from(t.doc.querySelectorAll("button")).find(b => /Study Hall/.test(b.textContent));
   click(sh());
-  check("Study Hall leer ohne Links", !!q(".sh-empty") && !q(".sh-card"));
-  G.CONTENT.studyhall.items[0].url = "https://learningapps.org/watch?v=p1abc";
-  click(sh());
-  check("eine Karte mit Link", qa(".sh-card").length === 1);
-  click(q(".sh-card"));
-  check("Uebung im iframe", q(".sh-view iframe") && q(".sh-view iframe").getAttribute("src") === "https://learningapps.org/watch?v=p1abc");
+  check("6 Karten in der Study Hall", qa(".sh-card").length === 6);
+  click(qa(".sh-card")[1]);
+  check("Uebung im iframe", q(".sh-view iframe") && q(".sh-view iframe").getAttribute("src") === "https://learningapps.org/watch?app=15857883");
   click(q(".sh-bar button"));
   check("Uebung geschlossen", !q(".sh-view"));
+  G.CONTENT.studyhall.items.forEach(it => it.url = "");
+  click(sh());
+  check("Study Hall leer ohne Links", !!q(".sh-empty") && !q(".sh-card"));
   check("keine Punkte durch Study Hall", G.total() === 0 && !Object.keys(G.state.stamps).length);
   check("keine JS-Fehler (Study Hall)", !t.errors.length);
 }
