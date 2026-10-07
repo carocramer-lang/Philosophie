@@ -24,6 +24,8 @@ Die Übungen zählen nicht für Punkte und Hall Pass. In der Claude-Vorschau wer
 - Gespräche laufen als Szene: Hintergrundbild, Figur im Polaroid-Rahmen, Sprechblase, Satz für Satz per Tippen.
 - Hintergrund: `ASSETS.bg_lockers` (Spindgang). `THEMES` im Skript legt pro Raum Einfärbung und Bildausschnitt fest; eigene Raumbilder dort als `bg` eintragen.
 - `VIDEOS`: stumme Loops für Matt, AJ, Zach und Mr. Okafor (`janitor`). Leer = Standbild. Bei „Bewegung reduzieren“ immer Standbild.
+- Jedes Video liegt als MP4 und WebM vor (`{mp4, webm}`), der Browser nimmt, was er abspielen kann.
+  WebM: `ffmpeg -i out.mp4 -an -c:v libvpx-vp9 -b:v 0 -crf 42 out.webm`
 - Gemini-Videos: Zuschnitt 4:3, vorwärts und rückwärts für einen nahtlosen Loop, ohne Ton, ca. 150 KB.
   `ffmpeg -i in.mp4 -an -filter_complex "[0:v]trim=1:8.5,setpts=PTS-STARTPTS,crop=960:720:160:0,scale=400:300,fps=20,split[a][b];[b]reverse[r];[a][r]concat=n=2:v=1[v]" -map "[v]" -c:v libx264 -pix_fmt yuv420p -crf 30 -movflags +faststart out.mp4`
 
