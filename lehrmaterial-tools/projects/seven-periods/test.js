@@ -68,6 +68,13 @@ function playRooms(t, correct) {
   check("Radio Room: Hinweis im Feld statt Klammer", !q(".task .cue") && qa(".task input[placeholder]").some(i => i.getAttribute("placeholder") === "time"));
 }
 
+// 0b. Jede Uebersetzung im Gym hat Vokabelhilfen in Klammern
+{
+  const { G } = boot();
+  const gym = G.CONTENT.rooms.find(r => r.id === "r6").items;
+  check("Gym: alle 8 Saetze mit Klammerhilfe", gym.every(it => /\([^)]+\)\s*$/.test(it.q)));
+}
+
 // 1. Pruefung der offenen Formate
 {
   const { G } = boot();
