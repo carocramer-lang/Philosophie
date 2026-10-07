@@ -24,7 +24,7 @@ function playRooms(t, correct) {
   const { q, qa, click, G } = t;
   const R = G.CONTENT.rooms;
   for (const r of R) {
-    click(q(`.door[data-room="${r.id}"]`));
+    click(q(`[data-room="${r.id}"]`));
     click(q("#enterBtn"));
     if (r.writing) {
       if (q("[data-prompt]")) click(q('[data-prompt="A"]'));
@@ -79,13 +79,13 @@ function playRooms(t, correct) {
   click(q("#practiceBtn"));
   while (q("#nextBtn")) click(q("#nextBtn"));
   check("Intro durchlaufen", G.state.introDone);
-  check("Raum 2 anfangs gesperrt", q('.door[data-room="r2"]').disabled);
+  check("Raum 2 anfangs gesperrt", q('[data-room="r2"]').disabled);
   playRooms(t, true);
   check("7 Stempel", Object.keys(G.state.stamps).length === 7);
   check("volle Punktzahl 51", G.total() === 51 && G.maxPoints() === 51);
   check("Abschlusscode sichtbar", /^BVP-5151-[A-Z]{2}$/.test(q("#completionCode").textContent));
   check("Bestzeit Gym gespeichert", typeof G.state.best.r6 === "number");
-  click(q('.door[data-room="bonus"]')); click(q("#enterBtn"));
+  click(q('[data-room="bonus"]')); click(q("#enterBtn"));
   [0, 1, 0, 1].forEach((j, i) => click(q(`[data-puzzle="${i}"][data-opt="${j}"]`)));
   click(q("#unlockBtn"));
   check("Bonus geloest, goldener Stempel", G.state.gold === true);
@@ -98,7 +98,7 @@ function playRooms(t, correct) {
   const t = boot(); const { q, click, G } = t;
   click(q("#testBtn"));
   while (q("#nextBtn")) click(q("#nextBtn"));
-  click(q('.door[data-room="r1"]')); click(q("#enterBtn"));
+  click(q('[data-room="r1"]')); click(q("#enterBtn"));
   check("Test Run ohne Rule Card", !Array.from(t.doc.querySelectorAll("button")).some(b => /Rule Card/.test(b.textContent)));
   check("Test Run ohne Tardy-Anzeige", !q("#tardy"));
   click(q(".topbar button"));

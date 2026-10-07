@@ -20,6 +20,11 @@ Die Übungen zählen nicht für Punkte und Hall Pass. In der Claude-Vorschau wer
 - `?teacher=1` Lehrkraftansicht: alle Aufgaben mit Lösungen, Podcast-Skript, Glossar, druckbar.
 - `?all=1` alle Räume offen, zum Testen.
 
+## Hallway (Startansicht)
+EXIT-Tür als Bild (`ASSETS.exit_door`). Links leuchtet gelb der aktuelle Raum, rechts steht der nächste.
+Die übrigen Stunden liegen als farbige Kacheln darunter (`TILE_COLORS`), erledigte mit „Page saved“.
+Nach sieben Stempeln steht links der Janitor's Closet.
+
 ## Szenen und Videos
 - Gespräche laufen als Szene: Hintergrundbild, Figur im Polaroid-Rahmen, Sprechblase, Satz für Satz per Tippen.
 - Hintergrund: `ASSETS.bg_lockers` (Spindgang). `THEMES` im Skript legt pro Raum Einfärbung und Bildausschnitt fest; eigene Raumbilder dort als `bg` eintragen.
