@@ -349,9 +349,24 @@ input[type=text], textarea {
 .period-sign small { display: block; font-size: .72em; color: var(--c-burgundy); margin-bottom: 4px; }
 .period-sign .hint { display: block; margin-top: 8px; font: 700 12px/1 var(--font-body); letter-spacing: 1.5px; color: var(--c-navy); opacity: .75; }
 .period-sign.current { background: linear-gradient(#FFD45C, #F2A900); animation: sign-glow 1.8s ease-in-out infinite alternate; }
-.period-sign:disabled { opacity: 1; filter: none; }
+.period-sign:disabled { opacity: 1; filter: none; transform: translateY(-50%); box-shadow: 0 8px 0 rgba(0,0,0,.35), 0 12px 24px rgba(0,0,0,.45); }
 .period-sign:disabled .hint { opacity: .6; }
 .period-sign:not(:disabled):hover { transform: translateY(calc(-50% - 2px)); }
+/* Posters and notes on the wall next to the exit door */
+.wall-deco { position: absolute; inset: 0; pointer-events: none; }
+.poster, .note, .sticker { position: absolute; box-shadow: 0 4px 8px rgba(0,0,0,.5); text-align: center; line-height: 1.1; }
+.poster { width: 96px; padding: 9px 5px; font: 800 10px/1.1 var(--font-display); text-transform: uppercase; }
+.poster b { display: block; font-size: 14px; margin: 2px 0; }
+.poster::before, .note::before { content: ''; position: absolute; top: -7px; left: 50%; width: 34px; height: 12px; transform: translateX(-50%) rotate(-3deg); background: rgba(255,250,230,.6); box-shadow: 0 1px 1px rgba(0,0,0,.15); }
+.note { width: 92px; padding: 12px 6px 9px; font: 400 12px/1.15 var(--font-hand); color: #2A2A2A; background: #FFE873; }
+.sticker { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font: 800 11px/1 var(--font-display); }
+.p-home { background: var(--c-burgundy); color: var(--c-yellow); transform: rotate(-4deg); }
+.p-fit { background: #FF6FA8; color: #FFF; transform: rotate(3deg); }
+.p-film { background: #111; color: #FFF; transform: rotate(-2deg); border: 3px solid #FFF; }
+.p-buzz { background: var(--c-yellow); color: var(--c-navy); transform: rotate(2deg); }
+.p-beat { background: var(--c-navy); color: #FFF; transform: rotate(-3deg); border-bottom: 5px solid var(--c-yellow); }
+.p-rule { background: #FFF; color: var(--c-red); border: 3px solid var(--c-red); transform: rotate(2deg); }
+@media (max-width: 640px) { .wall-deco { display: none; } }
 @keyframes sign-glow { from { box-shadow: 0 8px 0 rgba(0,0,0,.35), 0 0 12px 2px rgba(255,200,40,.35); } to { box-shadow: 0 8px 0 rgba(0,0,0,.35), 0 0 34px 10px rgba(255,200,40,.65); } }
 .period-tiles { display: flex; flex-wrap: wrap; justify-content: center; gap: 18px; margin-top: 18px; }
 .period-tiles > .period-tile { flex: 0 1 calc(33.333% - 12px); min-width: 200px; }
@@ -369,7 +384,7 @@ input[type=text], textarea {
 @media (max-width: 640px) {
   .exit-hero { height: 300px; }
   .period-sign { position: static; transform: none; width: auto; display: block; margin-top: 12px; }
-  .period-sign:not(:disabled):hover { transform: none; }
+  .period-sign:not(:disabled):hover, .period-sign:disabled { transform: none; }
   .hero-signs { display: grid; gap: 10px; }
 }
 @media (prefers-reduced-motion: reduce) { .period-sign.current { animation: none; box-shadow: 0 8px 0 rgba(0,0,0,.35), 0 0 24px 6px rgba(255,200,40,.5); } }
@@ -894,10 +909,24 @@ function showHallway(){
   });
   screen(topbar(),h("div",{class:"wrap"},
     h("div",{class:"hero-wrap"},
-      h("div",{class:"exit-hero"},h("img",{class:"exit-art",src:ASSETS.exit_door,alt:""})),
+      h("div",{class:"exit-hero"},h("img",{class:"exit-art",src:ASSETS.exit_door,alt:""}),wallDeco()),
       h("div",{class:"hero-signs"},left,right)),
     h("div",{class:"period-tiles"},tiles),
     allDone()?finalBox():null));
+}
+/* Posters next to the door: they preview facts from the podcast and the rooms */
+function wallDeco(){
+  return h("div",{class:"wall-deco","aria-hidden":"true"},
+    h("div",{class:"poster p-home",style:"left:5%;top:7%"},"Homecoming",h("b",{},"Fri Oct 23"),"Dance $8"),
+    h("div",{class:"poster p-rule",style:"left:19%;top:5%"},"Dress code",h("b",{},"No hats"),"in class"),
+    h("div",{class:"note",style:"left:28%;top:12%;transform:rotate(8deg);width:66px;padding:9px 4px 7px;font-size:11px"},"says who? R."),
+    h("div",{class:"note",style:"left:6%;bottom:6%;transform:rotate(-5deg)"},"yearbook pics by 3:15!!"),
+    h("div",{class:"poster p-beat",style:"left:20%;bottom:5%"},"Go Birchview!",h("b",{},"Beat Westfield")),
+    h("div",{class:"poster p-fit",style:"right:19%;top:6%"},"Hallway",h("b",{},"Fit Check"),"every Friday ★"),
+    h("div",{class:"poster p-film",style:"right:5%;top:8%"},"🎬",h("b",{},"Film Club"),"now casting · Rm 114"),
+    h("div",{class:"poster p-buzz",style:"right:20%;bottom:6%"},"🎙",h("b",{},"Birchview Buzz"),"Fridays 8:05"),
+    h("div",{class:"note",style:"right:5%;bottom:7%;transform:rotate(4deg)"},"LOST: lake photo?? do NOT look at it. AJ"),
+    h("div",{class:"sticker",style:"left:31%;bottom:18%;background:#FFF;color:var(--c-burgundy)"},"BV"));
 }
 function completionCode(){
   const t=total(),m=maxPoints();
