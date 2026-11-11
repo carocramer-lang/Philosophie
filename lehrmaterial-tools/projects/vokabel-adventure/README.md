@@ -46,8 +46,9 @@ zugeschlagen:
 4. The Pacific Northwest (mit „What you say and how you say it“) — noch ohne Vokabeln.
 
 Die Liste steht als `UNITS`-Array oben im Skript (Kapitel-Kachel/-Modal).
-Im Kapitel-Modal ist nur Unit 1 anklickbar, Units 2–4 sind sichtbar aber als
-„folgt später“ markiert — wir arbeiten Unit für Unit.
+Im Kapitel-Modal sind Unit 1 und das Zusatzkapitel „Having a discussion“
+(siehe unten) anklickbar, Units 2–4 sind sichtbar aber als „folgt später“
+markiert — wir arbeiten Unit für Unit.
 
 ## Unit 1: Vokabeln
 `UNIT1_SECTIONS` (im Skript, aus `Vokabelübersicht_GL4.pdf` extrahiert, keine
@@ -59,6 +60,34 @@ Story: Nightmare at the mall! · Skills & Unit task — zusammen 189 Wörter.
 
 Ein Homonym-Paar (`right` = „Recht“ vs. „direkt; genau“) wurde zur eindeutigen
 Karteikarten-Zuordnung als `right (= exactly)` disambiguiert.
+
+## Zusatzkapitel: Having a discussion
+Zwischen Unit 1 und Unit 2 einsortiertes, eigenständiges Kapitel mit
+Diskussions-Redemitteln (nicht aus dem Lehrwerk, Quelle:
+[onlineuebung.de/englisch/having-a-discussion](https://onlineuebung.de/englisch/having-a-discussion/)).
+Kein „Unit N“ — eher ein kurzes Skills-Kapitel, das jederzeit zwischen den
+beiden angeklickt werden kann (Fortschritt bleibt dabei getrennt: die
+Fortschrittsanzeige auf dem Startbildschirm bezieht sich immer auf das
+gerade gewählte Kapitel, Erfolge/Export/Lehrkraft-Ansicht zeigen die Summe
+über beide Kapitel).
+
+`DISCUSSION_SECTIONS` gliedert die 27 Phrasen in sechs Abschnitte nach den
+Themenüberschriften der Quelle — **die Überschriften selbst werden nicht
+abgefragt**, sondern erscheinen nur als Abschnittsname (Abschnittsliste,
+Karteikarten-Tag, Merkliste-Eintrag):
+
+Introduction (3) · Personal opinion (7) · Agreement (6) · Disagreement (5) ·
+Questions (3) · Conclusion (3)
+
+Karteikarten und Übersicht funktionieren 1:1 wie bei Unit 1 (Vorderseite
+Deutsch, Rückseite Englisch; Übersicht Englisch-first).
+
+**Spiele** (`DISCUSSION_GAMES`, 1:1 zu `DISCUSSION_SECTIONS`): nur
+**Zuordnung** und **Wahr/Falsch** im Wechsel — kein Memory, weil ganze
+Satzanfänge („I would like to discuss …“) sich nicht sinnvoll mit Emoji
+abbilden lassen. Die Wahr/Falsch-Aussagen prüfen die Funktion der Phrase im
+Gespräch (z. B. „‚I doubt that …' expresses certainty that something is
+true.“ → falsch) und sind wie bei Unit 1 selbst formuliert.
 
 ## Lern- und Merklisten-Logik
 - **Karteikarte umdrehen**: Klick/Tippen oder Leertaste. Pfeiltasten/Buttons
@@ -161,10 +190,12 @@ America, 0/189, „Loslegen“), damit keine erfundenen Lernstände angezeigt
 werden. Optik, Layout und Farben folgen der Vorlage 1:1.
 
 ## Persistenz
-localStorage-Key `vokabel_adventure_v1`. Enthält `wordAssessments` (Wort →
-„know“/„practice“), `merkliste` (mit `reviewCount`) und `badgesSeen` (welche
-Abschnitts-Abzeichen ihre Animation schon gezeigt haben). Vor Geräte- oder
-Browserwechsel über „Optionen → Fortschritt exportieren“ sichern.
+localStorage-Key `vokabel_adventure_v1`. Enthält `activeChapter`
+(„unit1“/„discussion“ — welches Kapitel gerade gewählt ist), `wordAssessments`
+(Wort → „know“/„practice“, über beide Kapitel hinweg), `merkliste` (mit
+`reviewCount`) und `badgesSeen` (welche Abschnitts-Abzeichen ihre Animation
+schon gezeigt haben). Vor Geräte- oder Browserwechsel über „Optionen →
+Fortschritt exportieren“ sichern.
 
 ## Test
 Aus dem Repo-Wurzelverzeichnis: `npm test`. Oder direkt: `node projects/vokabel-adventure/test.js`.

@@ -225,6 +225,7 @@
   .achv.locked{ opacity:.45; }
   .achv-dot{ width:9px; height:9px; border-radius:50%; background:var(--gold); flex:none; }
   .achv.locked .achv-dot{ background:var(--ink-9); }
+  .achv.current{ border:1px solid rgba(244,201,93,.4); }
   .stat-table{ width:100%; border-collapse:collapse; font-size:13.5px; }
   .stat-table td{ padding:7px 0; border-top:1px solid rgba(255,255,255,.08); color:var(--ink-5); }
   .stat-table tr:first-child td{ border-top:none; }
@@ -672,10 +673,10 @@
   <div class="wrap">
     <div class="subhead">
       <button class="back" id="unitBackBtn" aria-label="Zurück zum Startbildschirm">←</button>
-      <span class="crumb">Vokabel-Adventure · Unit 1</span>
+      <span class="crumb" id="unitCrumb">Vokabel-Adventure · Unit 1</span>
     </div>
     <div>
-      <h1 class="page-title">Living in America</h1>
+      <h1 class="page-title" id="unitPageTitle">Living in America</h1>
       <p class="page-sub" id="unitProgressSub"></p>
     </div>
     <div class="unit-toast" id="unitToast" role="status" aria-live="polite"></div>
@@ -688,7 +689,7 @@
   <div class="wrap">
     <div class="subhead">
       <button class="back" id="sectionBackBtn" aria-label="Zurück zur Unit-Übersicht">←</button>
-      <span class="crumb">Vokabel-Adventure · Unit 1</span>
+      <span class="crumb" id="sectionCrumb">Vokabel-Adventure · Unit 1</span>
     </div>
     <div>
       <h1 class="page-title" id="sectionTitle"></h1>
@@ -736,7 +737,7 @@
     </div>
     <div>
       <h1 class="page-title">Spiele</h1>
-      <p class="page-sub">Ein Spiel pro Abschnitt aus Unit 1 — mal Memory, mal Zuordnung, mal Wahr/Falsch.</p>
+      <p class="page-sub" id="gamesPageSub">Ein Spiel pro Abschnitt aus Unit 1 — mal Memory, mal Zuordnung, mal Wahr/Falsch.</p>
     </div>
     <div class="sec-list" id="gameList"></div>
   </div>
@@ -1044,9 +1045,77 @@
     sec.words.forEach(function(w){ UNIT1_WORDS.push({ en: w.en, de: w.de, section: sec.name }); });
   });
   function wordBySection(sectionIndex){ return UNIT1_SECTIONS[sectionIndex] ? UNIT1_SECTIONS[sectionIndex].words : []; }
+
+  // Zusatzkapitel "Having a discussion" zwischen Unit 1 und Unit 2: Redemittel
+  // fuer Diskussionen (nicht aus dem Lehrwerk, Quelle: onlineuebung.de/englisch/
+  // having-a-discussion/), nach Themenblock in sechs Abschnitte gegliedert. Die
+  // Blocktitel (Introduction, Personal opinion, ...) sind reine Abschnittsnamen
+  // (Tag auf der Karteikarte, Abschnittsname in der Liste) und werden selbst
+  // nicht abgefragt.
+  var DISCUSSION_SECTIONS = [
+    { name: 'Introduction', words: [
+      { en: 'I would like to discuss …', de: 'Ich möchte gerne … besprechen / diskutieren …' },
+      { en: 'We could start with …', de: 'Wir könnten mit … anfangen / beginnen' },
+      { en: 'To begin with, …', de: 'Zunächst einmal … / Zu Beginn …' },
+    ] },
+    { name: 'Personal opinion', words: [
+      { en: '(Personally,) I (don’t) find … / think … / feel … / suppose … / believe …', de: 'Ich finde / denke / habe das Gefühl / nehme an / glaube (nicht) …' },
+      { en: 'In my opinion …', de: 'Meiner Meinung nach …' },
+      { en: '(Well,) If you ask me …', de: '(Also,) Wenn du mich fragst …' },
+      { en: 'To be honest, …', de: 'Ehrlich gesagt …' },
+      { en: 'I would argue that …', de: 'Ich würde argumentieren, dass …' },
+      { en: 'The main reason, however, is that …', de: 'Der Hauptgrund ist jedoch, dass …' },
+      { en: 'The most convincing argument (to me) is …', de: 'Das (für mich) überzeugendste Argument ist …' },
+    ] },
+    { name: 'Agreement', words: [
+      { en: 'You are right on …', de: 'Du hast recht mit …' },
+      { en: 'I must admit that …', de: 'Ich muss zugeben, dass …' },
+      { en: 'I completely / totally / fully / quite agree that ...', de: 'Ich stimme voll und ganz / völlig / vollkommen / durchaus zu, dass ...' },
+      { en: 'I’m convinced that …', de: 'Ich bin überzeugt, dass …' },
+      { en: 'That’s why …', de: 'Deshalb … / Das ist der Grund, warum …' },
+      { en: 'I would like to come back to …', de: 'Ich möchte noch einmal auf … zurückkommen' },
+    ] },
+    { name: 'Disagreement', words: [
+      { en: 'I’m not convinced by … / that …', de: 'Ich bin nicht überzeugt von … / davon, dass …' },
+      { en: 'I don’t agree at all, because …', de: 'Ich stimme überhaupt nicht zu, weil ...' },
+      { en: 'I doubt that …', de: 'Ich bezweifle, dass …' },
+      { en: 'I see what you mean, but …', de: 'Ich verstehe, was du meinst, aber …' },
+      { en: 'I cannot fully agree with you, because …', de: 'Ich kann dir nicht ganz zustimmen, weil …' },
+    ] },
+    { name: 'Questions', words: [
+      { en: 'What do you think / say (about …)?', de: 'Was denkst / sagst du (zu …)?' },
+      { en: 'What do you mean by that?', de: 'Was meinst du damit?' },
+      { en: 'Can/May I add something?', de: 'Kann / Darf ich etwas hinzufügen?' },
+    ] },
+    { name: 'Conclusion', words: [
+      { en: 'To come to a conclusion, …', de: 'Um zu einem Schluss zu kommen, … / Zum Abschluss …' },
+      { en: 'So we agree on …', de: 'Wir sind uns also einig über …' },
+      { en: 'Based on what we have heard, I/we conclude that …', de: 'Aufgrund dessen, was wir gehört haben, schließe ich/schließen wir, dass …' },
+    ] },
+  ];
+  var DISCUSSION_WORDS = [];
+  DISCUSSION_SECTIONS.forEach(function(sec){
+    sec.words.forEach(function(w){ DISCUSSION_WORDS.push({ en: w.en, de: w.de, section: sec.name }); });
+  });
+
+  // ALL_WORDS fasst beide Kapitel zusammen, damit findWord/Merkliste/
+  // Karteikarten-Suche kapitelübergreifend funktionieren.
+  var ALL_WORDS = UNIT1_WORDS.concat(DISCUSSION_WORDS);
   function findWord(en){
-    for (var i = 0; i < UNIT1_WORDS.length; i++) if (UNIT1_WORDS[i].en === en) return UNIT1_WORDS[i];
+    for (var i = 0; i < ALL_WORDS.length; i++) if (ALL_WORDS[i].en === en) return ALL_WORDS[i];
     return null;
+  }
+
+  // ---- Kapitel-Umschaltung: "unit1" (Unit 1, voll ausgebaut) oder
+  // "discussion" (Zusatzkapitel "Having a discussion", zwischen Unit 1 und
+  // Unit 2 einsortiert). Units 2-4 bleiben wie bisher reine UNITS-Metadaten
+  // ("folgt später"), ohne eigenes Kapitel-Objekt.
+  function chapterSections(id){ return id === "discussion" ? DISCUSSION_SECTIONS : UNIT1_SECTIONS; }
+  function chapterWords(id){ return id === "discussion" ? DISCUSSION_WORDS : UNIT1_WORDS; }
+  function chapterGames(id){ return id === "discussion" ? DISCUSSION_GAMES : SECTION_GAMES; }
+  function activeChapterLabel(){
+    return state.activeChapter === "discussion" ? "Having a discussion"
+      : (state.unitName ? ("Unit " + state.unitNumber + " · " + state.unitName) : ("Unit " + state.unitNumber));
   }
 
   // Ein Spiel pro Abschnitt, Typ wechselt bewusst durch (Memory/Zuordnung/Wahr-Falsch).
@@ -1101,6 +1170,38 @@
     { type: "memory", emojis: [
       ["garlic", "🧄"], ["toothpaste", "🪥"], ["motorcycle (AE)", "🏍️"], ["drums (pl)", "🥁"],
       ["humorous", "😂"], ["to brainstorm", "💡"], ["pose", "🕺"], ["boyfriend", "💑"]
+    ] }
+  ];
+
+  // Spiele fuers Zusatzkapitel "Having a discussion": kein Memory (ganze
+  // Satzanfaenge statt Einzelwoerter passen schlecht zu Emoji), nur Zuordnung
+  // und Wahr/Falsch im Wechsel, 1:1 zu DISCUSSION_SECTIONS. Die Wahr/Falsch-
+  // Aussagen pruefen die Funktion der Phrase im Gespraech, nicht nur die
+  // Uebersetzung, und sind selbst formuliert.
+  var DISCUSSION_GAMES = [
+    { type: "match", wordEns: ["I would like to discuss …", "We could start with …", "To begin with, …"] },
+    { type: "truefalse", items: [
+      { statement: "'In my opinion …' is used to introduce your own personal opinion.", correct: true, explanation: "'In my opinion' (Meiner Meinung nach) always signals a personal view." },
+      { statement: "'To be honest, …' signals that you are about to say something frank or direct.", correct: true, explanation: "'To be honest' (Ehrlich gesagt) introduces a candid, straightforward statement." },
+      { statement: "'I would argue that …' is a hesitant, unsure way of making a point.", correct: false, explanation: "It's actually a confident, assertive way of stating a claim, not a hesitant one." },
+      { statement: "'The main reason, however, is that …' introduces the single most important reason.", correct: true, explanation: "'However' signals that this reason outweighs others already mentioned." },
+      { statement: "'(Well,) If you ask me …' is a formal phrase used only in academic essays.", correct: false, explanation: "It's actually informal and conversational — typical of spoken discussions." },
+      { statement: "'The most convincing argument (to me) is …' is used to say which argument you find strongest.", correct: true, explanation: "It points out the argument that personally convinces the speaker most." },
+      { statement: "'(Personally,) I think …' can be used to introduce a personal opinion.", correct: true, explanation: "'Personally, I think' (Meiner Meinung nach) is one of the standard ways to give an opinion." }
+    ] },
+    { type: "match", wordEns: ["You are right on …", "I must admit that …", "I completely / totally / fully / quite agree that ...", "I’m convinced that …", "That’s why …", "I would like to come back to …"] },
+    { type: "truefalse", items: [
+      { statement: "'I doubt that …' expresses certainty that something is true.", correct: false, explanation: "'To doubt' (bezweifeln) expresses uncertainty, not certainty." },
+      { statement: "'I see what you mean, but …' completely rejects the other person's point without acknowledging it first.", correct: false, explanation: "It actually acknowledges the other point first, before disagreeing." },
+      { statement: "'I don’t agree at all, because …' is a strong, direct way of disagreeing.", correct: true, explanation: "'Not at all' (überhaupt nicht) makes this a clear, strong disagreement." },
+      { statement: "'I’m not convinced by …' means you fully agree with an argument.", correct: false, explanation: "'Not convinced' (nicht überzeugt) means the opposite — you don't agree." },
+      { statement: "'I cannot fully agree with you, because …' shows partial, not complete, disagreement.", correct: true, explanation: "'Cannot fully agree' leaves room for partial agreement, unlike a total rejection." }
+    ] },
+    { type: "match", wordEns: ["What do you think / say (about …)?", "What do you mean by that?", "Can/May I add something?"] },
+    { type: "truefalse", items: [
+      { statement: "'To come to a conclusion, …' signals that the discussion is ending.", correct: true, explanation: "It introduces the final summarizing part of a discussion." },
+      { statement: "'So we agree on …' is used to point out a disagreement between speakers.", correct: false, explanation: "It actually points out agreement, not disagreement." },
+      { statement: "'Based on what we have heard, I/we conclude that …' introduces a conclusion drawn from the discussion.", correct: true, explanation: "It explicitly draws a conclusion from what was said earlier." }
     ] }
   ];
 
@@ -1232,7 +1333,8 @@
       v: 1,
       unitNumber: 1,
       unitName: UNITS[0].name,
-      wordAssessments: {}, // "en" -> "know" | "practice", ueber alle Unit-1-Woerter
+      activeChapter: "unit1", // "unit1" | "discussion" - welches Kapitel gerade gelernt wird
+      wordAssessments: {}, // "en" -> "know" | "practice", ueber alle Kapitel hinweg
       merkliste: [], // [{ en, de, section, reviewCount, addedAt }]
       badgesSeen: [], // Namen der Abschnitte, deren Abzeichen-Animation schon gezeigt wurde
       streakCount: 0,
@@ -1286,12 +1388,21 @@
     return n;
   }
 
-  function sectionDoneCount(state){
+  function sectionDoneCount(state, chapterId){
     var n = 0;
-    UNIT1_SECTIONS.forEach(function(sec){
+    chapterSections(chapterId || state.activeChapter).forEach(function(sec){
       if (sectionAssessedCount(state, sec) === sec.words.length) n++;
     });
     return n;
+  }
+
+  // chapterbuebergreifende Summe - fuer Erfolge/Export/Lehrkraft-Ansicht, damit
+  // sie nicht je nach gerade aktivem Kapitel hin- und herspringen.
+  function totalSectionDoneCount(state){
+    return sectionDoneCount(state, "unit1") + sectionDoneCount(state, "discussion");
+  }
+  function totalSectionCount(){
+    return UNIT1_SECTIONS.length + DISCUSSION_SECTIONS.length;
   }
 
   function merklisteIndex(state, en){
@@ -1331,7 +1442,7 @@
       { id: "streak-3", label: "3 Tage in Folge", unlocked: state.streakCount >= 3 },
       { id: "streak-7", label: "7 Tage in Folge", unlocked: state.streakCount >= 7 },
       { id: "words-10", label: "Erste 10 Vokabeln gelernt", unlocked: knownWordCount(state) >= 10 },
-      { id: "section-1", label: "Ersten Abschnitt geschafft", unlocked: sectionDoneCount(state) >= 1 },
+      { id: "section-1", label: "Ersten Abschnitt geschafft", unlocked: totalSectionDoneCount(state) >= 1 },
       { id: "wordlist-5", label: "5 Wörter auf der Merkliste", unlocked: state.merkliste.length >= 5 }
     ];
   }
@@ -1343,11 +1454,16 @@
   // ---- Rendering ----
   var $ = function(id){ return document.getElementById(id); };
 
+  function chapterWordsKnownCount(state, chapterId){
+    var n = 0;
+    chapterWords(chapterId).forEach(function(w){ if (state.wordAssessments[w.en] === "know") n++; });
+    return n;
+  }
+
   function render(){
-    var unitLabel = state.unitName ? ("Unit " + state.unitNumber + " · " + state.unitName) : ("Unit " + state.unitNumber);
-    $("unitLabel").textContent = unitLabel;
-    var wordsLearned = knownWordCount(state);
-    var wordsTotal = UNIT1_WORDS.length;
+    $("unitLabel").textContent = activeChapterLabel();
+    var wordsLearned = chapterWordsKnownCount(state, state.activeChapter);
+    var wordsTotal = chapterWords(state.activeChapter).length;
     $("wordsLabel").textContent = wordsLearned + " / " + wordsTotal + " Vokabeln";
     var pct = wordsTotal > 0 ? Math.round(wordsLearned / wordsTotal * 100) : 0;
     $("progressBar").style.width = pct + "%";
@@ -1360,10 +1476,10 @@
     var started = wordsLearned > 0 || doneSections > 0;
     $("ctaTitle").textContent = started ? "Continue" : "Start";
     $("ctaSub").textContent = started
-      ? ("Unit " + state.unitNumber + " · Section " + doneSections + " of " + UNIT1_SECTIONS.length)
-      : ("Unit " + state.unitNumber + " · Ready to start");
+      ? (activeChapterLabel() + " · Section " + doneSections + " of " + chapterSections(state.activeChapter).length)
+      : (activeChapterLabel() + " · Ready to start");
 
-    $("chaptersSub").textContent = UNITS.length + " Units";
+    $("chaptersSub").textContent = UNITS.length + " Units + 1 Zusatzkapitel";
     $("wordlistSub").textContent = state.merkliste.length + " " + (state.merkliste.length === 1 ? "word" : "words");
     $("duelSub").textContent = DUEL_CLASS;
 
@@ -1433,25 +1549,41 @@
   // ---- Kapitel ----
   function openChaptersModal(){
     var body = document.createElement("div");
-    body.appendChild(el("p", { text: "Green Line 4 in vier Units. Die „Across cultures“-Kapitel des Buchs sind vokabelseitig jeweils in die folgende Unit eingerechnet. Wir arbeiten Unit für Unit — Unit 1 ist startklar." }));
+    body.appendChild(el("p", { text: "Green Line 4 in vier Units plus dem Zusatzkapitel „Having a discussion“ zwischen Unit 1 und Unit 2. Die „Across cultures“-Kapitel des Buchs sind vokabelseitig jeweils in die folgende Unit eingerechnet. Wir arbeiten Unit für Unit — Unit 1 und „Having a discussion“ sind startklar." }));
     var list = el("ul", { className: "achv-list" });
+
+    function addReadyItem(label, chapterId){
+      var isCurrent = state.activeChapter === chapterId;
+      var btn = el("button", { className: "achv" + (isCurrent ? " current" : ""), style: "width:100%;border:none;cursor:pointer;text-align:left;font:inherit;color:inherit" }, [
+        el("span", { className: "achv-dot" }),
+        el("span", { text: label + (isCurrent ? " (aktuell)" : "") + " →" })
+      ]);
+      btn.addEventListener("click", function(){
+        state.activeChapter = chapterId;
+        saveState(state);
+        closeModal();
+        showView("unit");
+        render();
+      });
+      list.appendChild(el("li", null, [btn]));
+    }
+    function addLockedItem(label){
+      list.appendChild(el("li", { className: "achv locked" }, [
+        el("span", { className: "achv-dot" }),
+        el("span", { text: label + " — folgt später" })
+      ]));
+    }
+
     UNITS.forEach(function(u){
-      var ready = u.number === 1;
       var label = "Unit " + u.number + " · " + u.name + " (mit „" + u.acrossCultures + "“)";
-      if (ready) {
-        var btn = el("button", { className: "achv", style: "width:100%;border:none;cursor:pointer;text-align:left;font:inherit;color:inherit" }, [
-          el("span", { className: "achv-dot" }),
-          el("span", { text: label + " →" })
-        ]);
-        btn.addEventListener("click", function(){ closeModal(); showView("unit"); });
-        list.appendChild(el("li", null, [btn]));
+      if (u.number === 1) {
+        addReadyItem(label, "unit1");
+        addReadyItem("Having a discussion", "discussion");
       } else {
-        list.appendChild(el("li", { className: "achv locked" }, [
-          el("span", { className: "achv-dot" }),
-          el("span", { text: label + " — folgt später" })
-        ]));
+        addLockedItem(label);
       }
     });
+
     body.appendChild(list);
     openModal("Kapitel", body);
   }
@@ -1502,12 +1634,13 @@
   function exportProgressData(){
     return JSON.stringify({
       exportiertAm: new Date().toISOString(),
+      aktuellesKapitel: activeChapterLabel(),
       unit: state.unitNumber,
       unitName: state.unitName || null,
       wordsLearned: knownWordCount(state),
-      wordsTotal: UNIT1_WORDS.length,
-      abschnitteFertig: sectionDoneCount(state),
-      abschnitteGesamt: UNIT1_SECTIONS.length,
+      wordsTotal: ALL_WORDS.length,
+      abschnitteFertig: totalSectionDoneCount(state),
+      abschnitteGesamt: totalSectionCount(),
       streakCount: state.streakCount,
       merkliste: state.merkliste
     }, null, 2);
@@ -1542,7 +1675,7 @@
   // ---- Hilfe ----
   function openHelpModal(){
     var body = document.createElement("div");
-    body.appendChild(el("p", { text: "In „Kapitel“ lernst du die Vokabeln von Unit 1, abschnittsweise mit Karteikarten oder als Übersicht. Karteikarte umdrehen: tippen oder Leertaste. „Muss ich üben“ und der Stern in der Übersicht legen ein Wort auf deine Merkliste — dort wiederholst du es, bis du es zweimal hintereinander sicher kannst." }));
+    body.appendChild(el("p", { text: "In „Kapitel“ wählst du Unit 1 oder das Zusatzkapitel „Having a discussion“ und lernst dann abschnittsweise mit Karteikarten oder als Übersicht. Karteikarte umdrehen: tippen oder Leertaste. „Muss ich üben“ und der Stern in der Übersicht legen ein Wort auf deine Merkliste — dort wiederholst du es, bis du es zweimal hintereinander sicher kannst." }));
     body.appendChild(el("p", { text: "Dein Fortschritt wird nur auf diesem Gerät in diesem Browser gespeichert. Sichere ihn bei Bedarf über „Optionen → Fortschritt exportieren“, bevor du den Cache leerst oder das Gerät wechselst." }));
     body.appendChild(el("p", { text: "Hör- und Schreibübungen sowie das Duell gegen andere Klassen folgen im nächsten Ausbauschritt." }));
     openModal("Hilfe", body);
@@ -1551,9 +1684,9 @@
   // ---- Lehrkraft-Ansicht ----
   function openTeacherModal(){
     var rows = [
-      ["Unit", state.unitNumber + (state.unitName ? " · " + state.unitName : "")],
-      ["Gelernte Vokabeln", knownWordCount(state) + " / " + UNIT1_WORDS.length],
-      ["Abschnitte fertig", sectionDoneCount(state) + " von " + UNIT1_SECTIONS.length],
+      ["Aktuelles Kapitel", activeChapterLabel()],
+      ["Gelernte Vokabeln (gesamt)", knownWordCount(state) + " / " + ALL_WORDS.length],
+      ["Abschnitte fertig (gesamt)", totalSectionDoneCount(state) + " von " + totalSectionCount()],
       ["Serie (Tage in Folge)", String(state.streakCount)],
       ["Merkliste", String(state.merkliste.length) + " Wörter"],
       ["Letzter Besuch", state.lastVisitDate || "—"]
@@ -1612,12 +1745,17 @@
   }
 
   function renderUnitView(){
-    $("unitProgressSub").textContent = knownWordCount(state) + " / " + UNIT1_WORDS.length + " Vokabeln gelernt · " +
-      sectionDoneCount(state) + " von " + UNIT1_SECTIONS.length + " Abschnitten fertig";
+    var chId = state.activeChapter;
+    var sections = chapterSections(chId);
+    var words = chapterWords(chId);
+    $("unitCrumb").textContent = "Vokabel-Adventure · " + activeChapterLabel();
+    $("unitPageTitle").textContent = chId === "discussion" ? "Having a discussion" : state.unitName;
+    $("unitProgressSub").textContent = chapterWordsKnownCount(state, chId) + " / " + words.length + " Vokabeln gelernt · " +
+      sectionDoneCount(state, chId) + " von " + sections.length + " Abschnitten fertig";
     var list = $("sectionList");
     list.innerHTML = "";
     var freshlyEarned = [];
-    UNIT1_SECTIONS.forEach(function(sec, idx){
+    sections.forEach(function(sec, idx){
       var done = sectionAssessedCount(state, sec);
       var total = sec.words.length;
       var isDone = done === total;
@@ -1645,7 +1783,7 @@
     if (freshlyEarned.length) {
       freshlyEarned.forEach(function(name){ state.badgesSeen.push(name); });
       saveState(state);
-      showUnitToast("Geschafft: Unit " + state.unitNumber + " · " + freshlyEarned[freshlyEarned.length - 1] + "!");
+      showUnitToast("Geschafft: " + activeChapterLabel() + " · " + freshlyEarned[freshlyEarned.length - 1] + "!");
     }
   }
   $("unitBackBtn").addEventListener("click", function(){ showView("start"); });
@@ -1775,10 +1913,12 @@
     renderSectionView();
   }
   function renderSectionView(){
-    var sec = UNIT1_SECTIONS[currentSectionIndex];
+    var sections = chapterSections(state.activeChapter);
+    var sec = sections[currentSectionIndex];
     if (!sec) return;
+    $("sectionCrumb").textContent = "Vokabel-Adventure · " + activeChapterLabel();
     $("sectionTitle").textContent = sec.name;
-    $("sectionSub").textContent = sec.words.length + " Wörter · Unit 1, Abschnitt " + (currentSectionIndex + 1) + " von " + UNIT1_SECTIONS.length;
+    $("sectionSub").textContent = sec.words.length + " Wörter · " + activeChapterLabel() + ", Abschnitt " + (currentSectionIndex + 1) + " von " + sections.length;
 
     var words = sec.words.map(function(w){ return { en: w.en, de: w.de, section: sec.name }; });
 
@@ -1883,10 +2023,16 @@
   var currentGameIndex = 0;
 
   function renderGamesList(){
+    var chId = state.activeChapter;
+    var sections = chapterSections(chId);
+    var games = chapterGames(chId);
+    $("gamesPageSub").textContent = chId === "discussion"
+      ? "Ein Spiel pro Abschnitt aus „Having a discussion“ — mal Zuordnung, mal Wahr/Falsch."
+      : "Ein Spiel pro Abschnitt aus Unit 1 — mal Memory, mal Zuordnung, mal Wahr/Falsch.";
     var list = $("gameList");
     list.innerHTML = "";
-    UNIT1_SECTIONS.forEach(function(sec, idx){
-      var game = SECTION_GAMES[idx];
+    sections.forEach(function(sec, idx){
+      var game = games[idx];
       if (!game) return;
       var card = el("button", { className: "sec-card", type: "button" }, [
         el("span", { className: "sec-num", text: String(idx + 1) }),
@@ -1904,11 +2050,12 @@
 
   function openGame(idx){
     currentGameIndex = idx;
-    var sec = UNIT1_SECTIONS[idx];
-    var game = SECTION_GAMES[idx];
+    var chId = state.activeChapter;
+    var sec = chapterSections(chId)[idx];
+    var game = chapterGames(chId)[idx];
     if (!sec || !game) return;
     $("gamePlayTitle").textContent = sec.name;
-    $("gamePlaySub").textContent = "Unit 1 · " + GAME_TYPE_LABEL[game.type];
+    $("gamePlaySub").textContent = activeChapterLabel() + " · " + GAME_TYPE_LABEL[game.type];
     var body = $("gamePlayBody");
     body.innerHTML = "";
     if (game.type === "memory") body.appendChild(buildMemoryGame(game.emojis));
@@ -2437,14 +2584,25 @@
     UNITS: UNITS,
     UNIT1_SECTIONS: UNIT1_SECTIONS,
     UNIT1_WORDS: UNIT1_WORDS,
+    DISCUSSION_SECTIONS: DISCUSSION_SECTIONS,
+    DISCUSSION_WORDS: DISCUSSION_WORDS,
+    DISCUSSION_GAMES: DISCUSSION_GAMES,
+    ALL_WORDS: ALL_WORDS,
     MASTERY_REPEATS: MASTERY_REPEATS,
     state: state,
     render: render,
     computeStreak: computeStreak,
     computeAchievements: computeAchievements,
     knownWordCount: function(){ return knownWordCount(state); },
-    sectionDoneCount: function(){ return sectionDoneCount(state); },
-    sectionAssessedCount: function(idx){ return sectionAssessedCount(state, UNIT1_SECTIONS[idx]); },
+    sectionDoneCount: function(chapterId){ return sectionDoneCount(state, chapterId); },
+    totalSectionDoneCount: function(){ return totalSectionDoneCount(state); },
+    totalSectionCount: totalSectionCount,
+    sectionAssessedCount: function(idx, chapterId){ return sectionAssessedCount(state, chapterSections(chapterId || state.activeChapter)[idx]); },
+    chapterSections: chapterSections,
+    chapterWords: chapterWords,
+    chapterGames: chapterGames,
+    activeChapterLabel: activeChapterLabel,
+    setActiveChapter: function(id){ state.activeChapter = id; saveState(state); render(); },
     assessWord: function(en, outcome){
       var w = findWord(en); if (!w) return;
       assessWord(state, w, outcome, w.section);
@@ -2456,8 +2614,8 @@
       else addToMerkliste(state, w, w.section);
       saveState(state); render();
     },
-    completeSection: function(idx){
-      var sec = UNIT1_SECTIONS[idx]; if (!sec) return;
+    completeSection: function(idx, chapterId){
+      var sec = chapterSections(chapterId || state.activeChapter)[idx]; if (!sec) return;
       sec.words.forEach(function(w){ state.wordAssessments[w.en] = "know"; });
       saveState(state);
     },

@@ -30,7 +30,7 @@ check("Merkliste startet leer", doc.getElementById("wordlistSub").textContent ==
 
 // --- Unit 1: Datenstruktur ---
 check("4 Units definiert", G.UNITS.length === 4);
-check("Kapitel-Kachel zeigt 4 Units", doc.getElementById("chaptersSub").textContent === "4 Units");
+check("Kapitel-Kachel zeigt 4 Units + Zusatzkapitel", doc.getElementById("chaptersSub").textContent === "4 Units + 1 Zusatzkapitel");
 check("Unit 3 ist New York (Design-Beispiel stimmte)", G.UNITS[2].name === "City of dreams: New York");
 check("Unit 1 hat 10 Abschnitte", G.UNIT1_SECTIONS.length === 10);
 check("Jeder Abschnitt hat 14-22 Wörter (ca. 20)", G.UNIT1_SECTIONS.every(s => s.words.length >= 14 && s.words.length <= 22));
@@ -65,15 +65,17 @@ check("'Spiele' steht im Menue", !!doc.querySelector('[data-nav="games"]'));
 click(win, doc.querySelector('[data-nav="games"]'));
 check("'Spiele' oeffnet die Spiele-Uebersicht (kein Modal mehr)", G.currentView() === "games" && !G.isModalOpen());
 
-// --- Kapitel-Modal: Unit 1 klickbar, Unit 2-4 gesperrt ---
+// --- Kapitel-Modal: Unit 1 + "Having a discussion" klickbar, Unit 2-4 gesperrt ---
 click(win, doc.getElementById("chaptersTile"));
 check("Kapitel-Modal oeffnet", G.isModalOpen() === true);
 const chapterButtons = Array.from(doc.querySelectorAll("#modalBody button.achv"));
-check("Genau eine klickbare Unit im Kapitel-Modal", chapterButtons.length === 1);
+check("Zwei klickbare Kapitel im Kapitel-Modal (Unit 1 + Having a discussion)", chapterButtons.length === 2);
+check("Zweites klickbares Kapitel heisst 'Having a discussion'", chapterButtons[1].textContent.indexOf("Having a discussion") === 0);
 check("Unit 2-4 als gesperrt markiert", doc.querySelectorAll("#modalBody .achv.locked").length === 3);
 click(win, chapterButtons[0]);
 check("Klick auf Unit 1 schliesst Modal", G.isModalOpen() === false);
 check("Klick auf Unit 1 oeffnet Unit-Ansicht", G.currentView() === "unit");
+check("Klick auf Unit 1 setzt activeChapter auf unit1", G.state.activeChapter === "unit1");
 
 // --- Unit-Ansicht: 10 Abschnitts-Karten ---
 const sectionCards = Array.from(doc.querySelectorAll("#sectionList .sec-card"));
@@ -398,11 +400,66 @@ check("Merkliste-Liste zeigt jetzt 0 Eintraege", doc.querySelectorAll("#mkListWr
   check("Zuruecksetzen leert alle Felder", blanks.every(b => b.value === "" && !b.classList.contains("correct") && !b.classList.contains("wrong")));
 }
 
+// --- Zusatzkapitel "Having a discussion": Datenstruktur ---
+check("6 Abschnitte (ein Abschnitt pro Themenblock)", G.DISCUSSION_SECTIONS.length === 6);
+check("Abschnittsnamen sind die Themen-Ueberschriften", G.DISCUSSION_SECTIONS.map(s => s.name).join(",") ===
+  "Introduction,Personal opinion,Agreement,Disagreement,Questions,Conclusion");
+check("27 Phrasen insgesamt", G.DISCUSSION_WORDS.length === 27);
+check("Jede Phrase hat eine deutsche Uebersetzung", G.DISCUSSION_WORDS.every(w => w.de && w.de.length > 0));
+const discussionEns = G.DISCUSSION_WORDS.map(w => w.en);
+check("Keine doppelten Phrasen-Schluessel", new Set(discussionEns).size === discussionEns.length);
+check("Kein Ueberschneiden mit Unit-1-Vokabeln (keine doppelten en-Keys)",
+  G.UNIT1_WORDS.every(w => discussionEns.indexOf(w.en) === -1));
+check("Nur Zuordnung + Wahr/Falsch, kein Memory", G.DISCUSSION_GAMES.every(g => g.type === "match" || g.type === "truefalse"));
+check("Spiel 1:1 zu Abschnitten", G.DISCUSSION_GAMES.length === G.DISCUSSION_SECTIONS.length);
+
+// --- Zusatzkapitel "Having a discussion": Kapitelwechsel ueber __game ---
+G.setActiveChapter("discussion");
+check("activeChapter wechselt zu discussion", G.state.activeChapter === "discussion");
+check("Label zeigt 'Having a discussion' ohne Unit-Nummer", G.activeChapterLabel() === "Having a discussion");
+G.showView("unit");
+check("unitPageTitle zeigt 'Having a discussion'", doc.getElementById("unitPageTitle").textContent === "Having a discussion");
+check("unitCrumb zeigt 'Having a discussion'", doc.getElementById("unitCrumb").textContent.indexOf("Having a discussion") !== -1);
+const discSectionCards = Array.from(doc.querySelectorAll("#sectionList .sec-card"));
+check("6 Abschnitts-Karten fuer Having a discussion gerendert", discSectionCards.length === 6);
+
+// --- Zusatzkapitel: Karteikarten (Deutsch vorne, Englisch hinten) + Uebersicht (Englisch-first) ---
+click(win, discSectionCards[0]);
+check("Abschnitts-Ansicht aktiv", G.currentView() === "section");
+const firstDiscWord = G.DISCUSSION_SECTIONS[0].words[0];
+check("Karteikarte zeigt zuerst Deutsch (Vorderseite)", doc.querySelector(".fc-front .fc-word").textContent === firstDiscWord.de);
+check("Kartenrueckseite zeigt Englisch", doc.querySelector(".fc-back .fc-word").textContent === firstDiscWord.en);
+check("Karteikarten-Tag zeigt die Ueberschrift (Introduction), nicht abgefragt", doc.querySelector(".fc-front .fc-tag").textContent === "Introduction");
+const discOvFirstRow = doc.querySelector(".ov-table tr");
+check("Uebersicht Spalte 1 ist Englisch", discOvFirstRow.querySelector("td.en").textContent.trim() === firstDiscWord.en);
+check("Uebersicht Spalte 2 ist Deutsch", discOvFirstRow.querySelector("td.de").textContent.trim() === firstDiscWord.de);
+
+// Stern markiert Merkliste mit dem Abschnittsnamen als "section"
+click(win, discOvFirstRow.querySelector(".ov-star"));
+const mkEntry = G.state.merkliste.find(m => m.en === firstDiscWord.en);
+check("Merkliste-Eintrag hat die Ueberschrift als Abschnitt", !!mkEntry && mkEntry.section === "Introduction");
+
+// --- Zusatzkapitel: Spiele (nur Zuordnung + Wahr/Falsch) ---
+G.showView("games");
+check("Spiele-Unterzeile nennt 'Having a discussion', kein Memory", doc.getElementById("gamesPageSub").textContent.indexOf("Memory") === -1);
+const discGameChips = Array.from(doc.querySelectorAll(".game-type-chip")).map(e => e.textContent);
+check("6 Spiele-Chips, abwechselnd Zuordnung/Wahr-Falsch", discGameChips.join(",") ===
+  "Zuordnung,Wahr/Falsch,Zuordnung,Wahr/Falsch,Zuordnung,Wahr/Falsch");
+G.openGame(0);
+check("Zuordnungsspiel zeigt die 3 Introduction-Phrasen (je 2 Spalten)", doc.querySelectorAll(".match-item").length === 6);
+G.showView("games");
+G.openGame(1);
+check("Wahr/Falsch-Spiel laedt eine Aussage", !!doc.querySelector(".tf-card") && doc.querySelector(".tf-card").textContent.length > 0);
+
+// activeChapter wieder auf unit1 zuruecksetzen, damit nachfolgende globale
+// Checks (Export, Reset) sich wie gewohnt auf Unit 1 beziehen
+G.setActiveChapter("unit1");
+
 // --- Export ---
 const exported = JSON.parse(G.exportProgressData());
 check("Export enthaelt Streak", exported.streakCount === 1);
 check("Export enthaelt gelernte Vokabeln", exported.wordsLearned === G.knownWordCount());
-check("Export enthaelt Abschnittsfortschritt", exported.abschnitteGesamt === 10);
+check("Export enthaelt Abschnittsfortschritt (ueber beide Kapitel)", exported.abschnitteGesamt === 16);
 
 // --- Reset ist idempotent nutzbar ---
 G.resetProgress();
